@@ -123,7 +123,7 @@
         .cast-photo { width: 80px; height: 120px; object-fit: cover; border-radius: 4px; background-color: #222; border: 1px solid #333; }
         .cast-name-small { font-size: 10px; color: #aaa; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* --- 5. OVERLAYS DIVERS (BA, ACTEUR, ADMIN, COVER, DISCORD) --- */
+        /* --- 5. OVERLAYS DIVERS (BA, ACTEUR, ADMIN, COVER, DISCORD, PROFIL) --- */
         #trailer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
         .trailer-content { width: 90%; max-width: 900px; position: relative; aspect-ratio: 16 / 9; background: #000; }
         .trailer-close-btn { position: absolute; top: -20px; right: -20px; background: var(--primary); color: black; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 3010; display: flex; align-items: center; justify-content: center; font-size: 20px; }
@@ -187,6 +187,17 @@
         #access-code-input:focus { border-color: var(--primary); }
         .btn-validate-code { background: #333; color: white; border: none; padding: 0 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-validate-code:hover { background: var(--primary); color: black; }
+
+        /* NOUVEAU : STYLE POUR LA MODAL DE PROFIL */
+        #profile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 8000; justify-content: center; align-items: center; }
+        .profile-modal { background: #1a1a1a; width: 400px; max-width: 90%; border-radius: 8px; padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--primary); text-align: center; position: relative; }
+        .profile-close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer; }
+        .profile-modal h2 { color: var(--primary); margin-bottom: 20px; }
+        .profile-modal input { width: 100%; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; margin-bottom: 10px; outline: none; }
+        .profile-modal input:focus { border-color: var(--primary); }
+        .profile-modal button.action-btn { width: 100%; background: var(--primary); color: black; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: 0.2s; }
+        .profile-modal button.action-btn:hover { background: #e6c800; }
+        .profile-modal button.sec-btn { width: 100%; background: #333; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; margin-bottom: 10px; }
 
         #vip-diamond { display: none; position: fixed; bottom: 20px; right: 20px; font-size: 40px; color: #ff69b4; z-index: 9000; cursor: default; filter: drop-shadow(0 0 10px #ff69b4); animation: floatDiamond 3s ease-in-out infinite; }
         @keyframes floatDiamond { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px #ff69b4); } 50% { transform: translateY(-10px); filter: drop-shadow(0 0 20px #ff69b4); } }
@@ -293,11 +304,37 @@ function resetSite() {
                 REJOINDRE LE SERVEUR
             </a>
 
-            <div class="access-form" id="auth-form">
+            <form class="access-form" id="auth-form">
                 <input type="text" id="access-code-input" placeholder="Entrez le code d'accès ici..." autocomplete="off">
-                <button class="btn-validate-code" onclick="checkAccessCode()">VALIDER</button>
-            </div>
+                <button type="submit" class="btn-validate-code" id="auth-btn">VALIDER</button>
+            </form>
+            
+            <p id="auth-switch" style="font-size: 12px; color: #aaa; cursor: pointer; text-align:center; margin-top:10px; display: none;" onclick="toggleAuthMode()">Pas de compte ? Créer un compte</p>
             <p id="access-error" style="color:#e74c3c; font-size:12px; display:none; margin-top:10px;">Code incorrect !</p>
+        </div>
+    </div>
+
+    <div id="profile-overlay">
+        <div class="profile-modal">
+            <button class="profile-close-btn" onclick="document.getElementById('profile-overlay').style.display = 'none';">×</button>
+            <h2>Mon Profil</h2>
+            
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label style="color: #aaa; font-size: 12px; font-weight: bold;">Changer la photo de profil (URL)</label>
+                <input type="text" id="input-new-pic" placeholder="https://lien-de-mon-image.jpg">
+                <button class="action-btn" onclick="updateProfilePic()">Mettre à jour la photo</button>
+            </div>
+            
+            <div style="text-align: left; border-top: 1px solid #333; padding-top: 20px;">
+                <label style="color: #aaa; font-size: 12px; font-weight: bold;">Changer le mot de passe</label>
+                <input type="password" id="input-new-pass" placeholder="Nouveau mot de passe (min 6 car.)">
+                <button class="action-btn" onclick="updatePassword()">Mettre à jour le mot de passe</button>
+            </div>
+
+            <div style="border-top: 1px solid #333; padding-top: 20px; margin-top: 10px;">
+                <button class="sec-btn" onclick="showHistory()"><i class="fas fa-history"></i> Mon Historique</button>
+                <button class="sec-btn" onclick="document.getElementById('profile-overlay').style.display = 'none'; setCategory('favorites'); document.getElementById('cat-title').innerText = 'Mes Favoris ❤️'; updateGrid(true);"><i class="fas fa-heart"></i> Mes Favoris</button>
+            </div>
         </div>
     </div>
 
@@ -340,7 +377,7 @@ function resetSite() {
 
     <div class="header-right">
         
-        <div id="user-profile-nav" style="display:none; align-items:center; gap:10px; cursor:pointer; margin-right:15px;" onclick="showProfileMenu()">
+        <div id="user-profile-nav" style="display:none; align-items:center; gap:10px; cursor:pointer; margin-right:15px;" onclick="document.getElementById('profile-overlay').style.display = 'flex';">
             <img id="nav-avatar" src="" style="width:35px; height:35px; border-radius:50%; border:2px solid var(--primary); object-fit:cover;">
             </div>
 
@@ -583,7 +620,7 @@ function resetSite() {
 
     // --- 1. VARIABLES GLOBALES ---
     let currentUser = null;
-    let isLoginMode = true;
+    let isLoginMode = false; // Modifié : On commence par la vérification du code (pas besoin de double clic)
     let isVipUser = false;
     let hasAccess = false; 
     let moviesDB = [];
@@ -626,6 +663,21 @@ function resetSite() {
             }
         });
 
+        // NOUVEAU : GESTION DU FORMULAIRE D'ACCES / CONNEXION
+        document.getElementById('auth-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêche la page de se recharger
+            if (hasAccess) return; // Si déjà connecté, on ne fait rien
+            
+            // Si on est à l'étape 1 (Code d'accès)
+            if (document.getElementById('access-code-input')) {
+                checkAccessCode();
+            } 
+            // Si on est à l'étape 2 (Pseudo / Mdp)
+            else {
+                handleAuth();
+            }
+        });
+
         setCategory('all');
     };
 
@@ -634,6 +686,8 @@ function resetSite() {
         const input = document.getElementById('access-code-input');
         const errorMsg = document.getElementById('access-error');
         const code = input.value.trim();
+
+        if(!code) return; // Ne rien faire si vide
 
         try {
             const res = await fetch(`${API_URL}/api/verify-gate`, {
@@ -645,7 +699,8 @@ function resetSite() {
 
             if (data.success) {
                 isVipUser = data.isVip;
-                switchToAuthUI(); // Passe à l'écran de Login
+                isLoginMode = true; // On passe en mode login
+                switchToAuthUI(); 
             } else {
                 errorMsg.style.display = 'block';
                 input.style.border = '1px solid red';
@@ -660,14 +715,14 @@ function resetSite() {
         document.getElementById('auth-title').innerText = "Connexion Membre";
         document.getElementById('auth-desc').innerText = "Connectez-vous pour voir vos favoris et votre historique.";
         document.getElementById('auth-discord-btn').style.display = 'none';
+        document.getElementById('auth-switch').style.display = 'block'; // Affiche le bouton créer compte
         
         const form = document.getElementById('auth-form');
         form.style.flexDirection = 'column';
         form.innerHTML = `
-            <input type="text" id="username-input" placeholder="Pseudo..." class="form-input" style="width:100%; text-align:left;">
-            <input type="password" id="password-input" placeholder="Mot de passe..." class="form-input" style="width:100%; text-align:left;">
-            <button class="btn-validate-code" onclick="handleAuth()" id="auth-btn" style="width:100%;">SE CONNECTER</button>
-            <p id="auth-switch" style="font-size: 12px; color: #aaa; cursor: pointer; text-align:center; margin-top:10px;" onclick="toggleAuthMode()">Pas de compte ? Créer un compte</p>
+            <input type="text" id="username-input" placeholder="Pseudo..." class="form-input" style="width:100%; text-align:left;" required>
+            <input type="password" id="password-input" placeholder="Mot de passe..." class="form-input" style="width:100%; text-align:left;" required>
+            <button type="submit" class="btn-validate-code" id="auth-btn" style="width:100%;">SE CONNECTER</button>
         `;
     }
 
@@ -682,6 +737,8 @@ function resetSite() {
         const username = document.getElementById('username-input').value;
         const password = document.getElementById('password-input').value;
         const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+
+        if(!username || !password) return; // Sécurité si vide
 
         try {
             const res = await fetch(API_URL + endpoint, {
@@ -733,6 +790,49 @@ function resetSite() {
         loadSecureMovies();
     }
 
+    // --- NOUVEAU : FONCTIONS PROFIL (IMAGE & MOT DE PASSE) ---
+    async function updateProfilePic() {
+        const newPic = document.getElementById('input-new-pic').value.trim();
+        if (!newPic) return alert("Veuillez entrer une URL d'image valide.");
+
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/user/update-pic`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ url: newPic })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentUser.profilePic = newPic;
+                document.getElementById('nav-avatar').src = newPic;
+                document.getElementById('input-new-pic').value = '';
+                alert("Photo mise à jour !");
+            }
+        } catch (e) { alert("Erreur lors de la mise à jour"); }
+    }
+
+    async function updatePassword() {
+        const newPassword = document.getElementById('input-new-pass').value.trim();
+        if (!newPassword || newPassword.length < 6) return alert("Le mot de passe doit contenir au moins 6 caractères.");
+
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/user/update-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ newPassword })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('input-new-pass').value = '';
+                alert("✅ " + data.message);
+            } else {
+                alert("❌ " + data.message);
+            }
+        } catch (e) { alert("Erreur serveur lors du changement de mot de passe"); }
+    }
+
     // --- 4. CHARGEMENT DES FILMS DEPUIS LE BACKEND ---
     async function loadSecureMovies() {
         const token = localStorage.getItem('monBadgeCineLK10');
@@ -768,32 +868,8 @@ function resetSite() {
         }
     }
 
-    function showProfileMenu() {
-        const choix = confirm("Afficher vos films Favoris (OK) ou Changer la photo de profil (Annuler) ?");
-        if (choix) {
-            currentCategory = 'favorites';
-            document.getElementById('cat-title').innerText = "Mes Favoris ❤️";
-            // Ajoute un bouton historique si pas déjà là
-            if (!document.getElementById('btn-history')) {
-                document.getElementById('cat-title').insertAdjacentHTML('afterend', `<button id="btn-history" onclick="showHistory()" class="tab-btn" style="border-top-color:#3498db; color:#3498db; margin-left:10px;">Mon Historique 👁️</button>`);
-            }
-            updateGrid(true);
-        } else {
-            const newPic = prompt("Collez le lien URL de votre nouvelle image :", currentUser.profilePic);
-            if (newPic) {
-                const token = localStorage.getItem('monBadgeCineLK10');
-                fetch(`${API_URL}/api/user/update-pic`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'authorization': token },
-                    body: JSON.stringify({ url: newPic })
-                });
-                currentUser.profilePic = newPic;
-                document.getElementById('nav-avatar').src = newPic;
-            }
-        }
-    }
-
     function showHistory() {
+        document.getElementById('profile-overlay').style.display = 'none';
         currentCategory = 'history';
         document.getElementById('cat-title').innerText = "Films déjà vus 👁️";
         updateGrid(true);
