@@ -702,6 +702,16 @@ function resetSite() {
         const savedToken = localStorage.getItem('monBadgeCineLK10');
         if (savedToken) {
             autoLogin(savedToken); 
+        } else {
+            // NOUVEAU : Vérifie s'il connaît déjà le code d'accès
+            const savedCode = localStorage.getItem('lk10_gate_code');
+            if (savedCode) {
+                const accessInput = document.getElementById('access-code-input');
+                if(accessInput) {
+                    accessInput.value = savedCode;
+                    checkAccessCode(); // Passe la porte automatiquement !
+                }
+            }
         }
 
         initMegaMenu(); 
@@ -749,6 +759,10 @@ function resetSite() {
             if (data.success) {
                 isVipUser = data.isVip;
                 isLoginMode = true;
+                
+                // NOUVEAU : On sauvegarde le code d'accès pour ne plus le retaper
+                localStorage.setItem('lk10_gate_code', code);
+                
                 switchToAuthUI(); 
             } else {
                 errorMsg.style.display = 'block';
