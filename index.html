@@ -9,7 +9,7 @@
     <title>Ciné LK10</title>
      <link rel="icon" type="image/png" href="asset/logolk10.png"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
+   <style>
         /* --- 1. BASES & VARIABLES --- */
         :root { --primary: #ffde00; --dark: #151515; --light: #222; --text: #eee; --grey: #aaa; --danger: #e74c3c; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
@@ -308,24 +308,45 @@
             .details-area { flex-direction: column; align-items: center; padding: 15px; }
             
             /* 1. L'image tout en haut */
-            .d-left { width: 100%; max-width: 100%; margin-bottom: 0; display: flex; flex-direction: column; align-items: center; order: 1; }
-            .d-poster-img { width: 100%; max-width: 200px; height: 300px !important; background-size: cover !important; background-repeat: no-repeat !important; background-position: top center !important; background-color: #000; border-radius: 4px; box-shadow: 0 0 15px rgba(0,0,0,0.5); border: 1px solid #333; margin: 0 auto !important; }
+            .d-left { 
+                width: 100%; max-width: 100%; margin-bottom: 0; 
+                display: flex; flex-direction: column; align-items: center; 
+                order: 1; 
+            }
+            .d-poster-img { 
+                width: 100%; max-width: 200px; height: 300px !important; 
+                background-size: cover !important; background-repeat: no-repeat !important; 
+                background-position: top center !important; background-color: #000; 
+                border-radius: 4px; box-shadow: 0 0 15px rgba(0,0,0,0.5); 
+                border: 1px solid #333; margin: 0 auto !important; 
+                order: 1; 
+            }
             .d-poster-img .score-badge { display: none !important; } 
             
             /* 2. Cœur et Horloge juste sous l'image */
-            .detail-action-bar { display: flex; justify-content: center; gap: 30px; margin: 15px 0; width: 100%; }
+            .detail-action-bar { 
+                display: flex; justify-content: center; gap: 30px; margin: 15px 0; width: 100%; 
+                order: 2; 
+            }
             .detail-action-btn { width: 50px; height: 50px; font-size: 20px; }
             
             /* 3. Bouton Bande annonce */
-            .btn-trailer { width: 100%; max-width: 250px; margin-top: 0; margin-bottom: 15px; }
+            .btn-trailer { 
+                width: 100%; max-width: 250px; margin-top: 0; margin-bottom: 15px; 
+                order: 3; 
+            }
 
             /* 4. La Note avec le Pouce (déplacée au centre) */
-            .d-right { width: 100%; display: flex; flex-direction: row; justify-content: center; order: 2; margin-top: 10px; margin-bottom: 20px; padding-top: 20px; padding-bottom: 20px; border-top: 1px solid #333; border-bottom: 1px solid #333; gap: 20px; }
+            .d-right { 
+                width: 100%; display: flex; flex-direction: row; justify-content: center; 
+                order: 4; margin-top: 10px; margin-bottom: 20px; padding-top: 20px; 
+                padding-bottom: 20px; border-top: 1px solid #333; border-bottom: 1px solid #333; gap: 20px; 
+            }
             .d-right .vote-row { margin: 0; flex-direction: row; align-items: center; gap: 15px; }
             .d-right .vote-count { display: none; } 
 
             /* 5. Le reste des infos (Titre, Desc, Acteurs) tout en bas */
-            .d-center { width: 100%; text-align: center; order: 3; }
+            .d-center { width: 100%; text-align: center; order: 5; }
             .d-title-row { justify-content: center; }
             .tech-info { grid-template-columns: 1fr; text-align: center; }
 
@@ -336,7 +357,11 @@
             .prof-user-info img { width: 70px; height: 70px; }
             .prof-user-info h1 { font-size: 22px; }
             .prof-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            .prof-btn-settings, .prof-btn-logout { padding: 12px 10px !important; font-size: 11px !important; width: 100%; }
+            
+            /* BOUTONS AVEC COULEURS SPECIFIQUES SUR MOBILE */
+            .prof-btn-settings { padding: 12px 10px !important; font-size: 11px !important; width: 100%; background-color: #333 !important; }
+            .prof-btn-logout { padding: 12px 10px !important; font-size: 11px !important; width: 100%; background-color: var(--danger) !important; color: white !important; }
+            
             .prof-btn-close { display: none !important; } 
             .prof-close-mobile { display: block !important; position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 5px; }
             
@@ -935,9 +960,8 @@ function closeCover() {
         document.getElementById('user-profile-nav').style.display = 'flex';
         document.getElementById('nav-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         
-        const localWl = localStorage.getItem('local_watchlater_' + currentUser.username);
-        if(localWl) currentUser.watchlater = JSON.parse(localWl);
-
+        // localStorage de l'horloge supprimé ici comme convenu
+        
         loadSecureMovies();
     }
 
@@ -1018,10 +1042,10 @@ function closeCover() {
             div.onclick = () => { closeProfilePage(); openP(m.id); };
             div.innerHTML = `
                 <div class="card-actions">
-                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
+                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
                         <i class="fas fa-heart"></i>
                     </button>
-                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
+                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
                         <i class="fas fa-clock"></i>
                     </button>
                 </div>
@@ -1099,7 +1123,7 @@ function closeCover() {
 
     // --- 5. LOGIQUE FAVORIS ET À VOIR ---
     async function toggleFavorite(movieId, e) {
-        if(e) { e.preventDefault(); e.stopPropagation(); }
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
         if(!currentUser) return alert("Vous devez être connecté !");
         
         const token = localStorage.getItem('monBadgeCineLK10');
@@ -1126,8 +1150,10 @@ function closeCover() {
     }
     
     async function toggleWatchlater(movieId, e) {
-        if(e) { e.preventDefault(); e.stopPropagation(); }
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
         if(!currentUser) return alert("Vous devez être connecté pour utiliser 'À Voir' !");
+        
+        const token = localStorage.getItem('monBadgeCineLK10');
         
         if(!currentUser.watchlater) currentUser.watchlater = [];
         const idx = currentUser.watchlater.indexOf(movieId);
@@ -1135,12 +1161,8 @@ function closeCover() {
         if(idx === -1) { currentUser.watchlater.push(movieId); isActive = true; }
         else { currentUser.watchlater.splice(idx, 1); isActive = false; }
         
-        localStorage.setItem('local_watchlater_' + currentUser.username, JSON.stringify(currentUser.watchlater));
-        
         handleActionVisualUpdate(movieId, 'wl', isActive);
         
-        // Tente de sauvegarder sur le serveur si la route a été ajoutée
-        const token = localStorage.getItem('monBadgeCineLK10');
         try {
             const res = await fetch(`${API_URL}/api/user/toggle-watchlater`, {
                 method: 'POST',
@@ -1148,8 +1170,11 @@ function closeCover() {
                 body: JSON.stringify({ movieId })
             });
             const data = await res.json();
-            if (data.success) { currentUser.watchlater = data.watchlater; }
-        } catch (err) { }
+            if (data.success) { 
+                currentUser.watchlater = data.watchlater; 
+                handleActionVisualUpdate(movieId, 'wl', data.watchlater.includes(movieId));
+            }
+        } catch (err) { console.error(err); }
     }
     
     function handleActionVisualUpdate(movieId, type, isActive) {
@@ -1232,10 +1257,10 @@ function closeCover() {
             div.onclick = () => openP(m.id);
             div.innerHTML = `
                 <div class="card-actions">
-                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
+                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
                         <i class="fas fa-heart"></i>
                     </button>
-                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
+                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
                         <i class="fas fa-clock"></i>
                     </button>
                 </div>
