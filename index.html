@@ -188,6 +188,29 @@
         .btn-validate-code { background: #333; color: white; border: none; padding: 0 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-validate-code:hover { background: var(--primary); color: black; }
 
+        /* NOUVEAU : CSS PROFIL RESPONSIVE (Remplace les styles en ligne) */
+        .profile-page-wrapper { display:none; position:fixed; top:70px; left:0; width:100%; height:calc(100% - 70px); background:var(--dark); z-index:1050; overflow-y:auto; padding:30px; }
+        .profile-page-inner { max-width:1200px; margin:0 auto; }
+        
+        .prof-header { background:#1e1e1e; border-radius:10px; padding:20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; border: 1px solid #333; }
+        .prof-user-info { display:flex; align-items:center; gap:20px; }
+        .prof-user-info img { width:80px; height:80px; border-radius:50%; border:3px solid var(--primary); object-fit:cover; }
+        .prof-user-info h1 { color:white; font-size:28px; margin:0; }
+        .prof-actions { display:flex; gap:10px; }
+        .prof-btn-settings, .prof-btn-close { background:#333; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size: 12px; }
+        .prof-btn-logout { background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size: 12px; }
+        .prof-close-mobile { display:none; }
+        
+        .prof-stats-container { display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap; }
+        .prof-stat-box { flex:1; min-width: 150px; background:#1e1e1e; padding:20px; text-align:center; border-radius:5px; border: 1px solid #333; }
+        .stat-num { font-size:24px; color:var(--primary); font-weight:bold; }
+        .stat-label { color:#888; font-size:12px; text-transform:uppercase; margin-top:5px; font-weight: bold; }
+
+        .prof-tabs-container { display:flex; justify-content:space-between; border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px; flex-wrap: wrap; gap: 10px; }
+        .prof-tabs-left { display:flex; gap:30px; }
+        
+        .prof-filters-container { display:flex; justify-content:center; gap:20px; margin-bottom:30px; }
+
         /* NOUVEAU : STYLE POUR LES REGLAGES (POPUP) */
         #settings-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 12000; justify-content: center; align-items: center; }
         .settings-modal { background: #1a1a1a; width: 400px; max-width: 90%; border-radius: 8px; padding: 30px; box-shadow: 0 0 20px rgba(0,0,0,0.8); border: 1px solid var(--primary); text-align: center; position: relative; }
@@ -198,7 +221,6 @@
         .settings-modal button.action-btn { width: 100%; background: var(--primary); color: black; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: 0.2s; }
         .settings-modal button.action-btn:hover { background: #e6c800; }
 
-        /* NOUVEAU : STYLE DE LA PAGE PROFIL TABLEAU DE BORD */
         .prof-tab-btn { color: #888; cursor: pointer; transition: 0.3s; padding-bottom: 5px; font-size: 14px; }
         .prof-tab-btn:hover { color: white; }
         .prof-tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: bold; }
@@ -282,6 +304,30 @@
             .d-title-row { justify-content: center; }
             .tech-info { grid-template-columns: 1fr; text-align: center; }
             .d-right { flex-direction: row; justify-content: center; margin-top: 15px; }
+
+            /* NOUVEAU : RESPONSIVE PARFAIT POUR LA PAGE PROFIL (Basé sur la photo) */
+            .profile-page-wrapper { padding: 15px !important; }
+            .prof-header { flex-direction: column; text-align: center; gap: 15px; padding: 30px 15px 20px 15px; position: relative; }
+            .prof-user-info { flex-direction: column; gap: 10px; }
+            .prof-user-info img { width: 70px; height: 70px; }
+            .prof-user-info h1 { font-size: 22px; }
+            .prof-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+            .prof-btn-settings, .prof-btn-logout { padding: 12px 10px !important; font-size: 11px !important; width: 100%; }
+            .prof-btn-close { display: none !important; } /* Caché sur mobile, on utilise la petite croix */
+            .prof-close-mobile { display: block !important; position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #888; font-size: 20px; cursor: pointer; padding: 5px; }
+            
+            .prof-stats-container { gap: 10px; }
+            .prof-stat-box { min-width: 30%; padding: 10px !important; }
+            .stat-num { font-size: 18px !important; }
+            .stat-label { font-size: 10px !important; }
+
+            .prof-tabs-container { flex-direction: column; align-items: center; gap: 15px; border-bottom: none; }
+            .prof-tabs-left { flex-direction: column; gap: 15px; align-items: center; width: 100%; border-bottom: 1px solid #333; padding-bottom: 15px; }
+            .prof-tabs-container > div:last-child { width: 100%; text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; }
+            .prof-tab-btn { font-size: 12px; }
+            
+            .prof-filters-container { flex-wrap: wrap; gap: 10px; }
+            .prof-filter-btn { flex: 1; min-width: 30%; padding: 8px 5px; font-size: 11px; }
         }
 
         @media (max-width: 480px) { .logo img { height: 50px; } .poster { height: 220px; } }
@@ -399,38 +445,39 @@ function resetSite() {
     </div>
     </header>
 
-    <div id="profile-page" style="display:none; position:fixed; top:70px; left:0; width:100%; height:calc(100% - 70px); background:var(--dark); z-index:1050; overflow-y:auto; padding:30px;">
-        <div style="max-width:1200px; margin:0 auto;">
+    <div id="profile-page" class="profile-page-wrapper">
+        <div class="profile-page-inner">
             
-            <div style="background:#1e1e1e; border-radius:10px; padding:20px; display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; border: 1px solid #333;">
-                <div style="display:flex; align-items:center; gap:20px;">
-                    <img id="prof-page-avatar" src="" style="width:80px; height:80px; border-radius:50%; border:3px solid var(--primary); object-fit:cover;">
-                    <h1 id="prof-page-name" style="color:white; font-size:28px;">Utilisateur</h1>
+            <div class="prof-header">
+                <button class="prof-close-mobile" onclick="closeProfilePage()"><i class="fas fa-times"></i></button>
+                <div class="prof-user-info">
+                    <img id="prof-page-avatar" src="" alt="Avatar">
+                    <h1 id="prof-page-name">Utilisateur</h1>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button onclick="document.getElementById('settings-overlay').style.display='flex';" style="background:#333; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size: 12px;"><i class="fas fa-cog"></i> Paramètres</button>
-                    <button onclick="logoutUser()" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size: 12px;"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
-                    <button onclick="closeProfilePage()" style="background:#333; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; font-weight:bold; font-size: 12px;"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-
-            <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap;">
-                <div style="flex:1; min-width: 150px; background:#1e1e1e; padding:20px; text-align:center; border-radius:5px; border-bottom:3px solid var(--primary);">
-                    <div id="stat-fav" style="font-size:24px; color:var(--primary); font-weight:bold;">0</div>
-                    <div style="color:#888; font-size:12px; text-transform:uppercase; margin-top:5px; font-weight: bold;">FAVORIS</div>
-                </div>
-                <div style="flex:1; min-width: 150px; background:#1e1e1e; padding:20px; text-align:center; border-radius:5px; border: 1px solid #333;">
-                    <div id="stat-voir" style="font-size:24px; color:var(--primary); font-weight:bold;">0</div>
-                    <div style="color:#888; font-size:12px; text-transform:uppercase; margin-top:5px; font-weight: bold;">À VOIR</div>
-                </div>
-                <div style="flex:1; min-width: 150px; background:#1e1e1e; padding:20px; text-align:center; border-radius:5px; border: 1px solid #333;">
-                    <div id="stat-top" style="font-size:24px; color:var(--primary); font-weight:bold;">0</div>
-                    <div style="color:#888; font-size:12px; text-transform:uppercase; margin-top:5px; font-weight: bold;">TOP</div>
+                <div class="prof-actions">
+                    <button onclick="document.getElementById('settings-overlay').style.display='flex';" class="prof-btn-settings"><i class="fas fa-cog"></i> Paramètres</button>
+                    <button onclick="logoutUser()" class="prof-btn-logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+                    <button onclick="closeProfilePage()" class="prof-btn-close"><i class="fas fa-times"></i></button>
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; margin-bottom:20px; padding-bottom:10px; flex-wrap: wrap; gap: 10px;">
-                <div style="display:flex; gap:30px;">
+            <div class="prof-stats-container">
+                <div class="prof-stat-box" style="border-bottom:3px solid var(--primary);">
+                    <div id="stat-fav" class="stat-num">0</div>
+                    <div class="stat-label">FAVORIS</div>
+                </div>
+                <div class="prof-stat-box">
+                    <div id="stat-voir" class="stat-num">0</div>
+                    <div class="stat-label">À VOIR</div>
+                </div>
+                <div class="prof-stat-box">
+                    <div id="stat-top" class="stat-num">0</div>
+                    <div class="stat-label">TOP</div>
+                </div>
+            </div>
+
+            <div class="prof-tabs-container">
+                <div class="prof-tabs-left">
                     <span id="tab-favorites" class="prof-tab-btn active" onclick="switchProfTab('favorites')"><i class="fas fa-heart"></i> Favoris <span id="tab-fav-count" style="color: var(--primary);">0</span></span>
                     <span class="prof-tab-btn" onclick="alert('Bientôt disponible !')"><i class="fas fa-clock"></i> À voir <span style="color: #666;">0</span></span>
                     <span class="prof-tab-btn" onclick="alert('Bientôt disponible !')"><i class="fas fa-trophy"></i> Mon Top <span style="color: #666;">0</span></span>
@@ -440,7 +487,7 @@ function resetSite() {
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:center; gap:20px; margin-bottom:30px;">
+            <div class="prof-filters-container">
                 <button id="pfilter-all" class="prof-filter-btn active" onclick="setProfTypeFilter('all')">Tout</button>
                 <button id="pfilter-film" class="prof-filter-btn" onclick="setProfTypeFilter('film')"><i class="fas fa-film"></i> Films</button>
                 <button id="pfilter-serie" class="prof-filter-btn" onclick="setProfTypeFilter('serie')"><i class="fas fa-tv"></i> Séries</button>
