@@ -524,16 +524,16 @@ function closeCover() {
                 </div>
             </div>
 
-            <div class="prof-stats-container">
-                <div class="prof-stat-box" style="border-bottom:3px solid var(--primary);">
+          <div class="prof-stats-container">
+                <div id="stat-box-favorites" class="prof-stat-box active-stat-box" onclick="switchProfTab('favorites')">
                     <div id="stat-fav" class="stat-num">0</div>
                     <div class="stat-label">FAVORIS</div>
                 </div>
-                <div class="prof-stat-box">
+                <div id="stat-box-watchlater" class="prof-stat-box" onclick="switchProfTab('watchlater')">
                     <div id="stat-voir" class="stat-num">0</div>
                     <div class="stat-label">À VOIR</div>
                 </div>
-                <div class="prof-stat-box">
+                <div id="stat-box-top" class="prof-stat-box" onclick="alert('Bientôt disponible !')">
                     <div id="stat-top" class="stat-num">0</div>
                     <div class="stat-label">TOP</div>
                 </div>
@@ -1000,10 +1000,19 @@ function closeCover() {
         }
     }
 
-    function switchProfTab(tabId) {
+ function switchProfTab(tabId) {
         currentProfTab = tabId;
+        
+        // 1. Mise à jour des petits onglets textes
         document.querySelectorAll('.prof-tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('tab-' + tabId).classList.add('active');
+        const activeTab = document.getElementById('tab-' + tabId);
+        if (activeTab) activeTab.classList.add('active');
+        
+        // 2. Mise à jour des grosses boîtes (déplacement du trait jaune)
+        document.querySelectorAll('.prof-stat-box').forEach(box => box.classList.remove('active-stat-box'));
+        const activeBox = document.getElementById('stat-box-' + tabId);
+        if (activeBox) activeBox.classList.add('active-stat-box');
+        
         updateProfileGrid();
     }
 
