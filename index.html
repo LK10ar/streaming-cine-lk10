@@ -1232,21 +1232,26 @@ function closeCover() {
         }
     };
 
-    function updateGrid(isSpecialMode = false) {
+  function updateGrid(isSpecialMode = false) {
         const grid = document.getElementById('grid'); grid.innerHTML = '';
         
-        const titles = { 'all': 'Nouveautés', 'film': 'Films', 'serie': 'Séries' };
-        let displayTitle = titles[currentCategory] || 'Catalogue';
-        if(currentGenreFilter !== 'all') displayTitle += ` : ${currentGenreFilter}`;
-        if(currentYearFilter !== 'all') displayTitle += ` (Année : ${currentYearFilter})`; 
-        document.getElementById('cat-title').innerText = displayTitle;
+        // CORRECTION ICI : On ne remplace la liste et le titre QUE si on n'est pas en recherche (SpecialMode)
+        if (!isSpecialMode) {
+            const titles = { 'all': 'Nouveautés', 'film': 'Films', 'serie': 'Séries' };
+            let displayTitle = titles[currentCategory] || 'Catalogue';
+            if(currentGenreFilter !== 'all') displayTitle += ` : ${currentGenreFilter}`;
+            if(currentYearFilter !== 'all') displayTitle += ` (Année : ${currentYearFilter})`; 
+            document.getElementById('cat-title').innerText = displayTitle;
 
-        filteredList = moviesDB.filter(m => {
-            const typeMatch = (currentCategory === 'all') || (m.type === currentCategory);
-            const genreMatch = (currentGenreFilter === 'all') || (m.genre && m.genre.includes(currentGenreFilter));
-            const yearMatch = (currentYearFilter === 'all') || (String(m.year) === String(currentYearFilter));
-            return typeMatch && genreMatch && yearMatch;
-        });
+            filteredList = moviesDB.filter(m => {
+                const typeMatch = (currentCategory === 'all') || (m.type === currentCategory);
+                const genreMatch = (currentGenreFilter === 'all') || (m.genre && m.genre.includes(currentGenreFilter));
+                const yearMatch = (currentYearFilter === 'all') || (String(m.year) === String(currentYearFilter));
+                return typeMatch && genreMatch && yearMatch;
+            });
+        }
+
+        // Le tri et l'affichage (pagination) continuent de s'appliquer normalement sur les résultats
         filteredList.sort((a, b) => {
             const yearA = parseInt(a.year) || 0; const yearB = parseInt(b.year) || 0;
             const noteA = parseFloat(a.rating) || 0; const noteB = parseFloat(b.rating) || 0;
