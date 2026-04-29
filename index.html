@@ -196,8 +196,8 @@
         .btn-validate-code { background: #333; color: white; border: none; padding: 0 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-validate-code:hover { background: var(--primary); color: black; }
 
-        /* BOUTONS ACTIONS GRILLE (Coeur 1er, Horloge 2nd, Vues 3ème) */
-        .card-actions { position: absolute; top: 35px; right: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 10; }
+        /* BOUTONS ACTIONS GRILLE (Coeur 1er, Horloge 2nd) */
+.card-actions { position: absolute; top: 35px; right: 8px; display: flex; flex-direction: column; gap: 8px; z-index: 10; }
         .card-action-btn { background: rgba(0,0,0,0.7); color: white; border: none; padding: 0; border-radius: 50%; cursor: pointer; transition: 0.3s; font-size: 13px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
         .card-action-btn:hover { transform: scale(1.15); background: rgba(0,0,0,0.9); }
         .card-fav-btn.active { color: #e74c3c; }
@@ -822,9 +822,6 @@ function closeCover() {
 
     // --- 2. INITIALISATION ---
     window.onload = () => {
-        // NOUVEAU : On appelle le compteur de vues globales du site
-        incrementGlobalViews();
-
         const savedToken = localStorage.getItem('monBadgeCineLK10');
         if (savedToken) {
             autoLogin(savedToken); 
@@ -967,6 +964,8 @@ function closeCover() {
         document.getElementById('user-profile-nav').style.display = 'flex';
         document.getElementById('nav-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         
+        // localStorage de l'horloge supprimé ici comme convenu
+        
         loadSecureMovies();
     }
 
@@ -1008,10 +1007,12 @@ function closeCover() {
  function switchProfTab(tabId) {
         currentProfTab = tabId;
         
+        // 1. Mise à jour des petits onglets textes
         document.querySelectorAll('.prof-tab-btn').forEach(btn => btn.classList.remove('active'));
         const activeTab = document.getElementById('tab-' + tabId);
         if (activeTab) activeTab.classList.add('active');
         
+        // 2. Mise à jour des grosses boîtes (déplacement du trait jaune)
         document.querySelectorAll('.prof-stat-box').forEach(box => box.classList.remove('active-stat-box'));
         const activeBox = document.getElementById('stat-box-' + tabId);
         if (activeBox) activeBox.classList.add('active-stat-box');
@@ -1060,10 +1061,6 @@ function closeCover() {
                     <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
                         <i class="fas fa-clock"></i>
                     </button>
-                    <div class="card-action-btn" style="cursor:default; background:rgba(0,0,0,0.5); font-size:10px; flex-direction:column; height:auto; padding:5px 0; border-radius:15px; margin-top:5px;" title="Vues">
-                        <i class="fas fa-eye"></i>
-                        <span style="margin-top:2px;">${m.views || 0}</span>
-                    </div>
                 </div>
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
@@ -1220,9 +1217,6 @@ function closeCover() {
 
     const originalOpenP = openP;
     openP = function(id) {
-        // NOUVEAU : On appelle le compteur de vues spécifique au film cliqué
-        incrementMovieViews(id);
-
         originalOpenP(id);
         if(!currentUser) return;
         const token = localStorage.getItem('monBadgeCineLK10');
@@ -1241,6 +1235,7 @@ function closeCover() {
   function updateGrid(isSpecialMode = false) {
         const grid = document.getElementById('grid'); grid.innerHTML = '';
         
+        // CORRECTION ICI : On ne remplace la liste et le titre QUE si on n'est pas en recherche (SpecialMode)
         if (!isSpecialMode) {
             const titles = { 'all': 'Nouveautés', 'film': 'Films', 'serie': 'Séries' };
             let displayTitle = titles[currentCategory] || 'Catalogue';
@@ -1256,6 +1251,7 @@ function closeCover() {
             });
         }
 
+        // Le tri et l'affichage (pagination) continuent de s'appliquer normalement sur les résultats
         filteredList.sort((a, b) => {
             const yearA = parseInt(a.year) || 0; const yearB = parseInt(b.year) || 0;
             const noteA = parseFloat(a.rating) || 0; const noteB = parseFloat(b.rating) || 0;
@@ -1285,10 +1281,6 @@ function closeCover() {
                     <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
                         <i class="fas fa-clock"></i>
                     </button>
-                    <div class="card-action-btn" style="cursor:default; background:rgba(0,0,0,0.5); font-size:10px; flex-direction:column; height:auto; padding:5px 0; border-radius:15px; margin-top:5px;" title="Vues">
-                        <i class="fas fa-eye"></i>
-                        <span style="margin-top:2px;">${m.views || 0}</span>
-                    </div>
                 </div>
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
@@ -1552,32 +1544,6 @@ function closeCover() {
         currentCategory = 'all'; currentGenreFilter = 'all'; currentYearFilter = 'all';
         updateGrid();
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); document.getElementById('nav-catalogue').classList.add('active');
-    }
-
-    // NOUVEAU : Fonctions de compteur ajoutées en fin de script
-    async function incrementGlobalViews() {
-        try {
-            await fetch(`${API_URL}/api/stats/global-view`, { method: 'POST' });
-        } catch (e) { console.error("Erreur compteur global", e); }
-    }
-
-    async function incrementMovieViews(movieId) {
-        try {
-            const token = localStorage.getItem('monBadgeCineLK10') || '';
-            const res = await fetch(`${API_URL}/api/movies/${movieId}/view`, { 
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'authorization': token 
-                }
-            });
-            const data = await res.json();
-            if (data.success && data.views !== undefined) {
-                // Optionnel: Mettre à jour l'affichage en direct
-                const movie = moviesDB.find(m => m.id === movieId);
-                if(movie) movie.views = data.views;
-            }
-        } catch (e) { console.error("Erreur compteur film", e); }
     }
 </script>
 </body>
