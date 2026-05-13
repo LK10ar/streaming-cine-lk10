@@ -1127,7 +1127,8 @@ function closeCover() {
             const data = await response.json();
 
             if (data.success) {
-                moviesDB = data.movies; 
+                // On passe les données dans notre fonction de nettoyage avant de les sauvegarder
+                moviesDB = nettoyerLiensAbyss(data.movies); 
                 loadLocalModifications(); 
                 updateGrid();
             }
@@ -1315,7 +1316,11 @@ function closeCover() {
     }
 
     function loadLocalModifications() {
-        const storedMovies = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
+        let storedMovies = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
+        
+        // On nettoie aussi les films sauvegardés localement
+        storedMovies = nettoyerLiensAbyss(storedMovies);
+
         let movieMap = new Map();
         moviesDB.forEach(m => movieMap.set(m.id, m));
         storedMovies.forEach(m => movieMap.set(m.id, m));
@@ -1545,6 +1550,17 @@ function closeCover() {
         updateGrid();
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); document.getElementById('nav-catalogue').classList.add('active');
     }
+    // Fonction pour remplacer automatiquement les liens short.icu par abyssplayer.com
+function nettoyerLiensAbyss(donnees) {
+    // 1. On transforme toutes les données en texte
+    let texte = JSON.stringify(donnees);
+    
+    // 2. On utilise une expression régulière (le /g) pour remplacer TOUS les liens trouvés
+    texte = texte.replace(/https:\/\/short\.icu\//g, "https://abyssplayer.com/");
+    
+    // 3. On redonne aux données leur format d'origine
+    return JSON.parse(texte);
+}
 </script>
 </body>
 </html>
