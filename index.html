@@ -1216,22 +1216,40 @@ function closeCover() {
         }
     }
 
-    const originalOpenP = openP;
-    openP = function(id) {
-        originalOpenP(id);
-        if(!currentUser) return;
-        const token = localStorage.getItem('monBadgeCineLK10');
-        fetch(`${API_URL}/api/user/add-history`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'authorization': token },
-            body: JSON.stringify({ movieId: id })
-        }).catch(err => err);
+   const originalOpenP = openP;
+    openP = function(id) {
+        originalOpenP(id);
+        if(!currentUser) return;
+
+        // --- NOUVEAUTÉ : On récupère les infos du film ---
+        const movieInfo = moviesDB.find(m => m.id === id);
         
-        if(!currentUser.history) currentUser.history = [];
-        if(!currentUser.history.includes(id)) {
-            currentUser.history.push(id);
-        }
-    };
+        // On crée un objet détaillé avec le titre
+        const historyData = {
+            id: id,
+            title: movieInfo ? movieInfo.title : "Titre inconnu",
+            type: movieInfo ? movieInfo.type : "inconnu",
+            watchedAt: new Date().toISOString()
+        };
+
+        const token = localStorage.getItem('monBadgeCineLK10');
+        fetch(`${API_URL}/api/user/add-history`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'authorization': token },
+            // On envoie l'objet complet au lieu de la simple chaîne de caractères
+            body: JSON.stringify({ historyItem: historyData }) 
+        }).catch(err => err);
+        
+        if(!currentUser.history) currentUser.history = [];
+        // On vérifie si le film est déjà dans l'historique (qu'il soit stocké en texte ou en objet)
+        const isAlreadyInHistory = currentUser.history.some(item => 
+            (typeof item === 'string' ? item === id : item.id === id)
+        );
+
+        if(!isAlreadyInHistory) {
+            currentUser.history.push(historyData);
+        }
+    };
 
   function updateGrid(isSpecialMode = false) {
         const grid = document.getElementById('grid'); grid.innerHTML = '';
