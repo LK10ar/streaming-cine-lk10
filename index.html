@@ -1027,51 +1027,110 @@ function closeCover() {
         updateProfileGrid();
     }
 
-    function updateProfileGrid() {
-        const grid = document.getElementById('profile-grid');
-        grid.innerHTML = '';
+   // ==============================
+// REMPLACE UNIQUEMENT updateProfileGrid()
+// ==============================
 
-        let list = [];
-        if (currentProfTab === 'favorites') {
-            list = moviesDB.filter(m => currentUser.favorites && currentUser.favorites.includes(m.id));
-        } else if (currentProfTab === 'history') {
-            list = moviesDB.filter(m => currentUser.history && currentUser.history.includes(m.id));
-        } else if (currentProfTab === 'watchlater') {
-            list = moviesDB.filter(m => currentUser.watchlater && currentUser.watchlater.includes(m.id));
-        }
+function updateProfileGrid() {
+    const grid = document.getElementById('profile-grid');
+    grid.innerHTML = '';
 
-        if(currentProfType !== 'all') { list = list.filter(m => m.type === currentProfType); }
+    let list = [];
 
-        if(list.length === 0) {
-            grid.innerHTML = '<div style="color:#888; padding:20px; text-align:center; grid-column: 1 / -1;">Aucun résultat dans cette catégorie.</div>';
-            return;
-        }
-
-        list.forEach(m => {
-            const isFav = currentUser && currentUser.favorites && currentUser.favorites.includes(m.id);
-            const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.includes(m.id);
-            
-            const div = document.createElement('div'); div.className = 'movie-card'; div.style.display = 'block'; 
-            div.onclick = () => { closeProfilePage(); openP(m.id); };
-            div.innerHTML = `
-                <div class="card-actions">
-                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
-                        <i class="fas fa-clock"></i>
-                    </button>
-                </div>
-                <div class="poster" style="background-image: url('${m.poster}')">
-                    <span class="badge b-hd">HD</span>
-                    <span class="badge b-type">${m.type.toUpperCase()}</span>
-                    <div class="grid-rating">${m.rating || "-"}</div>
-                </div>
-                <div class="movie-info"><div class="movie-title">${m.title}</div></div>
-            `;
-            grid.appendChild(div);
-        });
+    if (currentProfTab === 'favorites') {
+        list = moviesDB.filter(m =>
+            currentUser.favorites &&
+            currentUser.favorites.some(item =>
+                typeof item === 'string'
+                    ? item === m.id
+                    : item.id === m.id
+            )
+        );
     }
+
+    else if (currentProfTab === 'history') {
+        list = moviesDB.filter(m =>
+            currentUser.history &&
+            currentUser.history.some(item =>
+                typeof item === 'string'
+                    ? item === m.id
+                    : item.id === m.id
+            )
+        );
+    }
+
+    else if (currentProfTab === 'watchlater') {
+        list = moviesDB.filter(m =>
+            currentUser.watchlater &&
+            currentUser.watchlater.some(item =>
+                typeof item === 'string'
+                    ? item === m.id
+                    : item.id === m.id
+            )
+        );
+    }
+
+    if(currentProfType !== 'all') {
+        list = list.filter(m => m.type === currentProfType);
+    }
+
+    if(list.length === 0) {
+        grid.innerHTML = '<div style="color:#888; padding:20px; text-align:center; grid-column: 1 / -1;">Aucun résultat dans cette catégorie.</div>';
+        return;
+    }
+
+    list.forEach(m => {
+
+        const isFav = currentUser &&
+            currentUser.favorites &&
+            currentUser.favorites.some(item =>
+                typeof item === 'string'
+                    ? item === m.id
+                    : item.id === m.id
+            );
+
+        const isWl = currentUser &&
+            currentUser.watchlater &&
+            currentUser.watchlater.some(item =>
+                typeof item === 'string'
+                    ? item === m.id
+                    : item.id === m.id
+            );
+
+        const div = document.createElement('div');
+        div.className = 'movie-card';
+        div.style.display = 'block';
+
+        div.onclick = () => {
+            closeProfilePage();
+            openP(m.id);
+        };
+
+        div.innerHTML = `
+            <div class="card-actions">
+                <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
+                    <i class="fas fa-heart"></i>
+                </button>
+
+                <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
+                    <i class="fas fa-clock"></i>
+                </button>
+            </div>
+
+            <div class="poster" style="background-image: url('${m.poster}')">
+                <span class="badge b-hd">HD</span>
+                <span class="badge b-type">${m.type.toUpperCase()}</span>
+                <div class="grid-rating">${m.rating || "-"}</div>
+            </div>
+
+            <div class="movie-info">
+                <div class="movie-title">${m.title}</div>
+            </div>
+        `;
+
+        grid.appendChild(div);
+    });
+}
 
     // --- REGLAGES (IMAGE & MOT DE PASSE) ---
     async function updateProfilePic() {
@@ -1141,54 +1200,53 @@ function closeCover() {
         if(!currentUser) return alert("Vous devez être connecté !");
         
         const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        
+        // Objet complet pour le nom
+        const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
         
         if(!currentUser.favorites) currentUser.favorites = [];
-        const idx = currentUser.favorites.indexOf(movieId);
+        const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
         let isActive = false;
-        if(idx === -1) { currentUser.favorites.push(movieId); isActive = true; }
+        if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
         else { currentUser.favorites.splice(idx, 1); isActive = false; }
         handleActionVisualUpdate(movieId, 'fav', isActive);
 
         try {
-            const res = await fetch(`${API_URL}/api/user/toggle-favorite`, {
+            await fetch(`${API_URL}/api/user/toggle-favorite`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ movieId })
+                body: JSON.stringify({ movieId, favoriteItem: favoriteData })
             });
-            const data = await res.json();
-            if (data.success) {
-                currentUser.favorites = data.favorites;
-                handleActionVisualUpdate(movieId, 'fav', data.favorites.includes(movieId));
-            }
         } catch (err) {}
     }
     
-    async function toggleWatchlater(movieId, e) {
+   async function toggleWatchlater(movieId, e) {
         if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
         if(!currentUser) return alert("Vous devez être connecté pour utiliser 'À Voir' !");
         
         const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        
+        const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
         
         if(!currentUser.watchlater) currentUser.watchlater = [];
-        const idx = currentUser.watchlater.indexOf(movieId);
+        const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
         let isActive = false;
-        if(idx === -1) { currentUser.watchlater.push(movieId); isActive = true; }
+        if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
         else { currentUser.watchlater.splice(idx, 1); isActive = false; }
         
         handleActionVisualUpdate(movieId, 'wl', isActive);
         
         try {
-            const res = await fetch(`${API_URL}/api/user/toggle-watchlater`, {
+            await fetch(`${API_URL}/api/user/toggle-watchlater`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ movieId })
+                body: JSON.stringify({ movieId, watchlaterItem: watchlaterData })
             });
-            const data = await res.json();
-            if (data.success) { 
-                currentUser.watchlater = data.watchlater; 
-                handleActionVisualUpdate(movieId, 'wl', data.watchlater.includes(movieId));
-            }
-        } catch (err) { console.error(err); }
+        } catch (err) {}
     }
     
     function handleActionVisualUpdate(movieId, type, isActive) {
@@ -1287,9 +1345,21 @@ function closeCover() {
         if(filteredList.length === 0) grid.innerHTML = '<div style="color:#aaa; padding:30px;">Aucun résultat trouvé.</div>';
         
         pageItems.forEach(m => {
-            const isFav = currentUser && currentUser.favorites && currentUser.favorites.includes(m.id);
-            const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.includes(m.id);
-            
+          const isFav = currentUser &&
+    currentUser.favorites &&
+    currentUser.favorites.some(item =>
+        typeof item === 'string'
+            ? item === m.id
+            : item.id === m.id
+    );
+
+const isWl = currentUser &&
+    currentUser.watchlater &&
+    currentUser.watchlater.some(item =>
+        typeof item === 'string'
+            ? item === m.id
+            : item.id === m.id
+    );  
             const div = document.createElement('div'); div.className = 'movie-card'; div.style.display = 'block'; 
             div.onclick = () => openP(m.id);
             div.innerHTML = `
@@ -1412,9 +1482,22 @@ function closeCover() {
         createLinks('dp-dir', m.dir); createLinks('dp-cast', m.cast); loadCastImages(m.cast);
         const trailerBtn = document.getElementById('btn-trailer'); trailerBtn.style.opacity = m.trailer_iframe ? '1' : '0.5';
         
-        const isFav = currentUser && currentUser.favorites && currentUser.favorites.includes(m.id);
-        const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.includes(m.id);
-        const favBtn = document.getElementById('dp-fav-btn');
+      const isFav = currentUser &&
+    currentUser.favorites &&
+    currentUser.favorites.some(item =>
+        typeof item === 'string'
+            ? item === m.id
+            : item.id === m.id
+    );
+
+const isWl = currentUser &&
+    currentUser.watchlater &&
+    currentUser.watchlater.some(item =>
+        typeof item === 'string'
+            ? item === m.id
+            : item.id === m.id
+    );
+      const favBtn = document.getElementById('dp-fav-btn');
         const wlBtn = document.getElementById('dp-wl-btn');
         
         favBtn.classList.toggle('active', isFav);
