@@ -12,10 +12,12 @@
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script src="https://pl29525342.effectivecpmnetwork.com/94/90/af/9490af5c64e3c951e26fb94acd93a4a7.js"></script>
+    <script src="https://pl29525344.effectivecpmnetwork.com/a7/bb/0e/a7bb0edad64d5016897fa30b88f11754.js"></script>
+
    <style>
         /* --- 1. BASES & VARIABLES --- */
-        :root { --primary: #ffde00; --dark: #151515; --light: #222; --text: #eee; --grey: #aaa; --danger: #e74c3c; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        :root { --primary: #ffde00; --dark: #151515; --light: #222; --text: #eee; --grey: #aaa; --danger: #e74c3c; }   * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
         html { height: 100%; }
         body { background-color: var(--dark); color: var(--text); position: relative; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 0; margin: 0; }
         body.no-scroll { overflow: hidden; }
@@ -1601,13 +1603,67 @@ const isWl = currentUser &&
         else setVideoContent(isVipUser ? "" : (linkP ? "VIP_LOCK" : ""));
     }
 
+ let adTimer = null; // Variable pour stocker le compte à rebours
+
     function setVideoContent(c) {
         const box = document.getElementById('video-container');
-        if (c === "VIP_LOCK") box.innerHTML = '<div style="color:#e74c3c; text-align:center; padding-top:200px;"><i class="fas fa-lock"></i> Réservé aux membres VIP.</div>';
-        else if (c) box.innerHTML = c;
-        else box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>';
-    }
+        
+        // On nettoie les anciens timers si l'utilisateur change de serveur rapidement
+        if(adTimer) clearInterval(adTimer);
 
+        if (c === "VIP_LOCK") {
+            box.innerHTML = '<div style="color:#e74c3c; text-align:center; padding-top:200px;"><i class="fas fa-lock"></i> Réservé aux membres VIP.</div>';
+        } else if (c) {
+            
+            // SÉCURITÉ : Pas de pub pour les VIP ! (Ils voient la vidéo instantanément)
+            if (isVipUser) {
+                box.innerHTML = c;
+                return;
+            }
+
+            // SYSTÈME DE MONÉTISATION : Écran d'attente
+            let timeLeft = 5; // Nombre de secondes à patienter
+            
+            box.innerHTML = `
+                <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+                    <div style="font-size: 14px; color: #888; margin-bottom: 20px;"><i class="fas fa-ad"></i> Soutenez le site en patientant quelques secondes...</div>
+                    
+                    <button id="skip-ad-btn" style="background: #333; color: #888; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: 0.3s;">
+                        Lancement de la vidéo dans ${timeLeft}s...
+                    </button>
+                </div>
+            `;
+
+            const skipBtn = document.getElementById('skip-ad-btn');
+            
+            // Lancement du compte à rebours
+            adTimer = setInterval(() => {
+                timeLeft--;
+                if(timeLeft > 0) {
+                    skipBtn.innerText = `Lancement de la vidéo dans ${timeLeft}s...`;
+                } else {
+                    clearInterval(adTimer);
+                    // Le bouton devient cliquable
+                    skipBtn.innerText = "▶ LANCER LA VIDÉO";
+                    skipBtn.style.background = "var(--primary)";
+                    skipBtn.style.color = "black";
+                    skipBtn.style.cursor = "pointer";
+                    
+                    // Action au clic
+                    skipBtn.onclick = () => {
+                        // Ouvre la pub Adsterra dans un nouvel onglet (SANS LES // DEVANT)
+                        window.open('https://www.effectivecpmnetwork.com/exh1ik3em3?key=a02d5dd03c41c4a47edc9531a22b8fb6', '_blank');
+                        
+                        // On affiche la vraie vidéo
+                        box.innerHTML = c; 
+                    };
+                }
+            }, 1000);
+
+        } else {
+            box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>';
+        }
+    }
     function renderEpisodeList() {
         const container = document.getElementById('ep-list-container'); container.innerHTML = '';
         (currentMovie.episodes || []).forEach((ep, i) => {
