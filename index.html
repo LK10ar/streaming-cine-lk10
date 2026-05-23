@@ -1674,8 +1674,26 @@ const isWl = currentUser &&
     }
 
     function highlightActiveEpisode() { document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); }
-    function openTrailer() { if (currentMovie?.trailer_iframe) { document.getElementById('trailer-video-container').innerHTML = currentMovie.trailer_iframe; document.getElementById('trailer-overlay').style.display = 'flex'; } }
+    function openTrailer() { 
+        if (currentMovie?.trailer_iframe) { 
+            let t = currentMovie.trailer_iframe.trim();
+            let finalHTML = t;
+            
+            // MAGIE : Si c'est un simple lien YouTube, on le transforme en lecteur iframe !
+            if (!t.toLowerCase().includes('<iframe')) {
+                let videoId = t;
+                if (t.includes('v=')) videoId = t.split('v=')[1].split('&')[0];
+                else if (t.includes('youtu.be/')) videoId = t.split('youtu.be/')[1].split('?')[0];
+                
+                finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+            }
+            
+            document.getElementById('trailer-video-container').innerHTML = finalHTML; 
+            document.getElementById('trailer-overlay').style.display = 'flex'; 
+        } 
+    }
     function closeTrailer() { document.getElementById('trailer-overlay').style.display = 'none'; document.getElementById('trailer-video-container').innerHTML = ''; }
+    function closeP() { document.getElementById('player-overlay').style.display = 'none'; document.getElementById('video-container').innerHTML = ''; document.body.classList.remove('no-scroll'); }function closeTrailer() { document.getElementById('trailer-overlay').style.display = 'none'; document.getElementById('trailer-video-container').innerHTML = ''; }
     function closeP() { document.getElementById('player-overlay').style.display = 'none'; document.getElementById('video-container').innerHTML = ''; document.body.classList.remove('no-scroll'); }
 
     // --- ADMIN ---
