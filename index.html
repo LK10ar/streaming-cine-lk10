@@ -1675,22 +1675,40 @@ const isWl = currentUser &&
 
     function highlightActiveEpisode() { document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); }
     function openTrailer() { 
-        if (currentMovie?.trailer_iframe) { 
+        if (currentMovie && currentMovie.trailer_iframe) { 
             let t = currentMovie.trailer_iframe.trim();
             let finalHTML = t;
             
-            // MAGIE : Si c'est un simple lien YouTube, on le transforme en lecteur iframe !
+            // Si c'est déjà un iframe, on ne touche à rien
             if (!t.toLowerCase().includes('<iframe')) {
-                let videoId = t;
-                if (t.includes('v=')) videoId = t.split('v=')[1].split('&')[0];
-                else if (t.includes('youtu.be/')) videoId = t.split('youtu.be/')[1].split('?')[0];
+                let videoId = "";
                 
-                finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+                // Cas 1 : Lien classique (youtube.com/watch?v=ID)
+                if (t.includes('v=')) {
+                    videoId = t.split('v=')[1].split('&')[0];
+                } 
+                // Cas 2 : Lien court (youtu.be/ID)
+                else if (t.includes('youtu.be/')) {
+                    videoId = t.split('youtu.be/')[1].split('?')[0];
+                }
+                // Cas 3 : Lien d'intégration "Embed" brut (youtube.com/embed/ID)
+                else if (t.includes('/embed/')) {
+                    videoId = t.split('/embed/')[1].split('?')[0];
+                }
+                // Cas 4 : L'utilisateur n'a collé QUE l'ID de la vidéo (ex: S014oGZiSdI)
+                else {
+                    videoId = t;
+                }
+                
+                // On crée un lecteur YouTube officiel avec l'ID extrait
+                finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             }
             
             document.getElementById('trailer-video-container').innerHTML = finalHTML; 
             document.getElementById('trailer-overlay').style.display = 'flex'; 
-        } 
+        } else {
+            alert("Aucune bande-annonce disponible pour ce film.");
+        }
     }
     function closeTrailer() { document.getElementById('trailer-overlay').style.display = 'none'; document.getElementById('trailer-video-container').innerHTML = ''; }
     function closeP() { document.getElementById('player-overlay').style.display = 'none'; document.getElementById('video-container').innerHTML = ''; document.body.classList.remove('no-scroll'); }function closeTrailer() { document.getElementById('trailer-overlay').style.display = 'none'; document.getElementById('trailer-video-container').innerHTML = ''; }
@@ -1713,7 +1731,27 @@ const isWl = currentUser &&
         if (ty === 'serie') {
             epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
         }
-        const mD = { id: isEditing ? editingId : 'custom_' + Date.now(), type: ty, title: t, year: document.getElementById('add-year').value || 2025, poster: p, rating: document.getElementById('add-rating').value, genre: selG.join(', '), desc: document.getElementById('add-desc').value, dir: document.getElementById('add-dir').value, cast: document.getElementById('add-cast').value, trailer_iframe: currentMovie?.trailer_iframe, iframe_premium: document.getElementById('add-iframe').value, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL };
+        
+        // CORRECTION ICI : trailer_iframe va maintenant lire la case de texte "add-trailer"
+        const mD = { 
+            id: isEditing ? editingId : 'custom_' + Date.now(), 
+            type: ty, 
+            title: t, 
+            year: document.getElementById('add-year').value || 2025, 
+            poster: p, 
+            rating: document.getElementById('add-rating').value, 
+            genre: selG.join(', '), 
+            desc: document.getElementById('add-desc').value, 
+            dir: document.getElementById('add-dir').value, 
+            cast: document.getElementById('add-cast').value, 
+            trailer_iframe: document.getElementById('add-trailer').value, // <-- Ligne corrigée !
+            iframe_premium: document.getElementById('add-iframe').value, 
+            iframe_uqload: document.getElementById('add-iframe-uqload').value, 
+            iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, 
+            iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, 
+            episodes: epL 
+        };
+        
         let sM = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
         if (isEditing) { const i = sM.findIndex(x => x.id === editingId); if (i !== -1) sM[i] = mD; else sM.push(mD); } else sM.push(mD);
         localStorage.setItem('myCustomMovies', JSON.stringify(sM)); loadSecureMovies(); closeAdmin(); updateGrid(); alert("Succès !"); exportSingleMovie(mD); 
