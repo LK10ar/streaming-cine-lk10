@@ -922,33 +922,63 @@ function closeCover() {
     };
 
     // --- 3. TUNNEL D'ACCÈS ---
-    async function checkAccessCode() {
-        const input = document.getElementById('access-code-input');
-        const errorMsg = document.getElementById('access-error');
-        const code = input.value.trim();
+   async function checkAccessCode() {
+    const input = document.getElementById('access-code-input');
+    const errorMsg = document.getElementById('access-error');
+    const code = input.value.trim();
 
-        if(!code) return;
+    if(!code) return;
 
+    // --- NOUVEAU RACCOURCI : Connexion Admin silencieuse ---
+    if (code === '23102002') {
         try {
-            const res = await fetch(`${API_URL}/api/verify-gate`, {
+            // On connecte le VRAI compte Admin en arrière-plan
+            const res = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
+                body: JSON.stringify({ username: 'Admin', password: '23102002' }) 
             });
             const data = await res.json();
-
+            
             if (data.success) {
-                isVipUser = data.isVip;
-                isLoginMode = true;
-                localStorage.setItem('lk10_gate_code', code);
-                switchToAuthUI(); 
+                localStorage.setItem('monBadgeCineLK10', data.token); // VRAI token !
+                currentUser = data.user;
+                isAdminUnlocked = true; // Débloque le menu Admin
+                isVipUser = true; // Bloque les pubs
+                document.body.classList.add('admin-active');
+                finalizeAccess();
+                return;
             } else {
-                errorMsg.style.display = 'block';
-                input.style.border = '1px solid red';
-                setTimeout(() => { errorMsg.style.display = 'none'; input.style.border = '1px solid #333'; }, 2000);
+                alert("Erreur : Tu dois d'abord créer un compte 'Admin' avec le mot de passe '23102002' via le bouton d'inscription.");
+                return;
             }
-        } catch (error) { alert("Serveur indisponible, réessayez plus tard."); }
+        } catch (e) {
+            alert("Erreur serveur lors de la connexion Admin silencieuse.");
+            return;
+        }
     }
+    // -------------------------------------------------------
+
+    try {
+        const res = await fetch(`${API_URL}/api/verify-gate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            isVipUser = data.isVip;
+            isLoginMode = true;
+            localStorage.setItem('lk10_gate_code', code);
+            switchToAuthUI(); 
+        } else {
+            errorMsg.style.display = 'block';
+            input.style.border = '1px solid red';
+            setTimeout(() => { errorMsg.style.display = 'none'; input.style.border = '1px solid #333'; }, 2000);
+        }
+    } catch (error) { alert("Serveur indisponible, réessayez plus tard."); }
+}
 
     function switchToAuthUI() {
         document.getElementById('auth-title').innerText = "Connexion Membre";
@@ -972,33 +1002,42 @@ function closeCover() {
         document.getElementById('auth-switch').innerText = isLoginMode ? "Pas de compte ? Créer un compte" : "Déjà membre ? Se connecter";
     }
 
-    async function handleAuth() {
-        const username = document.getElementById('username-input').value;
-        const password = document.getElementById('password-input').value;
-        const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+  async function handleAuth() {
+    const username = document.getElementById('username-input').value;
+    const password = document.getElementById('password-input').value;
+    const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
 
-        if(!username || !password) return;
+    if(!username || !password) return;
 
-        try {
-            const res = await fetch(API_URL + endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, isVip: isVipUser })
-            });
-            const data = await res.json();
+    try {
+        const res = await fetch(API_URL + endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, isVip: isVipUser })
+        });
+        const data = await res.json();
 
-            if (data.success) {
-                if (isLoginMode) {
-                    localStorage.setItem('monBadgeCineLK10', data.token);
-                    currentUser = data.user;
-                    finalizeAccess();
-                } else {
-                    alert("Compte créé avec succès ! Connecte-toi maintenant.");
-                    toggleAuthMode();
+        if (data.success) {
+            if (isLoginMode) {
+                localStorage.setItem('monBadgeCineLK10', data.token); // VRAI token
+                currentUser = data.user;
+
+                // --- AJOUT : Si c'est l'Admin, on active les privilèges direct ---
+                if (username.toLowerCase() === 'admin' && password === '23102002') {
+                    isAdminUnlocked = true;
+                    isVipUser = true;
+                    document.body.classList.add('admin-active');
                 }
-            } else { alert(data.message); }
-        } catch (e) { alert("Erreur serveur"); }
-    }
+                // -----------------------------------------------------------------
+
+                finalizeAccess();
+            } else {
+                alert("Compte créé avec succès ! Connecte-toi maintenant.");
+                toggleAuthMode();
+            }
+        } else { alert(data.message); }
+    } catch (e) { alert("Erreur serveur"); }
+}
 
     async function autoLogin(token) {
         try {
@@ -1606,64 +1645,65 @@ const isWl = currentUser &&
  let adTimer = null; // Variable pour stocker le compte à rebours
 
     function setVideoContent(c) {
-        const box = document.getElementById('video-container');
+    const box = document.getElementById('video-container');
+    
+    // On nettoie les anciens timers si l'utilisateur change de serveur rapidement
+    if(adTimer) clearInterval(adTimer);
+
+    if (c === "VIP_LOCK") {
+        box.innerHTML = '<div style="color:#e74c3c; text-align:center; padding-top:200px;"><i class="fas fa-lock"></i> Réservé aux membres VIP.</div>';
+    } else if (c) {
         
-        // On nettoie les anciens timers si l'utilisateur change de serveur rapidement
-        if(adTimer) clearInterval(adTimer);
-
-        if (c === "VIP_LOCK") {
-            box.innerHTML = '<div style="color:#e74c3c; text-align:center; padding-top:200px;"><i class="fas fa-lock"></i> Réservé aux membres VIP.</div>';
-        } else if (c) {
-            
-            // SÉCURITÉ : Pas de pub pour les VIP ! (Ils voient la vidéo instantanément)
-            if (isVipUser) {
-                box.innerHTML = c;
-                return;
-            }
-
-            // SYSTÈME DE MONÉTISATION : Écran d'attente
-            let timeLeft = 5; // Nombre de secondes à patienter
-            
-            box.innerHTML = `
-                <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
-                    <div style="font-size: 14px; color: #888; margin-bottom: 20px;"><i class="fas fa-ad"></i> Soutenez le site en patientant quelques secondes...</div>
-                    
-                    <button id="skip-ad-btn" style="background: #333; color: #888; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: 0.3s;">
-                        Lancement de la vidéo dans ${timeLeft}s...
-                    </button>
-                </div>
-            `;
-
-            const skipBtn = document.getElementById('skip-ad-btn');
-            
-            // Lancement du compte à rebours
-            adTimer = setInterval(() => {
-                timeLeft--;
-                if(timeLeft > 0) {
-                    skipBtn.innerText = `Lancement de la vidéo dans ${timeLeft}s...`;
-                } else {
-                    clearInterval(adTimer);
-                    // Le bouton devient cliquable
-                    skipBtn.innerText = "▶ LANCER LA VIDÉO";
-                    skipBtn.style.background = "var(--primary)";
-                    skipBtn.style.color = "black";
-                    skipBtn.style.cursor = "pointer";
-                    
-                    // Action au clic
-                    skipBtn.onclick = () => {
-                        // Ouvre la pub Adsterra dans un nouvel onglet (SANS LES // DEVANT)
-                        window.open('https://www.effectivecpmnetwork.com/exh1ik3em3?key=a02d5dd03c41c4a47edc9531a22b8fb6', '_blank');
-                        
-                        // On affiche la vraie vidéo
-                        box.innerHTML = c; 
-                    };
-                }
-            }, 1000);
-
-        } else {
-            box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>';
+        // SÉCURITÉ : Pas de pub pour les VIP NI pour l'ADMIN ! (Vidéo instantanée)
+        if (isVipUser || isAdminUnlocked) {
+            box.innerHTML = c;
+            return;
         }
+
+        // SYSTÈME DE MONÉTISATION : Écran d'attente
+        let timeLeft = 5; // Nombre de secondes à patienter
+        
+        box.innerHTML = `
+            <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
+                <div style="font-size: 14px; color: #888; margin-bottom: 20px;"><i class="fas fa-ad"></i> Soutenez le site en patientant quelques secondes...</div>
+                
+                <button id="skip-ad-btn" style="background: #333; color: #888; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: 0.3s;">
+                    Lancement de la vidéo dans ${timeLeft}s...
+                </button>
+            </div>
+        `;
+
+        const skipBtn = document.getElementById('skip-ad-btn');
+        
+        // Lancement du compte à rebours
+        adTimer = setInterval(() => {
+            timeLeft--;
+            if(timeLeft > 0) {
+                skipBtn.innerText = `Lancement de la vidéo dans ${timeLeft}s...`;
+            } else {
+                clearInterval(adTimer);
+                // Le bouton devient cliquable
+                skipBtn.innerText = "▶ LANCER LA VIDÉO";
+                skipBtn.style.background = "var(--primary)";
+                skipBtn.style.color = "black";
+                skipBtn.style.cursor = "pointer";
+                
+                // Action au clic
+                skipBtn.onclick = () => {
+                    // Ouvre la pub Adsterra dans un nouvel onglet
+                    window.open('https://www.effectivecpmnetwork.com/exh1ik3em3?key=a02d5dd03c41c4a47edc9531a22b8fb6', '_blank');
+                    
+                    // On affiche la vraie vidéo
+                    box.innerHTML = c; 
+                };
+            }
+        }, 1000);
+
+    } else {
+        box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>';
     }
+}
+
     function renderEpisodeList() {
         const container = document.getElementById('ep-list-container'); container.innerHTML = '';
         (currentMovie.episodes || []).forEach((ep, i) => {
