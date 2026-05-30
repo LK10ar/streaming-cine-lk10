@@ -282,7 +282,14 @@
         .chart-box { background: #13141c; padding: 20px; border-radius: 8px; border: 1px solid #2a2b36; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .chart-box h3 { color: white; text-align: center; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #2a2b36; padding-bottom: 10px; letter-spacing: 1px;}
         @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
-
+/* LISTE DES UTILISATEURS DANS ANALYTICS */
+.users-list-container { background: #13141c; border: 1px solid #2a2b36; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+.users-list-container h3 { color: white; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #2a2b36; padding-bottom: 10px; letter-spacing: 1px; }
+.users-list-box { max-height: 200px; overflow-y: auto; padding-right: 10px; }
+.users-list-box::-webkit-scrollbar { width: 6px; }
+.users-list-box::-webkit-scrollbar-thumb { background: #3498db; border-radius: 3px; }
+.user-list-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2a2b36; font-size: 13px; align-items: center; }
+.user-list-item:last-child { border-bottom: none; }
         /* ================================================== */
         /* ============ SECTION RESPONSIVE GLOBALE ========== */
         /* ================================================== */
@@ -823,6 +830,11 @@ function closeCover() {
                 </div>
             </div>
 
+            <div class="users-list-container">
+                <h3><i class="fas fa-users"></i> Liste des Membres Inscrits</h3>
+                <div class="users-list-box" id="analytics-users-list">
+                    </div>
+            </div>
             <div class="charts-grid">
                 <div class="chart-box">
                     <h3><i class="fas fa-eye"></i> Films & Séries les plus vus</h3>
@@ -980,7 +992,7 @@ function closeCover() {
     } catch (error) { alert("Serveur indisponible, réessayez plus tard."); }
 }
 
-    function switchToAuthUI() {
+function switchToAuthUI() {
         document.getElementById('auth-title').innerText = "Connexion Membre";
         document.getElementById('auth-desc').innerText = "Connectez-vous pour voir vos favoris et votre historique.";
         document.getElementById('auth-discord-btn').style.display = 'none';
@@ -989,9 +1001,12 @@ function closeCover() {
         const form = document.getElementById('auth-form');
         form.style.flexDirection = 'column';
         form.innerHTML = `
-            <input type="text" id="username-input" placeholder="Pseudo..." class="form-input" style="width:100%; text-align:left;" required>
+            <input type="text" id="username-input" placeholder="Pseudo ou Email..." class="form-input" style="width:100%; text-align:left;" required>
+            <input type="email" id="email-input" placeholder="Adresse Email..." class="form-input" style="width:100%; text-align:left; display:none;">
             <input type="password" id="password-input" placeholder="Mot de passe..." class="form-input" style="width:100%; text-align:left;" required>
             <button type="submit" class="btn-validate-code" id="auth-btn" style="width:100%;">SE CONNECTER</button>
+            
+            <p id="forgot-password-link" style="font-size: 12px; color: #aaa; cursor: pointer; text-align:center; margin-top:10px; transition:0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#aaa'" onclick="promptForgotPassword()">Mot de passe oublié ?</p>
         `;
     }
 
@@ -1000,44 +1015,91 @@ function closeCover() {
         document.getElementById('auth-title').innerText = isLoginMode ? "Connexion Membre" : "Inscription";
         document.getElementById('auth-btn').innerText = isLoginMode ? "SE CONNECTER" : "S'INSCRIRE";
         document.getElementById('auth-switch').innerText = isLoginMode ? "Pas de compte ? Créer un compte" : "Déjà membre ? Se connecter";
+
+        // Gérer l'affichage conditionnel de l'e-mail
+        const emailInput = document.getElementById('email-input');
+        const forgotLink = document.getElementById('forgot-password-link');
+        const userLabel = document.getElementById('username-input');
+
+        if (emailInput && forgotLink && userLabel) {
+            if (isLoginMode) {
+                emailInput.style.display = 'none';
+                emailInput.removeAttribute('required');
+                forgotLink.style.display = 'block';
+                userLabel.placeholder = "Pseudo ou Email...";
+            } else {
+                emailInput.style.display = 'block';
+                emailInput.setAttribute('required', 'true');
+                forgotLink.style.display = 'none';
+                userLabel.placeholder = "Choisis un Pseudo...";
+            }
+        }
     }
 
-  async function handleAuth() {
-    const username = document.getElementById('username-input').value;
-    const password = document.getElementById('password-input').value;
-    const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+    async function handleAuth() {
+        const username = document.getElementById('username-input').value;
+        const password = document.getElementById('password-input').value;
+        const email = document.getElementById('email-input') ? document.getElementById('email-input').value : undefined;
 
-    if(!username || !password) return;
+        const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
 
-    try {
-        const res = await fetch(API_URL + endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, isVip: isVipUser })
-        });
-        const data = await res.json();
+        if(!username || !password) return;
+        if(!isLoginMode && !email) return alert("Veuillez renseigner une adresse email valide.");
 
-        if (data.success) {
-            if (isLoginMode) {
-                localStorage.setItem('monBadgeCineLK10', data.token); // VRAI token
-                currentUser = data.user;
+        // Préparation des données pour le serveur
+        const bodyData = { username, password, isVip: isVipUser };
+        if (!isLoginMode) bodyData.email = email; // On envoie l'e-mail uniquement à l'inscription
 
-                // --- AJOUT : Si c'est l'Admin, on active les privilèges direct ---
-                if (username.toLowerCase() === 'admin' && password === '23102002') {
-                    isAdminUnlocked = true;
-                    isVipUser = true;
-                    document.body.classList.add('admin-active');
+        try {
+            const res = await fetch(API_URL + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(bodyData)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                if (isLoginMode) {
+                    localStorage.setItem('monBadgeCineLK10', data.token);
+                    currentUser = data.user;
+
+                    // Accès Admin si les logs correspondent
+                    if (username.toLowerCase() === 'admin' && password === '23102002') {
+                        isAdminUnlocked = true;
+                        isVipUser = true;
+                        document.body.classList.add('admin-active');
+                    }
+                    finalizeAccess();
+                } else {
+                    alert("Compte créé avec succès ! Connecte-toi maintenant.");
+                    toggleAuthMode();
                 }
-                // -----------------------------------------------------------------
+            } else { alert(data.message); }
+        } catch (e) { alert("Erreur serveur"); }
+    }
 
-                finalizeAccess();
+    // Nouvelle fonction pour envoyer le mail de réinitialisation
+    async function promptForgotPassword() {
+        const email = prompt("Veuillez entrer l'adresse email associée à votre compte :");
+        if (!email) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                alert("Si cette adresse existe, un lien de réinitialisation a été envoyé ! (Vérifiez vos spams)");
             } else {
-                alert("Compte créé avec succès ! Connecte-toi maintenant.");
-                toggleAuthMode();
+                alert("Erreur : " + data.message);
             }
-        } else { alert(data.message); }
-    } catch (e) { alert("Erreur serveur"); }
-}
+        } catch (e) {
+            alert("Erreur de connexion au serveur.");
+        }
+    }
 
     async function autoLogin(token) {
         try {
@@ -1885,6 +1947,22 @@ async function openAnalytics() {
         if(data.success) {
             document.getElementById('stat-total-users').innerText = data.totalUsers;
             
+            // --- NOUVEAU : PEUPLER LA LISTE DES UTILISATEURS ---
+            const usersContainer = document.getElementById('analytics-users-list');
+            if (usersContainer && data.usersList) {
+                usersContainer.innerHTML = '';
+                data.usersList.forEach(u => {
+                    usersContainer.innerHTML += `
+                    <div class="user-list-item">
+                        <span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span>
+                        <span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span>
+                    </div>`;
+                });
+            } else if (usersContainer) {
+                usersContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">La liste des utilisateurs nécessite une mise à jour du serveur Backend.</div>';
+            }
+            // ---------------------------------------------------
+
             renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
             renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
             renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
