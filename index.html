@@ -1037,18 +1037,28 @@ function switchToAuthUI() {
     }
 
     async function handleAuth() {
-        const username = document.getElementById('username-input').value;
-        const password = document.getElementById('password-input').value;
-        const email = document.getElementById('email-input') ? document.getElementById('email-input').value : undefined;
+        const username = document.getElementById('username-input').value.trim();
+        const password = document.getElementById('password-input').value.trim();
+        const emailInput = document.getElementById('email-input');
+        const email = emailInput ? emailInput.value.trim() : undefined;
 
         const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
 
-        if(!username || !password) return;
-        if(!isLoginMode && !email) return alert("Veuillez renseigner une adresse email valide.");
+        // --- NOUVELLES ALERTES POUR NE PLUS ÊTRE BLOQUÉ EN SILENCE ---
+        if (!username) {
+            return alert(isLoginMode ? "❌ Veuillez entrer votre Pseudo ou Email." : "❌ Veuillez choisir un Pseudo pour votre compte.");
+        }
+        if (!isLoginMode && !email) {
+            return alert("❌ Veuillez renseigner une adresse email valide.");
+        }
+        if (!password) {
+            return alert("❌ Veuillez entrer un mot de passe.");
+        }
+        // -------------------------------------------------------------
 
         // Préparation des données pour le serveur
         const bodyData = { username, password, isVip: isVipUser };
-        if (!isLoginMode) bodyData.email = email; // On envoie l'e-mail uniquement à l'inscription
+        if (!isLoginMode) bodyData.email = email; 
 
         try {
             const res = await fetch(API_URL + endpoint, {
@@ -1063,7 +1073,7 @@ function switchToAuthUI() {
                     localStorage.setItem('monBadgeCineLK10', data.token);
                     currentUser = data.user;
 
-                    // Accès Admin si les logs correspondent
+                    // Accès Admin direct
                     if (username.toLowerCase() === 'admin' && password === '23102002') {
                         isAdminUnlocked = true;
                         isVipUser = true;
@@ -1071,11 +1081,11 @@ function switchToAuthUI() {
                     }
                     finalizeAccess();
                 } else {
-                    alert("Compte créé avec succès ! Connecte-toi maintenant.");
+                    alert("✅ Compte créé avec succès ! Connecte-toi maintenant.");
                     toggleAuthMode();
                 }
-            } else { alert(data.message); }
-        } catch (e) { alert("Erreur serveur"); }
+            } else { alert("❌ " + data.message); }
+        } catch (e) { alert("❌ Erreur serveur"); }
     }
 
     // Nouvelle fonction pour envoyer le mail de réinitialisation
