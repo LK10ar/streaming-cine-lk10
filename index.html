@@ -413,7 +413,63 @@
             .prof-filters-container { flex-wrap: wrap; gap: 10px; }
             .prof-filter-btn { flex: 1; min-width: 30%; padding: 8px 5px; font-size: 11px; }
         }
+/* ================================================== */
+        /* ============ WISHBOARD (DEMANDES) ================ */
+        /* ================================================== */
+        #wishboard-page { display: none; padding: 30px; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; animation: fadeIn 0.3s ease; }
+        .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }
+        .wb-title-area h1 { font-size: 40px; font-family: 'Georgia', serif; color: white; margin: 5px 0; }
+        .wb-title-area span.subtitle { color: var(--primary); font-size: 12px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+        .wb-stats { color: #888; font-size: 13px; display: flex; align-items: center; gap: 15px; margin-top: 5px; }
+        .wb-search-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 10px 20px; display: flex; align-items: center; width: 300px; max-width: 100%; }
+        .wb-search-bar input { background: transparent; border: none; color: white; outline: none; width: 100%; margin-left: 10px; font-size: 14px; }
+        .wb-btn-ask { background: var(--primary); color: black; font-weight: bold; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 14px; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .wb-btn-ask:hover { background: white; transform: translateY(-2px); }
 
+        .wb-filters { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid #222; padding-bottom: 20px; flex-wrap: wrap; }
+        .wb-filter-btn { background: #1a1a1a; color: #888; border: 1px solid #333; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s; }
+        .wb-filter-btn:hover { color: white; border-color: #555; }
+        .wb-filter-btn.active { background: rgba(255, 222, 0, 0.1); color: var(--primary); border-color: var(--primary); }
+
+        /* Modales Wishboard (Fonds assombris) */
+        .wb-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 40px 20px; }
+        .wb-modal-content { background: #151515; width: 900px; max-width: 100%; position: relative; border-radius: 10px; padding: 40px; border: 1px solid #333; margin: auto; }
+        .wb-close-btn { position: absolute; top: 20px; right: 20px; background: #222; border: 1px solid #444; color: #aaa; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; transition: 0.3s; display: flex; justify-content: center; align-items: center; }
+        .wb-close-btn:hover { color: white; background: var(--danger); border-color: var(--danger); transform: rotate(90deg); }
+
+        /* Étape 1 : Choix du type */
+        .wb-type-grid { display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+        .wb-type-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 30px 20px; width: 200px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .wb-type-card i { font-size: 30px; color: var(--primary); margin-bottom: 15px; }
+        .wb-type-card h3 { color: white; margin-bottom: 10px; font-size: 18px; }
+        .wb-type-card p { color: #888; font-size: 12px; line-height: 1.4; }
+        .wb-type-card:hover { transform: translateY(-5px); border-color: var(--primary); background: #222; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+
+        /* Étape 2 : Recherche TMDB */
+        .wb-tmdb-search-area { text-align: center; margin-top: 20px; }
+        .wb-tmdb-search-input { background: #1a1a1a; border: 1px solid #444; color: white; padding: 15px 20px; border-radius: 30px; width: 100%; max-width: 500px; font-size: 16px; outline: none; transition: 0.3s; text-align: center; }
+        .wb-tmdb-search-input:focus { border-color: var(--primary); }
+        .wb-tmdb-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-top: 30px; max-height: 50vh; overflow-y: auto; padding-right: 10px; }
+        .wb-tmdb-results::-webkit-scrollbar { width: 6px; }
+        .wb-tmdb-results::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+        
+        /* Étape 3 : Confirmation & Modale de Détails */
+        .wb-confirm-box { display: flex; gap: 30px; background: #1a1a1a; padding: 25px; border-radius: 10px; border: 1px solid #333; margin-top: 30px; flex-wrap: wrap; }
+        .wb-confirm-poster { width: 150px; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .wb-confirm-info { flex: 1; display: flex; flex-direction: column; }
+        .wb-confirm-title { font-size: 24px; color: white; margin-bottom: 10px; }
+        .wb-confirm-desc { color: #aaa; font-size: 13px; line-height: 1.5; margin-bottom: 20px; font-style: italic; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .wb-confirm-actions { display: flex; gap: 15px; margin-top: auto; }
+        .wb-btn-cancel { background: transparent; border: 1px solid #555; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .wb-btn-cancel:hover { background: #333; }
+        .wb-btn-submit { background: var(--primary); border: none; color: black; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .wb-btn-submit:hover { background: #e6c800; transform: scale(1.05); }
+
+        /* Badge Status */
+        .wb-status { font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 3px; display: inline-block; margin-bottom: 10px; }
+        .status-attente { background: rgba(255, 255, 255, 0.1); border: 1px solid #555; color: #ccc; }
+        .status-cours { background: rgba(243, 156, 18, 0.2); border: 1px solid #f39c12; color: #f39c12; }
+        .status-ajoute { background: rgba(46, 204, 113, 0.2); border: 1px solid #2ecc71; color: #2ecc71; }
         @media (max-width: 480px) { .logo img { height: 50px; } .poster { height: 220px; } }
     </style>
 </head>
@@ -507,6 +563,11 @@ function closeCover() {
                 <i class="fas fa-book"></i> CATALOGUE
             </a>
            </li>
+           <li class="nav-item">
+            <a id="nav-wishboard" class="nav-link" onclick="closeProfilePage(); showWishboard(); toggleMobileMenu()">
+                <i class="fas fa-star"></i> WISHBOARD
+            </a>
+        </li>
             <li class="nav-item" onclick="toggleSubMenu(this)">
                 <a id="nav-film" class="nav-link"><span><i class="fas fa-film"></i> FILMS</span><i class="fas fa-chevron-down" style="font-size:10px;"></i></a>
                 <div class="dropdown-content">
@@ -642,6 +703,134 @@ function closeCover() {
         </a>
     </footer>
     
+<!-- ========================================== -->
+    <!-- ========== PAGE WISHBOARD ================ -->
+    <!-- ========================================== -->
+    <div id="wishboard-page">
+        <div class="wb-header-top">
+            <div class="wb-title-area">
+                <span class="subtitle">Communauté</span>
+                <h1>Wishboard</h1>
+                <div class="wb-stats">
+                    <span id="wb-stat-total">0 demandes</span>
+                    <span id="wb-stat-added">0 ajoutés</span>
+                    <div class="wb-search-bar">
+                        <i class="fas fa-search" style="color:#555;"></i>
+                        <input type="text" id="wb-search-input" placeholder="Rechercher une demande..." onkeyup="filterWishboard()">
+                    </div>
+                </div>
+            </div>
+            <button class="wb-btn-ask" onclick="openWbRequestModal()"><i class="fas fa-plus"></i> Demander</button>
+        </div>
+
+        <div class="wb-filters">
+            <button class="wb-filter-btn active" onclick="setWbFilter('all')">Tous</button>
+            <button class="wb-filter-btn" onclick="setWbFilter('En attente')">En attente <span id="wb-count-attente">(0)</span></button>
+            <button class="wb-filter-btn" onclick="setWbFilter('En cours')">En cours <span id="wb-count-cours">(0)</span></button>
+            <button class="wb-filter-btn" onclick="setWbFilter('Ajouté')">Ajouté <span id="wb-count-ajoute">(0)</span></button>
+        </div>
+
+        <div style="font-weight:bold; color:#aaa; margin-bottom: 15px; font-size:12px; text-transform:uppercase;">Les plus demandés</div>
+        <div class="movie-grid" id="wb-grid">
+            <!-- Les demandes apparaîtront ici -->
+        </div>
+    </div>
+
+    <!-- MODALE 1 : FAIRE UNE DEMANDE (3 ÉTAPES) -->
+    <div id="wb-request-modal" class="wb-modal-overlay">
+        <div class="wb-modal-content">
+            <button class="wb-close-btn" onclick="closeWbModals()"><i class="fas fa-times"></i></button>
+            
+            <!-- Étape 1 : Type -->
+            <div id="wb-step-1">
+                <span style="color:var(--primary); font-size:12px; font-weight:bold; text-transform:uppercase;">Wishboard</span>
+                <h2 style="color:white; font-size:28px; margin-top:5px; margin-bottom:20px; font-family:serif;">Demander un contenu</h2>
+                <div style="text-align:center; color:#ccc; margin-top:30px;">
+                    <p>Un contenu manque sur Ciné LK10 ? Choisis le type ci-dessous, recherche le titre, et soumets ta demande.</p>
+                    <p style="font-size:12px; color:#888; margin-top:5px;">Plus ta demande reçoit de votes, plus elle sera traitée rapidement par l'équipe.</p>
+                </div>
+                <div class="wb-type-grid">
+                    <div class="wb-type-card" onclick="wbGoToStep2('movie')">
+                        <i class="fas fa-film"></i>
+                        <h3>Film</h3>
+                        <p>Demander un film complet</p>
+                    </div>
+                    <div class="wb-type-card" onclick="wbGoToStep2('tv')">
+                        <i class="fas fa-tv"></i>
+                        <h3>Série</h3>
+                        <p>Demander une série entière</p>
+                    </div>
+                   <div class="wb-type-card" onclick="wbGoToStep2('anime')">
+                        <i class="fas fa-star"></i>
+                        <h3>Anime</h3>
+                        <p>Animation japonaise</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 2 : Recherche TMDB -->
+            <div id="wb-step-2" style="display:none;">
+                <button class="wb-btn-cancel" style="border:none; padding:0; margin-bottom:20px;" onclick="wbGoToStep1()"><i class="fas fa-arrow-left"></i> Retour</button>
+                <h2 style="color:white; font-size:28px; font-family:serif; text-align:center;">Rechercher</h2>
+                <div class="wb-tmdb-search-area">
+                    <input type="text" id="wb-tmdb-input" class="wb-tmdb-search-input" placeholder="Tape le nom exact du film/série..." autocomplete="off">
+                </div>
+                <div style="text-align:center; color:#888; font-size:12px; margin-top:15px;" id="wb-tmdb-status">Tapez un titre pour lancer la recherche internet.</div>
+                <div class="wb-tmdb-results" id="wb-tmdb-results"></div>
+            </div>
+
+            <!-- Étape 3 : Confirmation -->
+            <div id="wb-step-3" style="display:none;">
+                <button class="wb-btn-cancel" style="border:none; padding:0; margin-bottom:10px;" onclick="wbGoToStep2(currentWbType)"><i class="fas fa-arrow-left"></i> Retour</button>
+                <h2 style="color:white; font-size:28px; font-family:serif;">Confirmation</h2>
+                <div class="wb-confirm-box">
+                    <img id="wb-confirm-img" src="" class="wb-confirm-poster" alt="Affiche">
+                    <div class="wb-confirm-info">
+                        <span id="wb-confirm-type" style="color:var(--primary); font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">FILM</span>
+                        <h3 id="wb-confirm-title" class="wb-confirm-title">Titre</h3>
+                        <p id="wb-confirm-desc" class="wb-confirm-desc">Description...</p>
+                        <div class="wb-confirm-actions">
+                            <button class="wb-btn-cancel" onclick="wbGoToStep2(currentWbType)">Changer</button>
+                            <button class="wb-btn-submit" onclick="submitWish()"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODALE 2 : DÉTAILS D'UNE DEMANDE & HISTORIQUE -->
+    <div id="wb-details-modal" class="wb-modal-overlay">
+        <div class="wb-modal-content" style="max-width: 800px;">
+            <button class="wb-close-btn" onclick="closeWbModals()"><i class="fas fa-times"></i></button>
+            <div class="wb-confirm-box" style="margin-top:0; border:none; padding:0;">
+                <img id="wb-det-img" src="" class="wb-confirm-poster" style="width:200px;" alt="Affiche">
+                <div class="wb-confirm-info">
+                    <h3 id="wb-det-title" style="font-size:32px; color:white; margin-bottom:10px; font-family:serif;">Titre</h3>
+                    <div id="wb-det-status" class="wb-status status-attente">EN ATTENTE</div>
+                    
+                    <button id="wb-det-vote-btn" class="wb-btn-cancel" style="display:flex; align-items:center; gap:10px; width:fit-content; margin-bottom:20px; border-color:var(--primary); color:white;" onclick="voteForWish()">
+                        <i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span id="wb-det-votes">1 vote</span>
+                    </button>
+
+                    <p id="wb-det-desc" class="wb-confirm-desc" style="font-size:14px; -webkit-line-clamp: 6;">Description...</p>
+                    <a id="wb-det-tmdb-link" href="#" target="_blank" style="color:var(--primary); font-size:13px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Voir sur TMDB</a>
+                    
+                    <!-- Historique (Timeline) -->
+                    <div style="margin-top:30px; border-top:1px solid #333; padding-top:20px;">
+                        <h4 style="color:white; font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-bottom:15px;"><i class="fas fa-history"></i> Historique de la demande</h4>
+                        <div id="wb-det-history" style="border-left: 2px solid #333; padding-left: 15px; margin-left: 5px;">
+                            <!-- La timeline s'affichera ici -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ========================================== -->
+
     <div id="player-overlay">
         <div class="player-content">
             <div class="player-actions"></div>
@@ -2032,6 +2221,361 @@ function renderChart(canvasId, label, dataArray, color) {
         }
     });
 }
+
+/* =========================================================
+       WISHBOARD - LOGIQUE JAVASCRIPT (PHASE 2)
+       ========================================================= */
+    let wishesList = [];
+    let currentWbType = 'movie';
+    let selectedTmdbItem = null;
+    let currentWbFilter = 'all';
+    let currentOpenedWish = null;
+
+    // 1. Gérer l'affichage de la page Wishboard par rapport au reste
+    function showWishboard() {
+        document.querySelector('.main-container').style.display = 'none';
+        document.getElementById('profile-page').style.display = 'none';
+        document.getElementById('wishboard-page').style.display = 'block';
+        
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        document.getElementById('nav-wishboard').classList.add('active');
+        
+        loadWishes(); // Charge les demandes depuis la base de données
+    }
+
+    // Modification automatique de tes anciens boutons pour cacher le Wishboard
+    const originalSetCategory = setCategory;
+    setCategory = function(cat) {
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
+        originalSetCategory(cat);
+    };
+    const originalShowCatalogue = showCatalogue;
+    showCatalogue = function() {
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
+        originalShowCatalogue();
+    };
+    const originalOpenProfilePage = openProfilePage;
+    openProfilePage = function() {
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
+        originalOpenProfilePage();
+    };
+
+    // 2. Modales et Étapes (Faire une demande)
+    function openWbRequestModal() {
+        if(!currentUser) {
+            alert("Tu dois être connecté pour faire une demande.");
+            document.getElementById('auth-switch').click(); // Ouvre la connexion
+            return;
+        }
+        document.getElementById('wb-request-modal').style.display = 'flex';
+        wbGoToStep1();
+    }
+    
+    function closeWbModals() {
+        document.getElementById('wb-request-modal').style.display = 'none';
+        document.getElementById('wb-details-modal').style.display = 'none';
+    }
+
+    function wbGoToStep1() {
+        document.getElementById('wb-step-1').style.display = 'block';
+        document.getElementById('wb-step-2').style.display = 'none';
+        document.getElementById('wb-step-3').style.display = 'none';
+    }
+
+    function wbGoToStep2(type) {
+        currentWbType = type; // 'movie', 'tv' ou 'anime'
+        document.getElementById('wb-step-1').style.display = 'none';
+        document.getElementById('wb-step-2').style.display = 'block';
+        document.getElementById('wb-step-3').style.display = 'none';
+        
+        document.getElementById('wb-tmdb-input').value = '';
+        document.getElementById('wb-tmdb-results').innerHTML = '';
+        document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet...";
+        document.getElementById('wb-tmdb-input').focus();
+    }
+
+    // 3. Recherche Intelligente TMDB (Internet)
+    let wbSearchTimeout = null;
+    document.getElementById('wb-tmdb-input').addEventListener('input', function(e) {
+        clearTimeout(wbSearchTimeout);
+        const query = e.target.value.trim();
+        
+        if(query.length < 2) {
+            document.getElementById('wb-tmdb-results').innerHTML = '';
+            document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet...";
+            return;
+        }
+        
+        document.getElementById('wb-tmdb-status').innerText = "Recherche en cours...";
+        wbSearchTimeout = setTimeout(() => searchTMDB(query), 600); // Attend que l'utilisateur finisse d'écrire
+    });
+
+    async function searchTMDB(query) {
+        const resultsContainer = document.getElementById('wb-tmdb-results');
+        try {
+            // Anime ou Série utilise la même base de données "TV" sur TMDB
+            let searchType = (currentWbType === 'tv' || currentWbType === 'anime') ? 'tv' : 'movie';
+            
+            const res = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            if(!data.results || data.results.length === 0) {
+                resultsContainer.innerHTML = '<div style="color:#aaa; text-align:center; grid-column: 1/-1;">Aucun résultat trouvé sur internet.</div>';
+                document.getElementById('wb-tmdb-status').innerText = "";
+                return;
+            }
+            
+            resultsContainer.innerHTML = '';
+            document.getElementById('wb-tmdb-status').innerText = "";
+            
+            data.results.forEach(item => {
+                if(!item.poster_path) return; // Ignore ceux qui n'ont pas d'affiche
+                
+                const posterUrl = `https://image.tmdb.org/t/p/w200${item.poster_path}`;
+                const title = item.title || item.name;
+                const year = item.release_date ? item.release_date.substring(0,4) : (item.first_air_date ? item.first_air_date.substring(0,4) : 'N/A');
+                
+                // VÉRIFICATION : Est-ce déjà sur le site Ciné LK10 ?
+                const alreadyExists = moviesDB.find(m => m.title.toLowerCase() === title.toLowerCase());
+                
+                const div = document.createElement('div');
+                div.className = 'wish-card'; 
+                div.innerHTML = `
+                    <div class="wish-poster" style="background-image: url('${posterUrl}')">
+                        ${alreadyExists ? '<div class="wish-status-badge ajoute" style="background:rgba(46, 204, 113, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">Déjà Dispo !</div>' : ''}
+                    </div>
+                    <div style="font-size:11px; margin-top:5px; color:white; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title} (${year})</div>
+                `;
+                
+                if(alreadyExists) {
+                    div.onclick = () => {
+                        closeWbModals();
+                        document.getElementById('wishboard-page').style.display = 'none';
+                        document.querySelector('.main-container').style.display = 'flex';
+                        openP(alreadyExists.id); // Ouvre directement le film !
+                    };
+                } else {
+                    div.onclick = () => selectTmdbItem(item, posterUrl, title); // Étape 3
+                }
+                
+                resultsContainer.appendChild(div);
+            });
+        } catch(e) {
+            resultsContainer.innerHTML = '<div style="color:red; text-align:center; grid-column: 1/-1;">Erreur de connexion.</div>';
+        }
+    }
+
+    // 4. Validation et Envoi
+    function selectTmdbItem(item, posterUrl, title) {
+        selectedTmdbItem = {
+            tmdbId: item.id.toString(),
+            title: title,
+            type: currentWbType,
+            posterUrl: posterUrl,
+            description: item.overview || "Aucune description disponible pour ce contenu."
+        };
+        
+        document.getElementById('wb-step-2').style.display = 'none';
+        document.getElementById('wb-step-3').style.display = 'block';
+        
+        document.getElementById('wb-confirm-img').src = posterUrl;
+        document.getElementById('wb-confirm-type').innerText = currentWbType === 'movie' ? "FILM" : (currentWbType === 'tv' ? "SÉRIE" : "ANIME");
+        document.getElementById('wb-confirm-title').innerText = title;
+        document.getElementById('wb-confirm-desc').innerText = selectedTmdbItem.description;
+    }
+
+    async function submitWish() {
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/wishes/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify(selectedTmdbItem)
+            });
+            const data = await res.json();
+            
+            if(data.success) {
+                alert("Demande envoyée avec succès !");
+                closeWbModals();
+                loadWishes(); // Rafraîchit le Wishboard
+            } else { alert("Erreur : " + data.message); }
+        } catch(e) { alert("Erreur serveur."); }
+    }
+
+    // 5. Affichage et Filtres
+    async function loadWishes() {
+        try {
+            const res = await fetch(`${API_URL}/api/wishes`);
+            const data = await res.json();
+            if(data.success) {
+                wishesList = data.wishes;
+                renderWishes();
+            }
+        } catch(e) { console.error("Erreur Wishboard", e); }
+    }
+
+    function setWbFilter(status) {
+        currentWbFilter = status;
+        document.querySelectorAll('.wb-filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderWishes();
+    }
+
+    function filterWishboard() { renderWishes(); } // Lié à la barre de recherche
+
+    function renderWishes() {
+        const grid = document.getElementById('wb-grid');
+        grid.innerHTML = '';
+        
+        // Maj des compteurs
+        document.getElementById('wb-stat-total').innerText = wishesList.length + " demandes";
+        document.getElementById('wb-stat-added').innerText = wishesList.filter(w => w.status === 'Ajouté').length + " ajoutés";
+        
+        document.getElementById('wb-count-attente').innerText = "(" + wishesList.filter(w => w.status === 'En attente').length + ")";
+        document.getElementById('wb-count-cours').innerText = "(" + wishesList.filter(w => w.status === 'En cours').length + ")";
+        document.getElementById('wb-count-ajoute').innerText = "(" + wishesList.filter(w => w.status === 'Ajouté').length + ")";
+
+        const searchQuery = document.getElementById('wb-search-input').value.toLowerCase().trim();
+
+        let filtered = wishesList.filter(w => {
+            const matchStatus = currentWbFilter === 'all' || w.status === currentWbFilter;
+            const matchSearch = w.title.toLowerCase().includes(searchQuery);
+            return matchStatus && matchSearch;
+        });
+
+        if(filtered.length === 0) {
+            grid.innerHTML = '<div style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Aucune demande trouvée.</div>';
+            return;
+        }
+
+        filtered.forEach((w, index) => {
+            const statusClass = w.status === 'En attente' ? 'attente' : (w.status === 'En cours' ? 'cours' : 'ajoute');
+            
+            // On vérifie si l'utilisateur connecté a déjà voté
+            const userId = currentUser ? currentUser._id : null;
+            const isVoted = userId && w.voters && w.voters.includes(userId);
+            
+            const div = document.createElement('div');
+            div.className = 'wish-card';
+            
+            // Retirer le numéro (rank) si on fait une recherche ou si on filtre
+            if (currentWbFilter !== 'all' || searchQuery !== '') {
+                div.style.counterIncrement = 'none'; // Désactive le css 'counter-increment'
+                div.classList.add('no-rank');
+            }
+
+            div.onclick = () => openWishDetails(w._id);
+            div.innerHTML = `
+                <div class="wish-poster" style="background-image: url('${w.posterUrl}')">
+                    <div class="wish-status-badge ${statusClass}">${w.status}</div>
+                    <div class="wish-votes" style="${isVoted ? 'background:#e6c800;' : ''}">
+                        <i class="fas fa-chevron-up"></i> ${w.votes}
+                    </div>
+                </div>
+                <div style="font-size:12px; margin-top:8px; color:white; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.title}</div>
+                <div style="font-size:10px; color:#888; text-transform:uppercase;">${w.type === 'movie' ? 'Film' : (w.type === 'tv' ? 'Série' : 'Anime')}</div>
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    // 6. Modale de Détails & Historique de la demande
+    function openWishDetails(wishId) {
+        currentOpenedWish = wishesList.find(w => w._id === wishId);
+        if(!currentOpenedWish) return;
+        
+        document.getElementById('wb-details-modal').style.display = 'flex';
+        
+        document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl;
+        document.getElementById('wb-det-title').innerText = currentOpenedWish.title;
+        document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
+        
+        const statusBadge = document.getElementById('wb-det-status');
+        statusBadge.innerText = currentOpenedWish.status.toUpperCase();
+        statusBadge.className = 'wb-status'; 
+        if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente');
+        if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours');
+        if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
+        
+        const voteBtn = document.getElementById('wb-det-vote-btn');
+        document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
+        
+        const userId = currentUser ? currentUser._id : null;
+        const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
+        
+        if(isVoted) {
+            voteBtn.style.background = 'var(--primary)';
+            voteBtn.style.color = 'black';
+            voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`;
+        } else {
+            voteBtn.style.background = 'transparent';
+            voteBtn.style.color = 'white';
+            voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`;
+        }
+        
+        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv';
+        document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
+        
+        // Affichage de la Timeline d'historique
+        const historyContainer = document.getElementById('wb-det-history');
+        historyContainer.innerHTML = '';
+        
+        const historyArr = currentOpenedWish.history && currentOpenedWish.history.length > 0 
+            ? currentOpenedWish.history 
+            : [{ status: 'Demande soumise', date: new Date() }];
+        
+        historyArr.forEach((step, index) => {
+            const isLast = index === historyArr.length - 1;
+            const dateObj = new Date(step.date);
+            const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            const div = document.createElement('div');
+            div.className = `timeline-item ${isLast ? 'active' : ''}`;
+            div.innerHTML = `
+                <div class="timeline-title">${step.status}</div>
+                <div class="timeline-date">${dateStr}</div>
+            `;
+            historyContainer.appendChild(div);
+        });
+    }
+
+    // 7. Voter (Ajouter un vote de priorité)
+    async function voteForWish() {
+        if(!currentUser) {
+            alert("Tu dois être connecté pour voter !");
+            closeWbModals();
+            document.getElementById('auth-switch').click();
+            return;
+        }
+        
+        const userId = currentUser._id;
+        if(currentOpenedWish.voters.includes(userId)) {
+            alert("Tu as déjà voté pour cette demande !");
+            return;
+        }
+
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/wishes/vote`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ wishId: currentOpenedWish._id })
+            });
+            const data = await res.json();
+            if(data.success) {
+                currentOpenedWish.votes = data.votes;
+                currentOpenedWish.voters.push(userId);
+                openWishDetails(currentOpenedWish._id); // Met à jour la modale
+                renderWishes(); // Met à jour la liste derrière
+            } else { alert(data.message || "Erreur lors du vote."); }
+        } catch(e) { alert("Erreur serveur."); }
+    }
+    
+    // Petit correctif CSS pour cacher les numéros quand on cherche
+    document.head.insertAdjacentHTML("beforeend", `<style>.no-rank::before { display: none !important; }</style>`);
 </script>
 </body>
 </html>
