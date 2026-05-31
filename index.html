@@ -464,7 +464,25 @@
         .wb-btn-cancel:hover { background: #333; }
         .wb-btn-submit { background: var(--primary); border: none; color: black; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .wb-btn-submit:hover { background: #e6c800; transform: scale(1.05); }
-
+/* --- DESIGN DES CARTES WISHBOARD --- */
+        .wish-card { background: #1a1a1a; border-radius: 5px; overflow: hidden; cursor: pointer; transition: 0.3s; padding-bottom: 10px; position: relative; border: 1px solid #333; counter-increment: wish-rank; }
+        .wish-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(255,222,0,0.2); }
+        .wish-card.no-rank::before { display: none !important; }
+        .wish-card:not(.no-rank)::before { content: "#" counter(wish-rank); position: absolute; top: -10px; left: -10px; background: var(--primary); color: black; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 3px solid #1a1a1a; z-index: 10; }
+        .wish-poster { width: 100%; height: 220px; background-size: cover; background-position: center; position: relative; }
+        .wish-status-badge { position: absolute; top: 10px; left: 10px; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 3px; color: white; background: rgba(0,0,0,0.8); }
+        .wish-status-badge.attente { border-left: 3px solid #ccc; }
+        .wish-status-badge.cours { border-left: 3px solid #f39c12; }
+        .wish-status-badge.ajoute { border-left: 3px solid #2ecc71; }
+        .wish-votes { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; font-weight: bold; padding: 5px 10px; border-radius: 5px; font-size: 12px; display: flex; align-items: center; gap: 5px; border: 1px solid #555; }
+        
+        /* Design de la timeline d'historique */
+        .timeline-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -21px; top: 5px; width: 10px; height: 10px; background: #555; border-radius: 50%; }
+        .timeline-item.active::before { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+        .timeline-title { color: #ccc; font-size: 13px; font-weight: bold; }
+        .timeline-item.active .timeline-title { color: var(--primary); }
+        .timeline-date { color: #666; font-size: 11px; }
         /* Badge Status */
         .wb-status { font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 3px; display: inline-block; margin-bottom: 10px; }
         .status-attente { background: rgba(255, 255, 255, 0.1); border: 1px solid #555; color: #ccc; }
