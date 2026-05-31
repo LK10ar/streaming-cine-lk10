@@ -139,10 +139,9 @@
         .cast-name-small { font-size: 10px; color: #aaa; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* --- 5. OVERLAYS DIVERS --- */
-        #trailer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; }
-        .trailer-content { width: 90%; max-width: 900px; position: relative; aspect-ratio: 16 / 9; background: #000; }
-        .trailer-close-btn { position: absolute; top: -20px; right: -20px; background: var(--primary); color: black; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 3010; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .trailer-video-box { width: 100%; height: 100%; background: black; }
+      #trailer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 15000; justify-content: center; align-items: center; }
+.trailer-content { width: 90%; max-width: 900px; position: relative; aspect-ratio: 16 / 9; background: #000; }
+.trailer-close-btn { position: absolute; top: -20px; right: -20px; background: var(--primary); color: black; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-weight: bold; z-index: 15010; display: flex; align-items: center; justify-content: center; font-size: 20px; } .trailer-video-box { width: 100%; height: 100%; background: black; }
         .trailer-video-box iframe { width: 100% !important; height: 100% !important; border: none; }
 
         #actor-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; justify-content: center; align-items: flex-start; overflow-y: auto; padding: 40px 20px; }
@@ -828,14 +827,14 @@ function closeCover() {
                     <h3 id="wb-det-title" style="font-size:32px; color:white; margin-bottom:10px; font-family:serif;">Titre</h3>
                     <div id="wb-det-status" class="wb-status status-attente">EN ATTENTE</div>
                     
-                  <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap;">
+                 <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap; align-items: center;">
     <button id="wb-det-vote-btn" class="wb-btn-cancel" style="display:flex; align-items:center; gap:10px; width:fit-content; border-color:var(--primary); color:white;" onclick="voteForWish()">
         <i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span id="wb-det-votes">1 vote</span>
     </button>
     
-    <a id="wb-det-trailer-btn" href="#" target="_blank" class="wb-btn-cancel" style="display:flex; align-items:center; gap:10px; width:fit-content; border-color:#e74c3c; color:white; text-decoration:none;">
-        <i class="fab fa-youtube" style="color:#e74c3c;"></i> Bande Annonce
-    </a>
+    <button id="wb-det-trailer-btn" class="btn-trailer" style="width: fit-content; margin: 0; padding: 10px 20px; border-radius: 5px; display: flex; align-items: center; gap: 8px;" onclick="openWishTrailer()">
+        <i class="fas fa-play"></i> BANDE ANNONCE
+    </button>
 </div>
 
                     <p id="wb-det-desc" class="wb-confirm-desc" style="font-size:14px; -webkit-line-clamp: 6;">Description...</p>
@@ -2562,9 +2561,6 @@ function openWishDetails(wishId) {
         let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv';
         document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
         
-        // Génère un lien de recherche YouTube automatique pour la bande-annonce
-        document.getElementById('wb-det-trailer-btn').href = `https://www.youtube.com/results?search_query=Bande+Annonce+${encodeURIComponent(currentOpenedWish.title)}`;
-        
         // Affichage de la Timeline d'historique
         const historyContainer = document.getElementById('wb-det-history');
         historyContainer.innerHTML = '';
@@ -2586,6 +2582,48 @@ function openWishDetails(wishId) {
             `;
             historyContainer.appendChild(div);
         });
+    }
+
+    async function openWishTrailer() {
+        if (!currentOpenedWish) return;
+        
+        // On détermine s'il faut chercher un film ou une série
+        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv';
+        let tmdbId = currentOpenedWish.tmdbId;
+        
+        try {
+            // 1. On cherche la bande-annonce en français
+            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`);
+            let data = await resFr.json();
+            
+            // 2. Si pas de vidéo en français, on tente en anglais (version originale)
+            if (!data.results || data.results.length === 0) {
+                const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`);
+                data = await resEn.json();
+            }
+
+            if (data.results && data.results.length > 0) {
+                // On cherche de préférence une vidéo de type "Trailer" sur YouTube
+                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                
+                // Sinon on prend la première vidéo YouTube disponible (Teaser, Featurette...)
+                if (!video) {
+                    video = data.results.find(v => v.site === 'YouTube');
+                }
+                
+                // Si on a trouvé une vidéo, on l'affiche dans ton lecteur existant !
+                if (video) {
+                    const finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${video.key}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    document.getElementById('trailer-video-container').innerHTML = finalHTML; 
+                    document.getElementById('trailer-overlay').style.display = 'flex';
+                    return;
+                }
+            }
+            alert("Aucune bande-annonce n'a été trouvée dans la base de données pour ce contenu.");
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de la recherche de la bande-annonce.");
+        }
     }
 
     // 7. Voter (Ajouter un vote de priorité)
