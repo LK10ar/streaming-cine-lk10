@@ -256,8 +256,8 @@
         @keyframes floatDiamond { 0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 10px #ff69b4); } 50% { transform: translateY(-10px); filter: drop-shadow(0 0 20px #ff69b4); } }
 
         /* --- FOOTER & MISC --- */
-        footer { background-color: #1b1b1b; padding: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; border-top: 3px solid var(--primary); margin-top: auto; z-index: 100; }
-        .footer-text { color: #ccc; font-weight: bold; font-size: 14px; font-family: 'Arial', sans-serif; }
+     /* --- FOOTER & MISC --- */
+        footer { background-color: #1b1b1b; padding: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; border-top: 3px solid var(--primary); margin-top: auto; z-index: 100; position: sticky; top: 100vh; }   .footer-text { color: #ccc; font-weight: bold; font-size: 14px; font-family: 'Arial', sans-serif; }
         .footer-discord-link { display: flex; align-items: center; transition: transform 0.3s ease; }
         .footer-discord-link img { height: 50px; width: auto; cursor: pointer; }
         .footer-discord-link:hover { transform: scale(1.1); filter: drop-shadow(0 0 5px var(--primary)); }
