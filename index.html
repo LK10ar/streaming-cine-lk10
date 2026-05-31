@@ -828,9 +828,15 @@ function closeCover() {
                     <h3 id="wb-det-title" style="font-size:32px; color:white; margin-bottom:10px; font-family:serif;">Titre</h3>
                     <div id="wb-det-status" class="wb-status status-attente">EN ATTENTE</div>
                     
-                    <button id="wb-det-vote-btn" class="wb-btn-cancel" style="display:flex; align-items:center; gap:10px; width:fit-content; margin-bottom:20px; border-color:var(--primary); color:white;" onclick="voteForWish()">
-                        <i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span id="wb-det-votes">1 vote</span>
-                    </button>
+                  <div style="display:flex; gap:15px; margin-bottom:20px; flex-wrap: wrap;">
+    <button id="wb-det-vote-btn" class="wb-btn-cancel" style="display:flex; align-items:center; gap:10px; width:fit-content; border-color:var(--primary); color:white;" onclick="voteForWish()">
+        <i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span id="wb-det-votes">1 vote</span>
+    </button>
+    
+    <a id="wb-det-trailer-btn" href="#" target="_blank" class="wb-btn-cancel" style="display:flex; align-items:center; gap:10px; width:fit-content; border-color:#e74c3c; color:white; text-decoration:none;">
+        <i class="fab fa-youtube" style="color:#e74c3c;"></i> Bande Annonce
+    </a>
+</div>
 
                     <p id="wb-det-desc" class="wb-confirm-desc" style="font-size:14px; -webkit-line-clamp: 6;">Description...</p>
                     <a id="wb-det-tmdb-link" href="#" target="_blank" style="color:var(--primary); font-size:13px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Voir sur TMDB</a>
@@ -2331,7 +2337,7 @@ function renderChart(canvasId, label, dataArray, color) {
         wbSearchTimeout = setTimeout(() => searchTMDB(query), 600); // Attend que l'utilisateur finisse d'écrire
     });
 
-    async function searchTMDB(query) {
+async function searchTMDB(query) {
         const resultsContainer = document.getElementById('wb-tmdb-results');
         try {
             // Anime ou Série utilise la même base de données "TV" sur TMDB
@@ -2356,18 +2362,32 @@ function renderChart(canvasId, label, dataArray, color) {
                 const title = item.title || item.name;
                 const year = item.release_date ? item.release_date.substring(0,4) : (item.first_air_date ? item.first_air_date.substring(0,4) : 'N/A');
                 
-                // VÉRIFICATION : Est-ce déjà sur le site Ciné LK10 ?
+                // VÉRIFICATION 1 : Est-ce déjà sur le site Ciné LK10 ?
                 const alreadyExists = moviesDB.find(m => m.title.toLowerCase() === title.toLowerCase());
+                
+                // VÉRIFICATION 2 : Est-ce déjà demandé dans le Wishboard ?
+                const alreadyRequested = wishesList.find(w => w.tmdbId === item.id.toString());
                 
                 const div = document.createElement('div');
                 div.className = 'wish-card'; 
+                
+                // Gestion de l'affichage du petit badge par-dessus l'affiche
+                let badgeHTML = '';
+                if(alreadyExists) {
+                    badgeHTML = '<div class="wish-status-badge ajoute" style="background:rgba(46, 204, 113, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">Déjà Dispo !</div>';
+                } else if(alreadyRequested) {
+                    // S'il est en attente, en cours ou ajouté via le Wishboard
+                    badgeHTML = `<div class="wish-status-badge attente" style="background:rgba(243, 156, 18, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">${alreadyRequested.status} !</div>`;
+                }
+
                 div.innerHTML = `
                     <div class="wish-poster" style="background-image: url('${posterUrl}')">
-                        ${alreadyExists ? '<div class="wish-status-badge ajoute" style="background:rgba(46, 204, 113, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">Déjà Dispo !</div>' : ''}
+                        ${badgeHTML}
                     </div>
                     <div style="font-size:11px; margin-top:5px; color:white; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title} (${year})</div>
                 `;
                 
+                // Logique de clic selon l'état
                 if(alreadyExists) {
                     div.onclick = () => {
                         closeWbModals();
@@ -2375,8 +2395,13 @@ function renderChart(canvasId, label, dataArray, color) {
                         document.querySelector('.main-container').style.display = 'flex';
                         openP(alreadyExists.id); // Ouvre directement le film !
                     };
+                } else if(alreadyRequested) {
+                    div.onclick = () => {
+                        closeWbModals();
+                        openWishDetails(alreadyRequested._id); // Ouvre la modale pour voter !
+                    };
                 } else {
-                    div.onclick = () => selectTmdbItem(item, posterUrl, title); // Étape 3
+                    div.onclick = () => selectTmdbItem(item, posterUrl, title); // Étape 3 (Nouvelle demande)
                 }
                 
                 resultsContainer.appendChild(div);
@@ -2501,7 +2526,7 @@ function renderChart(canvasId, label, dataArray, color) {
     }
 
     // 6. Modale de Détails & Historique de la demande
-    function openWishDetails(wishId) {
+function openWishDetails(wishId) {
         currentOpenedWish = wishesList.find(w => w._id === wishId);
         if(!currentOpenedWish) return;
         
@@ -2536,6 +2561,9 @@ function renderChart(canvasId, label, dataArray, color) {
         
         let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv';
         document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
+        
+        // Génère un lien de recherche YouTube automatique pour la bande-annonce
+        document.getElementById('wb-det-trailer-btn').href = `https://www.youtube.com/results?search_query=Bande+Annonce+${encodeURIComponent(currentOpenedWish.title)}`;
         
         // Affichage de la Timeline d'historique
         const historyContainer = document.getElementById('wb-det-history');
