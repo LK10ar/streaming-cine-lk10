@@ -280,15 +280,80 @@
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .chart-box { background: #13141c; padding: 20px; border-radius: 8px; border: 1px solid #2a2b36; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .chart-box h3 { color: white; text-align: center; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #2a2b36; padding-bottom: 10px; letter-spacing: 1px;}
-        @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
-/* LISTE DES UTILISATEURS DANS ANALYTICS */
-.users-list-container { background: #13141c; border: 1px solid #2a2b36; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.users-list-container h3 { color: white; margin-bottom: 15px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #2a2b36; padding-bottom: 10px; letter-spacing: 1px; }
-.users-list-box { max-height: 200px; overflow-y: auto; padding-right: 10px; }
-.users-list-box::-webkit-scrollbar { width: 6px; }
-.users-list-box::-webkit-scrollbar-thumb { background: #3498db; border-radius: 3px; }
-.user-list-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2a2b36; font-size: 13px; align-items: center; }
-.user-list-item:last-child { border-bottom: none; }
+       /* --- ALIGNEMENT VERTICAL STRICT DU TABLEAU DE BORD --- */
+            #analytics-overlay { 
+                padding: 10px !important; 
+            }
+            
+            .analytics-modal { 
+                width: 98% !important; 
+                max-width: 100% !important; 
+                padding: 15px !important; 
+                max-height: 90vh !important; 
+                overflow-y: auto !important; 
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 20px !important;
+            }
+            
+            /* Force le conteneur des deux listes (Membres & Demandes) à faire une seule colonne verticale */
+            .analytics-modal > div[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 20px !important;
+                width: 100% !important;
+                margin-bottom: 10px !important;
+            }
+            
+            /* Réglage des boîtes de listes */
+            .users-list-container { 
+                width: 100% !important; 
+                max-width: 100% !important; 
+                flex: none !important; 
+                padding: 15px !important;
+                margin-bottom: 0 !important;
+                display: block !important;
+                height: auto !important;
+            }
+            
+            /* Sécurise le défilement interne pour bloquer définitivement les chevauchements */
+            .users-list-box { 
+                max-height: 200px !important; 
+                overflow-y: auto !important; 
+                overflow-x: hidden !important;
+                display: block !important;
+                width: 100% !important;
+            }
+            
+            /* Alignement vertical du texte à l'intérieur de chaque ligne */
+            .user-list-item { 
+                display: flex !important;
+                flex-direction: column !important; 
+                align-items: flex-start !important; 
+                gap: 3px !important; 
+                padding: 8px 0 !important;
+                font-size: 11px !important;
+                width: 100% !important;
+            }
+            
+            .user-list-item span { 
+                max-width: 100% !important; 
+                white-space: nowrap !important; 
+                overflow: hidden !important; 
+                text-overflow: ellipsis !important; 
+                display: block !important;
+            }
+            
+            /* Alignement vertical des graphiques tout en bas */
+            .charts-grid { 
+                grid-template-columns: 1fr !important; 
+                width: 100% !important;
+                gap: 15px !important;
+            }
+            
+            .chart-box { 
+                width: 100% !important; 
+                padding: 10px !important;
+            }
 /* Fix pour les modales du Wishboard sur mobile */
             .wb-modal-content { padding: 20px !important; width: 95% !important; margin: 20px auto !important; }
             .wb-confirm-box { flex-direction: column !important; align-items: center !important; text-align: center !important; gap: 15px !important; }
