@@ -289,6 +289,18 @@
 .users-list-box::-webkit-scrollbar-thumb { background: #3498db; border-radius: 3px; }
 .user-list-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2a2b36; font-size: 13px; align-items: center; }
 .user-list-item:last-child { border-bottom: none; }
+/* Fix pour les modales du Wishboard sur mobile */
+            .wb-modal-content { padding: 20px !important; width: 95% !important; margin: 20px auto !important; }
+            .wb-confirm-box { flex-direction: column !important; align-items: center !important; text-align: center !important; gap: 15px !important; }
+            .wb-confirm-poster { width: 120px !important; margin: 0 auto !important; }
+            .wb-confirm-info { width: 100% !important; align-items: center !important; }
+            .wb-confirm-actions { flex-direction: column !important; width: 100% !important; gap: 10px !important; }
+            .wb-confirm-actions button { width: 100% !important; }
+            .wb-title-area h1 { font-size: 28px !important; }
+            .wb-search-bar { width: 100% !important; margin-top: 10px !important; }
+            #wb-det-title { font-size: 24px !important; text-align: center !important; }
+            #wb-det-status { margin: 0 auto 15px auto !important; }
+            #wb-det-vote-btn, #wb-det-trailer-btn { width: 100% !important; justify-content: center; }
         /* ================================================== */
         /* ============ SECTION RESPONSIVE GLOBALE ========== */
         /* ================================================== */
@@ -840,13 +852,13 @@ function closeCover() {
                     <p id="wb-det-desc" class="wb-confirm-desc" style="font-size:14px; -webkit-line-clamp: 6;">Description...</p>
                     <a id="wb-det-tmdb-link" href="#" target="_blank" style="color:var(--primary); font-size:13px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Voir sur TMDB</a>
                     
-                    <!-- Historique (Timeline) -->
                     <div style="margin-top:30px; border-top:1px solid #333; padding-top:20px;">
                         <h4 style="color:white; font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-bottom:15px;"><i class="fas fa-history"></i> Historique de la demande</h4>
                         <div id="wb-det-history" style="border-left: 2px solid #333; padding-left: 15px; margin-left: 5px;">
-                            <!-- La timeline s'affichera ici -->
-                        </div>
+                            </div>
                     </div>
+
+                    <div id="wb-det-admin-actions"></div>
 
                 </div>
             </div>
@@ -1042,10 +1054,19 @@ function closeCover() {
                 </div>
             </div>
 
-            <div class="users-list-container">
-                <h3><i class="fas fa-users"></i> Liste des Membres Inscrits</h3>
-                <div class="users-list-box" id="analytics-users-list">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px;">
+                <div class="users-list-container" style="flex: 1; min-width: 300px; margin-bottom: 0;">
+                    <h3><i class="fas fa-users"></i> Liste des Membres Inscrits</h3>
+                    <div class="users-list-box" id="analytics-users-list">
                     </div>
+                </div>
+                
+                <div class="users-list-container" style="flex: 1; min-width: 300px; margin-bottom: 0;">
+                    <h3><i class="fas fa-star" style="color: var(--primary);"></i> Demandes Wishboard</h3>
+                    <div class="users-list-box" id="analytics-wishes-list">
+                        <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
+                    </div>
+                </div>
             </div>
             <div class="charts-grid">
                 <div class="chart-box">
@@ -2160,6 +2181,10 @@ async function openAnalytics() {
     document.getElementById('analytics-overlay').style.display = 'flex';
 
     const token = localStorage.getItem('monBadgeCineLK10');
+    
+    // 1. On s'assure que la liste des demandes Wishboard est à jour
+    await loadWishes(); 
+    
     try {
         const res = await fetch(`${API_URL}/api/admin/analytics`, {
             headers: { 'authorization': token }
@@ -2169,7 +2194,7 @@ async function openAnalytics() {
         if(data.success) {
             document.getElementById('stat-total-users').innerText = data.totalUsers;
             
-            // --- NOUVEAU : PEUPLER LA LISTE DES UTILISATEURS ---
+            // --- PEUPLER LA LISTE DES UTILISATEURS ---
             const usersContainer = document.getElementById('analytics-users-list');
             if (usersContainer && data.usersList) {
                 usersContainer.innerHTML = '';
@@ -2183,8 +2208,28 @@ async function openAnalytics() {
             } else if (usersContainer) {
                 usersContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">La liste des utilisateurs nécessite une mise à jour du serveur Backend.</div>';
             }
-            // ---------------------------------------------------
 
+            // --- PEUPLER LA LISTE DES DEMANDES WISHBOARD ---
+            const wishesContainer = document.getElementById('analytics-wishes-list');
+            if (wishesContainer) {
+                wishesContainer.innerHTML = '';
+                if (wishesList.length === 0) {
+                    wishesContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande pour le moment.</div>';
+                } else {
+                    wishesList.forEach(w => {
+                        // Couleur selon le statut
+                        let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
+                        
+                        wishesContainer.innerHTML += `
+                        <div class="user-list-item" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'" onclick="closeAnalytics(); openWishDetails('${w._id}')">
+                            <span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span>
+                            <span style="color: ${statusColor}; font-size: 10px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
+                        </div>`;
+                    });
+                }
+            }
+
+            // --- METTRE A JOUR LES GRAPHIQUES ---
             renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
             renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
             renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
@@ -2244,7 +2289,6 @@ function renderChart(canvasId, label, dataArray, color) {
         }
     });
 }
-
 /* =========================================================
        WISHBOARD - LOGIQUE JAVASCRIPT (PHASE 2)
        ========================================================= */
@@ -2582,6 +2626,27 @@ function openWishDetails(wishId) {
             `;
             historyContainer.appendChild(div);
         });
+
+        // --- AFFICHAGE DU PANNEAU ADMIN ---
+        const adminPanel = document.getElementById('wb-det-admin-actions');
+        if (adminPanel) {
+            if (typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked) {
+                adminPanel.style.display = 'block';
+                adminPanel.innerHTML = `
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;">
+                        <span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                            <button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button>
+                            <button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button>
+                            <button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                adminPanel.style.display = 'none';
+                adminPanel.innerHTML = '';
+            }
+        }
     }
 
     async function openWishTrailer() {
@@ -2656,6 +2721,73 @@ function openWishDetails(wishId) {
                 renderWishes(); // Met à jour la liste derrière
             } else { alert(data.message || "Erreur lors du vote."); }
         } catch(e) { alert("Erreur serveur."); }
+    }
+
+    // --- FONCTIONS ADMINISTRATEUR (WISHBOARD) ---
+    async function adminSetWishStatus(wishId, status) {
+        if(!confirm(`Passer la demande en statut : ${status} ?`)) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/wishes/${wishId}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ status })
+            });
+            if((await res.json()).success) {
+                closeWbModals();
+                loadWishes();
+            }
+        } catch(e) { alert("Erreur serveur."); }
+    }
+
+    async function adminDeleteWish(wishId) {
+        if(!confirm("Refuser et supprimer définitivement cette demande ?")) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/wishes/${wishId}`, {
+                method: 'DELETE',
+                headers: { 'authorization': token }
+            });
+            if((await res.json()).success) {
+                closeWbModals();
+                loadWishes();
+            }
+        } catch(e) { alert("Erreur serveur."); }
+    }
+
+    function adminAcceptWish(wishId) {
+        const wish = wishesList.find(w => w._id === wishId);
+        if(!wish) return;
+        
+        // 1. On ferme le wishboard et on remet la page normale
+        closeWbModals();
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
+        
+        // 2. On ouvre la fenêtre de création Admin
+        openAdmin();
+        
+        // 3. On pré-remplit tous les champs avec les infos de la demande
+        document.getElementById('add-title').value = wish.title;
+        document.getElementById('add-desc').value = wish.description;
+        document.getElementById('add-poster').value = wish.posterUrl;
+        document.getElementById('add-type').value = (wish.type === 'tv' || wish.type === 'anime') ? 'serie' : 'film';
+        toggleTypeUI();
+        
+        // 4. On passe la demande en "Ajouté" silencieusement dans la base de données
+        adminSetWishStatusSilently(wishId, 'Ajouté');
+    }
+    
+    async function adminSetWishStatusSilently(wishId, status) {
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            await fetch(`${API_URL}/api/admin/wishes/${wishId}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ status })
+            });
+            loadWishes();
+        } catch(e) {}
     }
     
     // Petit correctif CSS pour cacher les numéros quand on cherche
