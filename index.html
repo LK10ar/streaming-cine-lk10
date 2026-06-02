@@ -2253,6 +2253,25 @@ function closeCover() {
     // ==========================================
     // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
     // ==========================================
+    // ==========================================
+    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
+    // ==========================================
+   // ==========================================
+    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
+    // ==========================================
+
+    // --- NOUVELLE FONCTION : Éditer directement depuis un signalement ---
+    function editReportedMovie(movieId) {
+        closeAnalytics(); // Ferme le tableau de bord
+        const m = moviesDB.find(x => x.id === movieId); // Cherche le film dans la base
+        if (m) {
+            currentMovie = m; // Simule l'ouverture du film
+            openEditMode();   // Ouvre le menu de modification Admin
+        } else {
+            alert("Ce film n'est pas ou plus dans le catalogue actuel.");
+        }
+    }
+
     async function openAnalytics() {
         document.body.classList.add('no-scroll');
         document.getElementById('analytics-overlay').style.display = 'flex';
@@ -2298,7 +2317,7 @@ function closeCover() {
                             let problemsStr = r.types.join(', ');
                             reportsContainer.innerHTML += `
                             <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
-                                <span style="color: white; font-weight:bold;"><i class="fas fa-video"></i> ${r.movieTitle}</span>
+                                <span style="color: white; font-weight:bold; cursor:pointer; transition:0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='white'" onclick="editReportedMovie('${r.movieId}')"><i class="fas fa-pen" style="font-size: 10px; margin-right: 5px;"></i>${r.movieTitle}</span>
                                 <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
                                 <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
                                 ${r.message ? `<span style="color: #ccc; font-style: italic; font-size: 11px; display: block; margin-top: 4px;">"${r.message}"</span>` : ''}
@@ -2318,7 +2337,6 @@ function closeCover() {
     }
 
     function closeAnalytics() { document.getElementById('analytics-overlay').style.display = 'none'; document.body.classList.remove('no-scroll'); }
-
     function renderChart(canvasId, label, dataArray, color) {
         const ctx = document.getElementById(canvasId).getContext('2d');
         if(chartsInstance[canvasId]) { chartsInstance[canvasId].destroy(); }
