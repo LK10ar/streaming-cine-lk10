@@ -2272,7 +2272,7 @@ function closeCover() {
         }
     }
 
-    async function openAnalytics() {
+  async function openAnalytics() {
         document.body.classList.add('no-scroll');
         document.getElementById('analytics-overlay').style.display = 'flex';
 
@@ -2302,7 +2302,17 @@ function closeCover() {
                     } else {
                         wishesList.forEach(w => {
                             let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
-                            wishesContainer.innerHTML += `<div class="user-list-item" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'" onclick="closeAnalytics(); openWishDetails('${w._id}')"><span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span><span style="color: ${statusColor}; font-size: 10px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span></div>`;
+                            wishesContainer.innerHTML += `
+                            <div class="user-list-item" style="cursor: pointer; transition: 0.3s; display: flex; flex-direction: column;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'" onclick="closeAnalytics(); openWishDetails('${w._id}')">
+                                <span style="color: white; font-weight:bold;">
+                                    <i class="fas fa-film"></i> ${w.title} 
+                                    <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span>
+                                </span>
+                                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 4px;">
+                                    <span style="color: #888; font-size: 10px;"><i class="fas fa-user"></i> ${w.requestedBy || "Inconnu"}</span>
+                                    <span style="color: ${statusColor}; font-size: 9px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
+                                </div>
+                            </div>`;
                         });
                     }
                 }
