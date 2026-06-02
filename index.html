@@ -1283,13 +1283,11 @@ function closeCover() {
         
         const searchInput = document.getElementById('searchInput');
         if(searchInput) {
-            // RECHERCHE EN DIRECT ET SÉCURISÉE
+            searchInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
             searchInput.addEventListener('input', function(e) {
                 if (e.target.value === atob('YWRtaW4xMjM=')) { 
                     toggleAdminAuth(true); 
                     e.target.value = ''; 
-                } else {
-                    performSearch(); // Recherche dynamique à chaque lettre tapée
                 }
             });
         }
@@ -1741,27 +1739,17 @@ function closeCover() {
     function setYearFilter(cat, year) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = year; currentPage = 1; const globalYearInput = document.getElementById('year-filter-input'); if(globalYearInput) globalYearInput.value = year; updateNavActive(cat); updateGrid(); }
     function applyMenuYear(cat) { const input = document.getElementById('menu-' + cat + '-year'); const y = input.value.trim(); if (y && y.length === 4) { setYearFilter(cat, y); closeMobileMenu(); } }
 
-    // --- RECHERCHE 100% SÉCURISÉE ---
     function performSearch(forcedQuery = null) {
         closeProfilePage();
         document.getElementById('wishboard-page').style.display = 'none';
         document.querySelector('.main-container').style.display = 'flex';
         document.getElementById('pag-bar').style.display = 'flex'; 
-        
-        let query = "";
-        // Protection contre les signaux d'événement (KeyboardEvent, InputEvent, etc.)
-        if (typeof forcedQuery === 'string' && forcedQuery.trim() !== '') {
-            query = forcedQuery.toLowerCase().trim();
-            document.getElementById('searchInput').value = forcedQuery;
-        } else {
-            query = document.getElementById('searchInput').value.toLowerCase().trim();
-        }
-
+        const query = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
+        if(forcedQuery) document.getElementById('searchInput').value = forcedQuery;
         if(query === '') { setCategory('all'); return; }
         currentPage = 1; 
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
         document.getElementById('cat-title').innerText = `Résultats pour : "${query}"`;
-        
         filteredList = moviesDB.filter(m => {
             const inTitle = m.title && m.title.toLowerCase().includes(query);
             const inCast = m.cast && m.cast.toLowerCase().includes(query);
@@ -2021,13 +2009,9 @@ function closeCover() {
     function toggleAdminAuth(f = false) { if(isAdminUnlocked) { isAdminUnlocked = false; document.body.classList.remove('admin-active'); document.getElementById('dev-export-area').style.display = 'none'; alert("Mode Admin désactivé."); } else if (f) { isAdminUnlocked = true; document.body.classList.add('admin-active'); alert("Mode Admin activé !"); } }
     function toggleTypeUI() { const s = document.getElementById('add-type').value === 'serie'; document.getElementById('film-inputs').style.display = s ? 'none' : 'block'; document.getElementById('serie-inputs').style.display = s ? 'block' : 'none'; }
     function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
-    
     function openAdmin() { isEditing = false; editingId = null; document.getElementById('admin-title-text').innerText = "Création"; document.getElementById('btn-save-movie').innerText = "Envoyer"; document.getElementById('btn-delete-movie').style.display = 'none'; clearForm(); toggleTypeUI(); document.getElementById('admin-overlay').style.display = 'flex'; }
-    
     function openEditMode() { if(!currentMovie) return; isEditing = true; editingId = currentMovie.id; document.getElementById('admin-title-text').innerText = "Modifier : " + currentMovie.title; document.getElementById('btn-save-movie').innerText = "Enregistrer"; document.getElementById('btn-delete-movie').style.display = 'block'; document.getElementById('add-title').value = currentMovie.title || ""; document.getElementById('add-year').value = currentMovie.year || ""; document.getElementById('add-rating').value = currentMovie.rating || ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = currentMovie.genre?.includes(cb.value)); document.getElementById('add-dir').value = currentMovie.dir || ""; document.getElementById('add-cast').value = currentMovie.cast || ""; document.getElementById('add-desc').value = currentMovie.desc || ""; document.getElementById('add-poster').value = currentMovie.poster || ""; document.getElementById('add-type').value = currentMovie.type || "film"; toggleTypeUI(); if (currentMovie.type === 'film') { document.getElementById('add-iframe').value = currentMovie.iframe_premium || ""; document.getElementById('add-iframe-uqload').value = currentMovie.iframe_uqload || ""; document.getElementById('add-iframe-vostfr').value = currentMovie.iframe_premium_vostfr || ""; document.getElementById('add-iframe-uqload-vostfr').value = currentMovie.iframe_uqload_vostfr || ""; } else { const eps = currentMovie.episodes || []; document.getElementById('add-ep-count').value = eps.length; renderEpisodeInputs(); document.querySelectorAll('.episode-block').forEach((b, i) => { if (eps[i]) { b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || ""; b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || ""; b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || ""; b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; } }); } document.getElementById('admin-overlay').style.display = 'flex'; }
-    
     function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
-    
     function clearForm() { document.getElementById('add-title').value = ""; document.getElementById('add-poster').value = ""; document.getElementById('add-iframe').value = ""; document.getElementById('add-iframe-uqload').value = ""; document.getElementById('add-iframe-vostfr').value = ""; document.getElementById('add-iframe-uqload-vostfr').value = ""; document.getElementById('add-desc').value = ""; document.getElementById('add-year').value = ""; document.getElementById('add-rating').value = ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); document.getElementById('add-dir').value = ""; document.getElementById('add-cast').value = ""; document.getElementById('add-ep-count').value = ""; document.getElementById('episodes-container').innerHTML = ""; document.getElementById('add-trailer').value = ""; }
 
     function saveMovie() {
@@ -2054,9 +2038,21 @@ function closeCover() {
     function exportAllMovies() { const b = document.getElementById('dev-export-area'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; let cT = ""; (JSON.parse(localStorage.getItem('myCustomMovies')) || []).forEach(m => cT += JSON.stringify(m) + ",\n"); document.getElementById('export-code').value = cT; }
     function copyCode() { document.getElementById("export-code").select(); document.execCommand("copy"); alert("Copié !"); }
 
-    // ==========================================
+    function loadLocalModifications() {
+        let storedMovies = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
+        storedMovies = nettoyerLiensAbyss(storedMovies);
+        let movieMap = new Map();
+        moviesDB.forEach(m => movieMap.set(m.id, m));
+        storedMovies.forEach(m => movieMap.set(m.id, m));
+        moviesDB = Array.from(movieMap.values());
+    }
+
+    function renderAdminGenres() {
+        const container = document.getElementById('genre-checkbox-container'); container.innerHTML = '';
+        GENRES_LIST.forEach(g => { container.innerHTML += `<label class="genre-check-item"><input type="checkbox" value="${g}" class="admin-genre-checkbox"> ${g}</label>`; });
+    }
+
     // WISHBOARD
-    // ==========================================
     function showWishboard() {
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('profile-page').style.display = 'none';
@@ -2076,12 +2072,6 @@ function closeCover() {
         currentWbType = type; document.getElementById('wb-step-1').style.display = 'none'; document.getElementById('wb-step-2').style.display = 'block'; document.getElementById('wb-step-3').style.display = 'none';
         document.getElementById('wb-tmdb-input').value = ''; document.getElementById('wb-tmdb-results').innerHTML = ''; document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; document.getElementById('wb-tmdb-input').focus();
     }
-
-    document.getElementById('wb-tmdb-input').addEventListener('input', function(e) {
-        clearTimeout(wbSearchTimeout); const query = e.target.value.trim();
-        if(query.length < 2) { document.getElementById('wb-tmdb-results').innerHTML = ''; document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; return; }
-        document.getElementById('wb-tmdb-status').innerText = "Recherche en cours..."; wbSearchTimeout = setTimeout(() => searchTMDB(query), 600);
-    });
 
     async function searchTMDB(query) {
         const resultsContainer = document.getElementById('wb-tmdb-results');
@@ -2263,14 +2253,26 @@ function closeCover() {
     // ==========================================
     // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
     // ==========================================
+    // ==========================================
+    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
+    // ==========================================
+   // ==========================================
+    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
+    // ==========================================
+
+    // --- NOUVELLE FONCTION : Éditer directement depuis un signalement ---
     function editReportedMovie(movieId) {
-        closeAnalytics();
-        const m = moviesDB.find(x => x.id === movieId);
-        if (m) { currentMovie = m; openEditMode(); } 
-        else { alert("Ce film n'est pas ou plus dans le catalogue actuel."); }
+        closeAnalytics(); // Ferme le tableau de bord
+        const m = moviesDB.find(x => x.id === movieId); // Cherche le film dans la base
+        if (m) {
+            currentMovie = m; // Simule l'ouverture du film
+            openEditMode();   // Ouvre le menu de modification Admin
+        } else {
+            alert("Ce film n'est pas ou plus dans le catalogue actuel.");
+        }
     }
 
-    async function openAnalytics() {
+  async function openAnalytics() {
         document.body.classList.add('no-scroll');
         document.getElementById('analytics-overlay').style.display = 'flex';
 
@@ -2345,7 +2347,6 @@ function closeCover() {
     }
 
     function closeAnalytics() { document.getElementById('analytics-overlay').style.display = 'none'; document.body.classList.remove('no-scroll'); }
-
     function renderChart(canvasId, label, dataArray, color) {
         const ctx = document.getElementById(canvasId).getContext('2d');
         if(chartsInstance[canvasId]) { chartsInstance[canvasId].destroy(); }
