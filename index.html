@@ -995,11 +995,14 @@ function closeCover() {
                         <div class="score-badge" id="dp-score-poster">??</div>
                     </div>
                     
-                  <div class="detail-action-bar">
-                <button class="detail-action-btn detail-fav-btn" onclick="toggleFavorite()" title="Ajouter aux favoris"><i class="fas fa-heart"></i></button>
-                <button class="detail-action-btn detail-wl-btn" onclick="toggleWatchlater()" title="À voir plus tard"><i class="fas fa-clock"></i></button>
-                <button class="detail-action-btn" onclick="openReportModal()" title="Signaler un problème" style="color:var(--danger); border-color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></button>
-            </div>
+                    <div class="detail-action-bar">
+                        <button class="detail-action-btn detail-fav-btn" id="dp-fav-btn" title="Favoris">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <button class="detail-action-btn detail-wl-btn" id="dp-wl-btn" title="À Voir">
+                            <i class="fas fa-clock"></i>
+                        </button>
+                    </div>
 
                     <div class="btn-trailer" id="btn-trailer" onclick="openTrailer()"><i class="fas fa-play"></i> BANDE ANNONCE</div>
                 </div>
@@ -1144,15 +1147,7 @@ function closeCover() {
                         <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
                     </div>
                 </div>
-
-                <div class="users-list-container" style="flex: 1; min-width: 300px; margin-bottom: 0; border: 1px solid var(--danger);">
-                    <h3><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> Signalements</h3>
-                    <div class="users-list-box" id="analytics-reports-list">
-                        <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
-                    </div>
-                </div>
             </div>
-            
             <div class="charts-grid">
                 <div class="chart-box">
                     <h3><i class="fas fa-eye"></i> Films & Séries les plus vus</h3>
@@ -1169,25 +1164,7 @@ function closeCover() {
             </div>
         </div>
     </div>
-<div id="report-overlay" class="wb-modal-overlay">
-        <div class="wb-modal-content" style="max-width: 500px;">
-            <button class="wb-close-btn" onclick="closeReportModal()"><i class="fas fa-times"></i></button>
-            <h2 style="color: var(--danger); margin-bottom: 20px; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Signaler un problème</h2>
-            <p style="color: #ccc; font-size: 13px; margin-bottom: 20px; text-align: center;">Quel est le problème avec <strong id="report-movie-title" style="color: white;">ce contenu</strong> ?</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; text-align: left; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333;">
-                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Problème de vidéo (Ne se lance pas, bug)"> Problème de vidéo (Ne se lance pas, lent)</label>
-                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Problème de son (Décalage, grésillement)"> Problème de son (Décalage, mauvaise VF)</label>
-                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Lien mort"> Lien mort (Aucune vidéo ne charge)</label>
-                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Mauvais film ou épisode"> Mauvais film ou épisode</label>
-                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Autre" onchange="toggleReportOther(this)"> Autre</label>
-            </div>
-            
-            <textarea id="report-other-text" class="form-textarea" placeholder="Décrivez le problème en quelques mots..." style="display: none; margin-bottom: 20px; width: 100%;"></textarea>
-            
-            <button onclick="submitReport()" class="wb-btn-submit" style="width: 100%; background: var(--danger); color: white;"><i class="fas fa-paper-plane"></i> Envoyer le signalement</button>
-        </div>
-    </div>
+
 <script>
     // --- 0. CONFIGURATION ---
     const API_URL = 'https://backend-cin-lk10.onrender.com';
@@ -2331,26 +2308,7 @@ async function openAnalytics() {
                     });
                 }
             }
-// --- PEUPLER LA LISTE DES SIGNALEMENTS ---
-            const reportsContainer = document.getElementById('analytics-reports-list');
-            if (reportsContainer && data.reportsList) {
-                reportsContainer.innerHTML = '';
-                if (data.reportsList.length === 0) {
-                    reportsContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun problème signalé. Tout va bien !</div>';
-                } else {
-                    data.reportsList.forEach(r => {
-                        let problemsStr = r.types.join(', ');
-                        reportsContainer.innerHTML += `
-                        <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
-                            <span style="color: white; font-weight:bold;"><i class="fas fa-video"></i> ${r.movieTitle}</span>
-                            <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
-                            <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
-                            ${r.message ? `<span style="color: #ccc; font-style: italic; font-size: 11px; display: block; margin-top: 4px;">"${r.message}"</span>` : ''}
-                            <button onclick="resolveReport('${r._id}')" style="margin-top: 8px; width: 100%; background: #2ecc71; color: black; border: none; padding: 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;"><i class="fas fa-check"></i> Marquer comme résolu</button>
-                        </div>`;
-                    });
-                }
-            }
+
             // --- METTRE A JOUR LES GRAPHIQUES ---
             renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
             renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
@@ -2914,84 +2872,6 @@ function openWishDetails(wishId) {
     
     // Petit correctif CSS pour cacher les numéros quand on cherche
     document.head.insertAdjacentHTML("beforeend", `<style>.no-rank::before { display: none !important; }</style>`);
-// ==========================================
-    // SYSTEME DE SIGNALEMENT
-    // ==========================================
-    function openReportModal() {
-        if(!currentUser) {
-            alert("Tu dois être connecté pour signaler un problème.");
-            return;
-        }
-        document.getElementById('report-movie-title').innerText = currentOpenedMovie ? currentOpenedMovie.title : "ce contenu";
-        document.querySelectorAll('input[name="reportType"]').forEach(cb => cb.checked = false);
-        document.getElementById('report-other-text').style.display = 'none';
-        document.getElementById('report-other-text').value = '';
-        document.getElementById('report-overlay').style.display = 'flex';
-    }
-
-    function closeReportModal() {
-        document.getElementById('report-overlay').style.display = 'none';
-    }
-
-    function toggleReportOther(checkbox) {
-        document.getElementById('report-other-text').style.display = checkbox.checked ? 'block' : 'none';
-    }
-
-    async function submitReport() {
-        const types = Array.from(document.querySelectorAll('input[name="reportType"]:checked')).map(cb => cb.value);
-        if(types.length === 0) {
-            alert("Veuillez cocher au moins un problème.");
-            return;
-        }
-        let message = "";
-        if(types.includes("Autre")) {
-            message = document.getElementById('report-other-text').value;
-            if(!message.trim()) {
-                alert("Veuillez décrire le problème dans le champ texte.");
-                return;
-            }
-        }
-
-        const payload = {
-            movieId: currentOpenedMovie ? currentOpenedMovie.id : null,
-            movieTitle: currentOpenedMovie ? currentOpenedMovie.title : "Titre inconnu",
-            types: types,
-            message: message
-        };
-
-        const token = localStorage.getItem('monBadgeCineLK10');
-        try {
-            const res = await fetch(`${API_URL}/api/reports`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if(data.success) {
-                alert("Merci ! Le problème a bien été signalé à l'administrateur.");
-                closeReportModal();
-            } else {
-                alert("Erreur lors de l'envoi.");
-            }
-        } catch(e) {
-            alert("Erreur de connexion au serveur.");
-        }
-    }
-
-    // Fonction Administrateur pour clôturer un problème
-    async function resolveReport(reportId) {
-        if(!confirm("As-tu corrigé ce problème ? Le marquer comme résolu le retirera de cette liste.")) return;
-        const token = localStorage.getItem('monBadgeCineLK10');
-        try {
-            const res = await fetch(`${API_URL}/api/admin/reports/${reportId}/resolve`, {
-                method: 'POST',
-                headers: { 'authorization': token }
-            });
-            if((await res.json()).success) {
-                openAnalytics(); // Rafraichir le tableau de bord
-            }
-        } catch(e) { alert("Erreur."); }
-    }
 </script>
 </body>
 </html>
