@@ -1305,7 +1305,7 @@ function closeCover() {
             });
         }
 
-        setCategory('all');
+        setCategory('all'); // Affichera un loader car moviesDB est encore vide !
     };
 
     // --- 3. TUNNEL D'ACCÈS & AUTHENTIFICATION ---
@@ -1562,7 +1562,7 @@ function closeCover() {
         if(currentProfType !== 'all') { list = list.filter(m => m.type === currentProfType); }
 
         if(list.length === 0) {
-            grid.innerHTML = '<div style="color:#888; padding:20px; text-align:center; grid-column: 1 / -1;">Aucun résultat dans cette catégorie.</div>';
+            grid.innerHTML = '<div style="color:#aaa; padding:20px; text-align:center; grid-column: 1 / -1;">Aucun résultat dans cette catégorie.</div>';
             return;
         }
 
@@ -1630,10 +1630,18 @@ function closeCover() {
             const data = await response.json();
             if (data.success) {
                 moviesDB = nettoyerLiensAbyss(data.movies); 
-                loadLocalModifications(); 
-                updateGrid();
+                try {
+                    loadLocalModifications(); 
+                } catch(e) {
+                    console.error("Erreur de nettoyage local", e);
+                }
             }
-        } catch (error) { console.error("Erreur serveur", error); }
+        } catch (error) { 
+            console.error("Erreur serveur", error); 
+        } finally {
+            // Quoi qu'il arrive, on actualise la grille à la fin !
+            updateGrid();
+        }
     }
 
     function nettoyerLiensAbyss(donnees) {
@@ -1643,7 +1651,9 @@ function closeCover() {
     }
 
     function updateGrid(isSpecialMode = false) {
-        const grid = document.getElementById('grid'); grid.innerHTML = '';
+        const grid = document.getElementById('grid'); 
+        grid.innerHTML = '';
+        
         if (!isSpecialMode) {
             const titles = { 'all': 'Nouveautés', 'film': 'Films', 'serie': 'Séries' };
             let displayTitle = titles[currentCategory] || 'Catalogue';
@@ -1672,7 +1682,18 @@ function closeCover() {
         const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
         if (currentPage > totalPages && totalPages > 0) currentPage = 1;
         const start = (currentPage - 1) * ITEMS_PER_PAGE; const pageItems = filteredList.slice(start, start + ITEMS_PER_PAGE);
-        if(filteredList.length === 0) grid.innerHTML = '<div style="color:#aaa; padding:30px;">Aucun résultat trouvé.</div>';
+        
+        // AFFICHAGE DU MESSAGE DE CHARGEMENT OU "AUCUN RÉSULTAT"
+        if(filteredList.length === 0) {
+            document.getElementById('pag-bar').innerHTML = ''; // Cache la pagination
+            if (moviesDB.length === 0) {
+                // Animation de chargement le temps que le serveur réponde
+                grid.innerHTML = '<div style="color:var(--primary); padding:50px; text-align:center; grid-column: 1 / -1; font-size: 16px;"><i class="fas fa-circle-notch fa-spin" style="font-size:24px; margin-bottom:10px; display:block;"></i> Chargement du catalogue en cours...</div>';
+            } else {
+                grid.innerHTML = '<div style="color:#aaa; padding:30px; text-align:center; grid-column: 1 / -1;">Aucun résultat trouvé.</div>';
+            }
+            return;
+        }
         
         pageItems.forEach(m => {
             const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
@@ -1744,12 +1765,16 @@ function closeCover() {
         document.getElementById('wishboard-page').style.display = 'none';
         document.querySelector('.main-container').style.display = 'flex';
         document.getElementById('pag-bar').style.display = 'flex'; 
+        
         const query = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
         if(forcedQuery) document.getElementById('searchInput').value = forcedQuery;
+        
         if(query === '') { setCategory('all'); return; }
+        
         currentPage = 1; 
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
         document.getElementById('cat-title').innerText = `Résultats pour : "${query}"`;
+        
         filteredList = moviesDB.filter(m => {
             const inTitle = m.title && m.title.toLowerCase().includes(query);
             const inCast = m.cast && m.cast.toLowerCase().includes(query);
@@ -2073,6 +2098,21 @@ function closeCover() {
         document.getElementById('wb-tmdb-input').value = ''; document.getElementById('wb-tmdb-results').innerHTML = ''; document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; document.getElementById('wb-tmdb-input').focus();
     }
 
+    // --- Écouteur pour la barre de recherche TMDB (MANQUANT) ---
+    document.getElementById('wb-tmdb-input').addEventListener('input', function(e) {
+        clearTimeout(wbSearchTimeout); 
+        const query = e.target.value.trim();
+        
+        if(query.length < 2) { 
+            document.getElementById('wb-tmdb-results').innerHTML = ''; 
+            document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; 
+            return; 
+        }
+        
+        document.getElementById('wb-tmdb-status').innerText = "Recherche en cours..."; 
+        wbSearchTimeout = setTimeout(() => searchTMDB(query), 600);
+    });
+
     async function searchTMDB(query) {
         const resultsContainer = document.getElementById('wb-tmdb-results');
         try {
@@ -2253,12 +2293,6 @@ function closeCover() {
     // ==========================================
     // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
     // ==========================================
-    // ==========================================
-    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
-    // ==========================================
-   // ==========================================
-    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
-    // ==========================================
 
     // --- NOUVELLE FONCTION : Éditer directement depuis un signalement ---
     function editReportedMovie(movieId) {
@@ -2272,7 +2306,7 @@ function closeCover() {
         }
     }
 
-  async function openAnalytics() {
+    async function openAnalytics() {
         document.body.classList.add('no-scroll');
         document.getElementById('analytics-overlay').style.display = 'flex';
 
@@ -2347,6 +2381,7 @@ function closeCover() {
     }
 
     function closeAnalytics() { document.getElementById('analytics-overlay').style.display = 'none'; document.body.classList.remove('no-scroll'); }
+    
     function renderChart(canvasId, label, dataArray, color) {
         const ctx = document.getElementById(canvasId).getContext('2d');
         if(chartsInstance[canvasId]) { chartsInstance[canvasId].destroy(); }
