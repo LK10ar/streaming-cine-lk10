@@ -898,10 +898,11 @@ function closeCover() {
                         <span id="wb-confirm-type" style="color:var(--primary); font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">FILM</span>
                         <h3 id="wb-confirm-title" class="wb-confirm-title">Titre</h3>
                         <p id="wb-confirm-desc" class="wb-confirm-desc">Description...</p>
-                        <div class="wb-confirm-actions">
-                            <button class="wb-btn-cancel" onclick="wbGoToStep2(currentWbType)">Changer</button>
-                            <button class="wb-btn-submit" onclick="submitWish()"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
-                        </div>
+                       <div class="wb-confirm-actions">
+    <button class="wb-btn-cancel" onclick="wbGoToStep2(currentWbType)">Changer</button>
+    <button class="btn-trailer" style="margin:0; width:auto; flex:1; border-radius:5px; padding:10px;" onclick="openConfirmTrailer()"><i class="fas fa-play"></i> Trailer</button>
+    <button class="wb-btn-submit" onclick="submitWish()"><i class="fas fa-paper-plane"></i> Envoyer la demande</button>
+</div>
                     </div>
                 </div>
             </div>
@@ -2444,6 +2445,34 @@ function closeCover() {
             const res = await fetch(`${API_URL}/api/admin/reports/${reportId}/resolve`, { method: 'POST', headers: { 'authorization': token } });
             if((await res.json()).success) { openAnalytics(); }
         } catch(e) { alert("Erreur serveur."); }
+    }
+    async function openConfirmTrailer() {
+        if (!selectedTmdbItem) return;
+        let tmdbType = selectedTmdbItem.type === 'movie' ? 'movie' : 'tv'; 
+        let tmdbId = selectedTmdbItem.tmdbId;
+        try {
+            // Cherche la bande annonce en VF
+            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`); 
+            let data = await resFr.json();
+            
+            // Si pas de VF, on cherche en VO
+            if (!data.results || data.results.length === 0) { 
+                const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`); 
+                data = await resEn.json(); 
+            }
+            
+            if (data.results && data.results.length > 0) {
+                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube'); 
+                if (!video) { video = data.results.find(v => v.site === 'YouTube'); }
+                if (video) {
+                    const finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${video.key}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    document.getElementById('trailer-video-container').innerHTML = finalHTML; 
+                    document.getElementById('trailer-overlay').style.display = 'flex'; 
+                    return;
+                }
+            }
+            alert("Aucune bande-annonce n'a été trouvée sur TMDB pour ce contenu.");
+        } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
     }
 </script>
 </body>
