@@ -995,14 +995,11 @@ function closeCover() {
                         <div class="score-badge" id="dp-score-poster">??</div>
                     </div>
                     
-                    <div class="detail-action-bar">
-                        <button class="detail-action-btn detail-fav-btn" id="dp-fav-btn" title="Favoris">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                        <button class="detail-action-btn detail-wl-btn" id="dp-wl-btn" title="À Voir">
-                            <i class="fas fa-clock"></i>
-                        </button>
-                    </div>
+                  <div class="detail-action-bar">
+                <button class="detail-action-btn detail-fav-btn" onclick="toggleFavorite()" title="Ajouter aux favoris"><i class="fas fa-heart"></i></button>
+                <button class="detail-action-btn detail-wl-btn" onclick="toggleWatchlater()" title="À voir plus tard"><i class="fas fa-clock"></i></button>
+                <button class="detail-action-btn" onclick="openReportModal()" title="Signaler un problème" style="color:var(--danger); border-color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></button>
+            </div>
 
                     <div class="btn-trailer" id="btn-trailer" onclick="openTrailer()"><i class="fas fa-play"></i> BANDE ANNONCE</div>
                 </div>
@@ -1147,7 +1144,15 @@ function closeCover() {
                         <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
                     </div>
                 </div>
+
+                <div class="users-list-container" style="flex: 1; min-width: 300px; margin-bottom: 0; border: 1px solid var(--danger);">
+                    <h3><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> Signalements</h3>
+                    <div class="users-list-box" id="analytics-reports-list">
+                        <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
+                    </div>
+                </div>
             </div>
+            
             <div class="charts-grid">
                 <div class="chart-box">
                     <h3><i class="fas fa-eye"></i> Films & Séries les plus vus</h3>
@@ -1164,20 +1169,59 @@ function closeCover() {
             </div>
         </div>
     </div>
-
+<div id="report-overlay" class="wb-modal-overlay">
+        <div class="wb-modal-content" style="max-width: 500px;">
+            <button class="wb-close-btn" onclick="closeReportModal()"><i class="fas fa-times"></i></button>
+            <h2 style="color: var(--danger); margin-bottom: 20px; text-align: center;"><i class="fas fa-exclamation-triangle"></i> Signaler un problème</h2>
+            <p style="color: #ccc; font-size: 13px; margin-bottom: 20px; text-align: center;">Quel est le problème avec <strong id="report-movie-title" style="color: white;">ce contenu</strong> ?</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; text-align: left; background: #111; padding: 15px; border-radius: 8px; border: 1px solid #333;">
+                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Problème de vidéo (Ne se lance pas, bug)"> Problème de vidéo (Ne se lance pas, lent)</label>
+                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Problème de son (Décalage, grésillement)"> Problème de son (Décalage, mauvaise VF)</label>
+                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Lien mort"> Lien mort (Aucune vidéo ne charge)</label>
+                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Mauvais film ou épisode"> Mauvais film ou épisode</label>
+                <label class="genre-check-item"><input type="checkbox" name="reportType" value="Autre" onchange="toggleReportOther(this)"> Autre</label>
+            </div>
+            
+            <textarea id="report-other-text" class="form-textarea" placeholder="Décrivez le problème en quelques mots..." style="display: none; margin-bottom: 20px; width: 100%;"></textarea>
+            
+            <button onclick="submitReport()" class="wb-btn-submit" style="width: 100%; background: var(--danger); color: white;"><i class="fas fa-paper-plane"></i> Envoyer le signalement</button>
+        </div>
+    </div>
 <script>
-    // --- 0. CONFIGURATION ---
+    // --- 0. CONFIGURATION & UTILITAIRES ---
     const API_URL = 'https://backend-cin-lk10.onrender.com';
     const TMDB_API_KEY = atob('YzFhYTY3NWVjYWIyZDA2YzJlYjUxMDEzNDU5NTFiNmQ=');
+
+    function resetSite() {
+        if(confirm("Cela va vider la mémoire du navigateur et forcer le rechargement des images depuis data.js. Continuer ?")) {
+            localStorage.removeItem('myCustomMovies'); 
+            location.reload(true);
+        }
+    }
+
+    function closeCover() {
+        const cover = document.getElementById('cover-page');
+        const discordOverlay = document.getElementById('discord-overlay');
+        if(cover) {
+            cover.style.opacity = '0';
+            setTimeout(function() {
+                cover.style.display = 'none';
+                if(discordOverlay && typeof hasAccess !== 'undefined' && !hasAccess) {
+                    discordOverlay.style.display = 'flex';
+                }
+            }, 500);
+        }
+    }
 
     // Anti-curieux
     document.addEventListener('contextmenu', event => event.preventDefault());
     document.onkeydown = function(e) {
-        if(e.keyCode == 123) { return false; } 
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
-        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
-        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
+        if(e.keyCode == 123) return false; 
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+        if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+        if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
     }
 
     // --- 1. VARIABLES GLOBALES ---
@@ -1194,7 +1238,8 @@ function closeCover() {
     let currentYearFilter = 'all'; 
     let filteredList = []; 
     let currentMovie = null;
-    let isEditing = false; let editingId = null;
+    let isEditing = false; 
+    let editingId = null;
     let isAdminUnlocked = false;
     let currentLanguage = 'vf'; 
     let currentServer = 'premium'; 
@@ -1203,6 +1248,17 @@ function closeCover() {
     
     let currentProfTab = 'favorites';
     let currentProfType = 'all';
+
+    // Variables Wishboard & Utils
+    let wishesList = [];
+    let currentWbType = 'movie';
+    let selectedTmdbItem = null;
+    let currentWbFilter = 'all';
+    let currentOpenedWish = null;
+    let wbSearchTimeout = null;
+
+    let chartsInstance = {};
+    let adTimer = null; 
 
     // --- 2. INITIALISATION ---
     window.onload = () => {
@@ -1226,86 +1282,89 @@ function closeCover() {
         document.getElementById('home-logo').onclick = () => { closeProfilePage(); setCategory('all'); };
         
         const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
-        document.getElementById('searchIcon').addEventListener('click', () => performSearch());
+        if(searchInput) {
+            searchInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
+            searchInput.addEventListener('input', function(e) {
+                if (e.target.value === atob('YWRtaW4xMjM=')) { 
+                    toggleAdminAuth(true); 
+                    e.target.value = ''; 
+                }
+            });
+        }
         
-        searchInput.addEventListener('input', function(e) {
-            if (e.target.value === atob('YWRtaW4xMjM=')) { 
-                toggleAdminAuth(true); 
-                e.target.value = ''; 
-            }
-        });
+        const searchIcon = document.getElementById('searchIcon');
+        if(searchIcon) searchIcon.addEventListener('click', () => performSearch());
 
-        document.getElementById('auth-form').addEventListener('submit', function(event) {
-            event.preventDefault(); 
-            if (hasAccess) return; 
-            if (document.getElementById('access-code-input')) { checkAccessCode(); } 
-            else { handleAuth(); }
-        });
+        const authForm = document.getElementById('auth-form');
+        if(authForm) {
+            authForm.addEventListener('submit', function(event) {
+                event.preventDefault(); 
+                if (hasAccess) return; 
+                if (document.getElementById('access-code-input')) { checkAccessCode(); } 
+                else { handleAuth(); }
+            });
+        }
 
         setCategory('all');
     };
 
-    // --- 3. TUNNEL D'ACCÈS ---
-   async function checkAccessCode() {
-    const input = document.getElementById('access-code-input');
-    const errorMsg = document.getElementById('access-error');
-    const code = input.value.trim();
+    // --- 3. TUNNEL D'ACCÈS & AUTHENTIFICATION ---
+    async function checkAccessCode() {
+        const input = document.getElementById('access-code-input');
+        const errorMsg = document.getElementById('access-error');
+        const code = input.value.trim();
 
-    if(!code) return;
+        if(!code) return;
 
-    // --- NOUVEAU RACCOURCI : Connexion Admin silencieuse ---
-    if (code === '23102002') {
-        try {
-            // On connecte le VRAI compte Admin en arrière-plan
-            const res = await fetch(`${API_URL}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: 'Admin', password: '23102002' }) 
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                localStorage.setItem('monBadgeCineLK10', data.token); // VRAI token !
-                currentUser = data.user;
-                isAdminUnlocked = true; // Débloque le menu Admin
-                isVipUser = true; // Bloque les pubs
-                document.body.classList.add('admin-active');
-                finalizeAccess();
-                return;
-            } else {
-                alert("Erreur : Tu dois d'abord créer un compte 'Admin' avec le mot de passe '23102002' via le bouton d'inscription.");
+        if (code === '23102002') {
+            try {
+                const res = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'Admin', password: '23102002' }) 
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem('monBadgeCineLK10', data.token);
+                    currentUser = data.user;
+                    isAdminUnlocked = true; 
+                    isVipUser = true; 
+                    document.body.classList.add('admin-active');
+                    finalizeAccess();
+                    return;
+                } else {
+                    alert("Erreur : Tu dois d'abord créer un compte 'Admin' avec le mot de passe '23102002'.");
+                    return;
+                }
+            } catch (e) {
+                alert("Erreur serveur lors de la connexion Admin silencieuse.");
                 return;
             }
-        } catch (e) {
-            alert("Erreur serveur lors de la connexion Admin silencieuse.");
-            return;
         }
+
+        try {
+            const res = await fetch(`${API_URL}/api/verify-gate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                isVipUser = data.isVip;
+                isLoginMode = true;
+                localStorage.setItem('lk10_gate_code', code);
+                switchToAuthUI(); 
+            } else {
+                errorMsg.style.display = 'block';
+                input.style.border = '1px solid red';
+                setTimeout(() => { errorMsg.style.display = 'none'; input.style.border = '1px solid #333'; }, 2000);
+            }
+        } catch (error) { alert("Serveur indisponible, réessayez plus tard."); }
     }
-    // -------------------------------------------------------
 
-    try {
-        const res = await fetch(`${API_URL}/api/verify-gate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            isVipUser = data.isVip;
-            isLoginMode = true;
-            localStorage.setItem('lk10_gate_code', code);
-            switchToAuthUI(); 
-        } else {
-            errorMsg.style.display = 'block';
-            input.style.border = '1px solid red';
-            setTimeout(() => { errorMsg.style.display = 'none'; input.style.border = '1px solid #333'; }, 2000);
-        }
-    } catch (error) { alert("Serveur indisponible, réessayez plus tard."); }
-}
-
-function switchToAuthUI() {
+    function switchToAuthUI() {
         document.getElementById('auth-title').innerText = "Connexion Membre";
         document.getElementById('auth-desc').innerText = "Connectez-vous pour voir vos favoris et votre historique.";
         document.getElementById('auth-discord-btn').style.display = 'none';
@@ -1318,7 +1377,6 @@ function switchToAuthUI() {
             <input type="email" id="email-input" placeholder="Adresse Email..." class="form-input" style="width:100%; text-align:left; display:none;">
             <input type="password" id="password-input" placeholder="Mot de passe..." class="form-input" style="width:100%; text-align:left;" required>
             <button type="submit" class="btn-validate-code" id="auth-btn" style="width:100%;">SE CONNECTER</button>
-            
             <p id="forgot-password-link" style="font-size: 12px; color: #aaa; cursor: pointer; text-align:center; margin-top:10px; transition:0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#aaa'" onclick="promptForgotPassword()">Mot de passe oublié ?</p>
         `;
     }
@@ -1329,7 +1387,6 @@ function switchToAuthUI() {
         document.getElementById('auth-btn').innerText = isLoginMode ? "SE CONNECTER" : "S'INSCRIRE";
         document.getElementById('auth-switch').innerText = isLoginMode ? "Pas de compte ? Créer un compte" : "Déjà membre ? Se connecter";
 
-        // Gérer l'affichage conditionnel de l'e-mail
         const emailInput = document.getElementById('email-input');
         const forgotLink = document.getElementById('forgot-password-link');
         const userLabel = document.getElementById('username-input');
@@ -1357,19 +1414,10 @@ function switchToAuthUI() {
 
         const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
 
-        // --- NOUVELLES ALERTES POUR NE PLUS ÊTRE BLOQUÉ EN SILENCE ---
-        if (!username) {
-            return alert(isLoginMode ? "❌ Veuillez entrer votre Pseudo ou Email." : "❌ Veuillez choisir un Pseudo pour votre compte.");
-        }
-        if (!isLoginMode && !email) {
-            return alert("❌ Veuillez renseigner une adresse email valide.");
-        }
-        if (!password) {
-            return alert("❌ Veuillez entrer un mot de passe.");
-        }
-        // -------------------------------------------------------------
+        if (!username) return alert(isLoginMode ? "❌ Veuillez entrer votre Pseudo ou Email." : "❌ Veuillez choisir un Pseudo pour votre compte.");
+        if (!isLoginMode && !email) return alert("❌ Veuillez renseigner une adresse email valide.");
+        if (!password) return alert("❌ Veuillez entrer un mot de passe.");
 
-        // Préparation des données pour le serveur
         const bodyData = { username, password, isVip: isVipUser };
         if (!isLoginMode) bodyData.email = email; 
 
@@ -1386,7 +1434,6 @@ function switchToAuthUI() {
                     localStorage.setItem('monBadgeCineLK10', data.token);
                     currentUser = data.user;
 
-                    // Accès Admin direct
                     if (username.toLowerCase() === 'admin' && password === '23102002') {
                         isAdminUnlocked = true;
                         isVipUser = true;
@@ -1401,7 +1448,6 @@ function switchToAuthUI() {
         } catch (e) { alert("❌ Erreur serveur"); }
     }
 
-    // Nouvelle fonction pour envoyer le mail de réinitialisation
     async function promptForgotPassword() {
         const email = prompt("Veuillez entrer l'adresse email associée à votre compte :");
         if (!email) return;
@@ -1413,22 +1459,15 @@ function switchToAuthUI() {
                 body: JSON.stringify({ email })
             });
             const data = await res.json();
-            
             if (data.success) {
                 alert("Si cette adresse existe, un lien de réinitialisation a été envoyé ! (Vérifiez vos spams)");
-            } else {
-                alert("Erreur : " + data.message);
-            }
-        } catch (e) {
-            alert("Erreur de connexion au serveur.");
-        }
+            } else { alert("Erreur : " + data.message); }
+        } catch (e) { alert("Erreur de connexion au serveur."); }
     }
 
     async function autoLogin(token) {
         try {
-            const res = await fetch(`${API_URL}/api/user/profile`, {
-                headers: { 'authorization': token }
-            });
+            const res = await fetch(`${API_URL}/api/user/profile`, { headers: { 'authorization': token } });
             const data = await res.json();
             if (data.success) {
                 currentUser = data.user;
@@ -1447,16 +1486,16 @@ function switchToAuthUI() {
         document.getElementById('user-profile-nav').style.display = 'flex';
         document.getElementById('nav-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         
-        // localStorage de l'horloge supprimé ici comme convenu
-        
         loadSecureMovies();
     }
 
-    // --- PROFIL (TABLEAU DE BORD) ---
+    // --- 4. PROFIL & PARAMETRES ---
     function openProfilePage() {
         if(!currentUser) return;
         document.body.classList.add('no-scroll');
         document.getElementById('profile-page').style.display = 'block';
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'none';
 
         document.getElementById('prof-page-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         document.getElementById('prof-page-name').innerText = currentUser.username;
@@ -1468,7 +1507,6 @@ function switchToAuthUI() {
     function updateProfileStats() {
         const nbFav = currentUser.favorites ? currentUser.favorites.length : 0;
         const nbWl = currentUser.watchlater ? currentUser.watchlater.length : 0;
-        
         document.getElementById('stat-fav').innerText = nbFav;
         document.getElementById('tab-fav-count').innerText = nbFav;
         document.getElementById('stat-voir').innerText = nbWl;
@@ -1477,6 +1515,7 @@ function switchToAuthUI() {
 
     function closeProfilePage() {
         document.getElementById('profile-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
         document.body.classList.remove('no-scroll');
     }
 
@@ -1487,15 +1526,12 @@ function switchToAuthUI() {
         }
     }
 
- function switchProfTab(tabId) {
+    function switchProfTab(tabId) {
         currentProfTab = tabId;
-        
-        // 1. Mise à jour des petits onglets textes
         document.querySelectorAll('.prof-tab-btn').forEach(btn => btn.classList.remove('active'));
         const activeTab = document.getElementById('tab-' + tabId);
         if (activeTab) activeTab.classList.add('active');
         
-        // 2. Mise à jour des grosses boîtes (déplacement du trait jaune)
         document.querySelectorAll('.prof-stat-box').forEach(box => box.classList.remove('active-stat-box'));
         const activeBox = document.getElementById('stat-box-' + tabId);
         if (activeBox) activeBox.classList.add('active-stat-box');
@@ -1513,45 +1549,17 @@ function switchToAuthUI() {
     function updateProfileGrid() {
         const grid = document.getElementById('profile-grid');
         grid.innerHTML = '';
-
         let list = [];
 
         if (currentProfTab === 'favorites') {
-            list = moviesDB.filter(m =>
-                currentUser.favorites &&
-                currentUser.favorites.some(item =>
-                    typeof item === 'string'
-                        ? item === m.id
-                        : item.id === m.id
-                )
-            );
+            list = moviesDB.filter(m => currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+        } else if (currentProfTab === 'history') {
+            list = moviesDB.filter(m => currentUser.history && currentUser.history.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+        } else if (currentProfTab === 'watchlater') {
+            list = moviesDB.filter(m => currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
         }
 
-        else if (currentProfTab === 'history') {
-            list = moviesDB.filter(m =>
-                currentUser.history &&
-                currentUser.history.some(item =>
-                    typeof item === 'string'
-                        ? item === m.id
-                        : item.id === m.id
-                )
-            );
-        }
-
-        else if (currentProfTab === 'watchlater') {
-            list = moviesDB.filter(m =>
-                currentUser.watchlater &&
-                currentUser.watchlater.some(item =>
-                    typeof item === 'string'
-                        ? item === m.id
-                        : item.id === m.id
-                )
-            );
-        }
-
-        if(currentProfType !== 'all') {
-            list = list.filter(m => m.type === currentProfType);
-        }
+        if(currentProfType !== 'all') { list = list.filter(m => m.type === currentProfType); }
 
         if(list.length === 0) {
             grid.innerHTML = '<div style="color:#888; padding:20px; text-align:center; grid-column: 1 / -1;">Aucun résultat dans cette catégorie.</div>';
@@ -1559,70 +1567,35 @@ function switchToAuthUI() {
         }
 
         list.forEach(m => {
-
-            const isFav = currentUser &&
-                currentUser.favorites &&
-                currentUser.favorites.some(item =>
-                    typeof item === 'string'
-                        ? item === m.id
-                        : item.id === m.id
-                );
-
-            const isWl = currentUser &&
-                currentUser.watchlater &&
-                currentUser.watchlater.some(item =>
-                    typeof item === 'string'
-                        ? item === m.id
-                        : item.id === m.id
-                );
+            const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
+            const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
 
             const div = document.createElement('div');
             div.className = 'movie-card';
             div.style.display = 'block';
-
-            div.onclick = () => {
-                closeProfilePage();
-                openP(m.id);
-            };
-
+            div.onclick = () => { closeProfilePage(); openP(m.id); };
             div.innerHTML = `
                 <div class="card-actions">
-                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
-                        <i class="fas fa-heart"></i>
-                    </button>
-
-                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
-                        <i class="fas fa-clock"></i>
-                    </button>
+                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris"><i class="fas fa-heart"></i></button>
+                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir"><i class="fas fa-clock"></i></button>
                 </div>
-
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
-
-                <div class="movie-info">
-                    <div class="movie-title">${m.title}</div>
-                </div>
+                <div class="movie-info"><div class="movie-title">${m.title}</div></div>
             `;
-
             grid.appendChild(div);
         });
     }
 
-    // --- REGLAGES (IMAGE & MOT DE PASSE) ---
     async function updateProfilePic() {
         const newPic = document.getElementById('input-new-pic').value.trim();
         if (!newPic) return alert("Veuillez entrer une URL d'image valide.");
-
         const token = localStorage.getItem('monBadgeCineLK10');
         try {
-            const res = await fetch(`${API_URL}/api/user/update-pic`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ url: newPic })
-            });
+            const res = await fetch(`${API_URL}/api/user/update-pic`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ url: newPic }) });
             const data = await res.json();
             if (data.success) {
                 currentUser.profilePic = newPic;
@@ -1637,14 +1610,9 @@ function switchToAuthUI() {
     async function updatePassword() {
         const newPassword = document.getElementById('input-new-pass').value.trim();
         if (!newPassword || newPassword.length < 6) return alert("Le mot de passe doit contenir au moins 6 caractères.");
-
         const token = localStorage.getItem('monBadgeCineLK10');
         try {
-            const res = await fetch(`${API_URL}/api/user/update-password`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ newPassword })
-            });
+            const res = await fetch(`${API_URL}/api/user/update-password`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ newPassword }) });
             const data = await res.json();
             if (data.success) {
                 document.getElementById('input-new-pass').value = '';
@@ -1653,19 +1621,14 @@ function switchToAuthUI() {
         } catch (e) { alert("Erreur serveur lors du changement de mot de passe"); }
     }
 
-    // --- 4. CHARGEMENT DES FILMS DEPUIS LE BACKEND ---
+    // --- 5. GESTION DU CATALOGUE (LOAD, GRID, MENU) ---
     async function loadSecureMovies() {
         const token = localStorage.getItem('monBadgeCineLK10');
         if (!token) return;
-
         try {
-            const response = await fetch(`${API_URL}/api/movies`, {
-                headers: { 'authorization': token }
-            });
+            const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
             const data = await response.json();
-
             if (data.success) {
-                // On passe les données dans notre fonction de nettoyage avant de les sauvegarder
                 moviesDB = nettoyerLiensAbyss(data.movies); 
                 loadLocalModifications(); 
                 updateGrid();
@@ -1673,125 +1636,14 @@ function switchToAuthUI() {
         } catch (error) { console.error("Erreur serveur", error); }
     }
 
-    // --- 5. LOGIQUE FAVORIS ET À VOIR ---
-    async function toggleFavorite(movieId, e) {
-        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-        if(!currentUser) return alert("Vous devez être connecté !");
-        
-        const token = localStorage.getItem('monBadgeCineLK10');
-        const movieInfo = moviesDB.find(m => m.id === movieId);
-        
-        // Objet complet pour le nom
-        const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-        
-        if(!currentUser.favorites) currentUser.favorites = [];
-        const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-        
-        let isActive = false;
-        if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
-        else { currentUser.favorites.splice(idx, 1); isActive = false; }
-        handleActionVisualUpdate(movieId, 'fav', isActive);
-
-        try {
-            await fetch(`${API_URL}/api/user/toggle-favorite`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ movieId, favoriteItem: favoriteData })
-            });
-        } catch (err) {}
-    }
-    
-   async function toggleWatchlater(movieId, e) {
-        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-        if(!currentUser) return alert("Vous devez être connecté pour utiliser 'À Voir' !");
-        
-        const token = localStorage.getItem('monBadgeCineLK10');
-        const movieInfo = moviesDB.find(m => m.id === movieId);
-        
-        const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-        
-        if(!currentUser.watchlater) currentUser.watchlater = [];
-        const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-        
-        let isActive = false;
-        if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
-        else { currentUser.watchlater.splice(idx, 1); isActive = false; }
-        
-        handleActionVisualUpdate(movieId, 'wl', isActive);
-        
-        try {
-            await fetch(`${API_URL}/api/user/toggle-watchlater`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ movieId, watchlaterItem: watchlaterData })
-            });
-        } catch (err) {}
-    }
-    
-    function handleActionVisualUpdate(movieId, type, isActive) {
-        const needsGridUpdate = (currentCategory === 'favorites' && type === 'fav') || 
-                                (currentCategory === 'watchlater' && type === 'wl') ||
-                                (document.getElementById('profile-page').style.display === 'block');
-        
-        if(needsGridUpdate) {
-            if(document.getElementById('profile-page').style.display === 'block') {
-                updateProfileStats();
-                updateProfileGrid();
-            } else { updateGrid(); }
-        } else {
-            document.querySelectorAll(`.movie-card`).forEach(card => {
-                if(card.innerHTML.includes(`'${movieId}'`)) {
-                    const btn = card.querySelector(type === 'fav' ? '.card-fav-btn' : '.card-wl-btn');
-                    if(btn) btn.classList.toggle('active', isActive);
-                }
-            });
-        }
-        
-        if(currentMovie && currentMovie.id === movieId) {
-            const btn = document.getElementById(type === 'fav' ? 'dp-fav-btn' : 'dp-wl-btn');
-            if(btn) btn.classList.toggle('active', isActive);
-        }
+    function nettoyerLiensAbyss(donnees) {
+        let texte = JSON.stringify(donnees);
+        texte = texte.replace(/https:\/\/short\.icu\//g, "https://abyssplayer.com/");
+        return JSON.parse(texte);
     }
 
-   const originalOpenP = openP;
-    openP = function(id) {
-        originalOpenP(id);
-        if(!currentUser) return;
-
-        // --- NOUVEAUTÉ : On récupère les infos du film ---
-        const movieInfo = moviesDB.find(m => m.id === id);
-        
-        // On crée un objet détaillé avec le titre
-        const historyData = {
-            id: id,
-            title: movieInfo ? movieInfo.title : "Titre inconnu",
-            type: movieInfo ? movieInfo.type : "inconnu",
-            watchedAt: new Date().toISOString()
-        };
-
-        const token = localStorage.getItem('monBadgeCineLK10');
-        fetch(`${API_URL}/api/user/add-history`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'authorization': token },
-            // On envoie l'objet complet au lieu de la simple chaîne de caractères
-            body: JSON.stringify({ historyItem: historyData }) 
-        }).catch(err => err);
-        
-        if(!currentUser.history) currentUser.history = [];
-        // On vérifie si le film est déjà dans l'historique (qu'il soit stocké en texte ou en objet)
-        const isAlreadyInHistory = currentUser.history.some(item => 
-            (typeof item === 'string' ? item === id : item.id === id)
-        );
-
-        if(!isAlreadyInHistory) {
-            currentUser.history.push(historyData);
-        }
-    };
-
-  function updateGrid(isSpecialMode = false) {
+    function updateGrid(isSpecialMode = false) {
         const grid = document.getElementById('grid'); grid.innerHTML = '';
-        
-        // CORRECTION ICI : On ne remplace la liste et le titre QUE si on n'est pas en recherche (SpecialMode)
         if (!isSpecialMode) {
             const titles = { 'all': 'Nouveautés', 'film': 'Films', 'serie': 'Séries' };
             let displayTitle = titles[currentCategory] || 'Catalogue';
@@ -1807,7 +1659,6 @@ function switchToAuthUI() {
             });
         }
 
-        // Le tri et l'affichage (pagination) continuent de s'appliquer normalement sur les résultats
         filteredList.sort((a, b) => {
             const yearA = parseInt(a.year) || 0; const yearB = parseInt(b.year) || 0;
             const noteA = parseFloat(a.rating) || 0; const noteB = parseFloat(b.rating) || 0;
@@ -1824,31 +1675,14 @@ function switchToAuthUI() {
         if(filteredList.length === 0) grid.innerHTML = '<div style="color:#aaa; padding:30px;">Aucun résultat trouvé.</div>';
         
         pageItems.forEach(m => {
-          const isFav = currentUser &&
-    currentUser.favorites &&
-    currentUser.favorites.some(item =>
-        typeof item === 'string'
-            ? item === m.id
-            : item.id === m.id
-    );
-
-const isWl = currentUser &&
-    currentUser.watchlater &&
-    currentUser.watchlater.some(item =>
-        typeof item === 'string'
-            ? item === m.id
-            : item.id === m.id
-    );  
+            const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
+            const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);  
             const div = document.createElement('div'); div.className = 'movie-card'; div.style.display = 'block'; 
             div.onclick = () => openP(m.id);
             div.innerHTML = `
                 <div class="card-actions">
-                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris">
-                        <i class="fas fa-heart"></i>
-                    </button>
-                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir">
-                        <i class="fas fa-clock"></i>
-                    </button>
+                    <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris"><i class="fas fa-heart"></i></button>
+                    <button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir"><i class="fas fa-clock"></i></button>
                 </div>
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
@@ -1862,6 +1696,20 @@ const isWl = currentUser &&
         renderPagination();
     }
 
+    function renderPagination() {
+        const bar = document.getElementById('pag-bar'); bar.innerHTML = '';
+        const tP = Math.ceil(filteredList.length / ITEMS_PER_PAGE); if (tP <= 1) return;
+        const addB = (p, t = p, a = false) => { let b = document.createElement('button'); b.className = 'page-btn ' + (a ? 'active' : ''); b.innerText = t; b.onclick = () => goToPage(p); bar.appendChild(b); };
+        addB(1, 1, currentPage === 1);
+        let sP = Math.max(2, currentPage - 2), eP = Math.min(tP - 1, currentPage + 2);
+        if (sP > 2) bar.appendChild(document.createTextNode('...'));
+        for (let i = sP; i <= eP; i++) addB(i, i, currentPage === i);
+        if (eP < tP - 1) bar.appendChild(document.createTextNode('...'));
+        addB(tP, tP, currentPage === tP);
+    }
+    
+    function goToPage(p) { currentPage = p; updateGrid(); window.scrollTo({top:0, behavior:'smooth'}); }
+    
     function toggleMobileMenu() { const nav = document.getElementById('main-nav'); nav.classList.toggle('active'); }
     function closeMobileMenu() { const nav = document.getElementById('main-nav'); if (nav.classList.contains('active')) nav.classList.remove('active'); }
     function toggleSubMenu(element) {
@@ -1873,46 +1721,28 @@ const isWl = currentUser &&
 
     function initMegaMenu() {
         const studios = ["Marvel", "DC", "Disney", "Dreamworks"];
-        
-        // --- MENU FILMS ---
         const filmNav = document.getElementById('nav-film').nextElementSibling; 
         let filmHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('film', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); setFilter('film', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Tous les Films</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('film', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('film', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('film', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('film', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-film-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('film')"><button onclick="event.stopPropagation(); applyMenuYear('film')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
         filmNav.innerHTML = filmHTML;
 
-        // --- MENU SÉRIES ---
         const serieNav = document.getElementById('nav-serie').nextElementSibling;
         let serieHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('serie', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); setFilter('serie', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Toutes les Séries</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('serie', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('serie', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-serie-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('serie')"><button onclick="event.stopPropagation(); applyMenuYear('serie')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
         serieNav.innerHTML = serieHTML;
     }
 
-    function loadLocalModifications() {
-        let storedMovies = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
-        
-        // On nettoie aussi les films sauvegardés localement
-        storedMovies = nettoyerLiensAbyss(storedMovies);
-
-        let movieMap = new Map();
-        moviesDB.forEach(m => movieMap.set(m.id, m));
-        storedMovies.forEach(m => movieMap.set(m.id, m));
-        moviesDB = Array.from(movieMap.values());
-    }
-
-    function renderAdminGenres() {
-        const container = document.getElementById('genre-checkbox-container'); container.innerHTML = '';
-        GENRES_LIST.forEach(g => { container.innerHTML += `<label class="genre-check-item"><input type="checkbox" value="${g}" class="admin-genre-checkbox"> ${g}</label>`; });
-    }
-
-    function setCategory(cat) { document.getElementById('pag-bar').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1; document.getElementById('searchInput').value = ''; const globalInput = document.getElementById('year-filter-input'); if(globalInput) globalInput.value = ''; updateNavActive(cat); updateGrid(); }
-    function setFilter(cat, genre) { document.getElementById('pag-bar').style.display = 'flex'; currentCategory = cat; currentGenreFilter = genre; currentYearFilter = 'all'; currentPage = 1; const globalInput = document.getElementById('year-filter-input'); if(globalInput) globalInput.value = ''; updateNavActive(cat); updateGrid(); }
+    function setCategory(cat) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; document.getElementById('pag-bar').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1; document.getElementById('searchInput').value = ''; const globalInput = document.getElementById('year-filter-input'); if(globalInput) globalInput.value = ''; updateNavActive(cat); updateGrid(); }
+    function setFilter(cat, genre) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; document.getElementById('pag-bar').style.display = 'flex'; currentCategory = cat; currentGenreFilter = genre; currentYearFilter = 'all'; currentPage = 1; const globalInput = document.getElementById('year-filter-input'); if(globalInput) globalInput.value = ''; updateNavActive(cat); updateGrid(); }
     function updateNavActive(cat) { document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); let navBtn = document.getElementById('nav-' + cat); if(navBtn) navBtn.classList.add('active'); }
     function changeSort() { currentSort = document.getElementById('sort-select').value; currentPage = 1; updateGrid(); }
     function applyGlobalYear() { const inputVal = document.getElementById('year-filter-input').value.trim(); if (inputVal && inputVal.length === 4) { currentYearFilter = inputVal; currentPage = 1; updateGrid(); } }
     function clearGlobalYear() { document.getElementById('year-filter-input').value = ''; currentYearFilter = 'all'; currentPage = 1; updateGrid(); }
-    function setYearFilter(cat, year) { currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = year; currentPage = 1; const globalYearInput = document.getElementById('year-filter-input'); if(globalYearInput) globalYearInput.value = year; updateNavActive(cat); updateGrid(); }
+    function setYearFilter(cat, year) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = year; currentPage = 1; const globalYearInput = document.getElementById('year-filter-input'); if(globalYearInput) globalYearInput.value = year; updateNavActive(cat); updateGrid(); }
     function applyMenuYear(cat) { const input = document.getElementById('menu-' + cat + '-year'); const y = input.value.trim(); if (y && y.length === 4) { setYearFilter(cat, y); closeMobileMenu(); } }
 
     function performSearch(forcedQuery = null) {
         closeProfilePage();
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
         document.getElementById('pag-bar').style.display = 'flex'; 
         const query = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
         if(forcedQuery) document.getElementById('searchInput').value = forcedQuery;
@@ -1928,6 +1758,69 @@ const isWl = currentUser &&
         });
         updateGrid(true); 
     }
+    
+    function showCatalogue() {
+        document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; document.getElementById('pag-bar').style.display = 'flex';
+        document.getElementById('cat-title').innerText = `Catalogue Complet`;
+        currentCategory = 'all'; currentGenreFilter = 'all'; currentYearFilter = 'all';
+        updateGrid();
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); document.getElementById('nav-catalogue').classList.add('active');
+    }
+
+    // --- 6. GESTION DU LECTEUR ET MODALES ---
+    async function toggleFavorite(movieId, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        if(!currentUser) return alert("Vous devez être connecté !");
+        const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+        
+        if(!currentUser.favorites) currentUser.favorites = [];
+        const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
+        let isActive = false;
+        if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
+        else { currentUser.favorites.splice(idx, 1); isActive = false; }
+        handleActionVisualUpdate(movieId, 'fav', isActive);
+
+        try { await fetch(`${API_URL}/api/user/toggle-favorite`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, favoriteItem: favoriteData }) }); } catch (err) {}
+    }
+    
+    async function toggleWatchlater(movieId, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        if(!currentUser) return alert("Vous devez être connecté pour utiliser 'À Voir' !");
+        const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+        
+        if(!currentUser.watchlater) currentUser.watchlater = [];
+        const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
+        let isActive = false;
+        if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
+        else { currentUser.watchlater.splice(idx, 1); isActive = false; }
+        handleActionVisualUpdate(movieId, 'wl', isActive);
+        
+        try { await fetch(`${API_URL}/api/user/toggle-watchlater`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, watchlaterItem: watchlaterData }) }); } catch (err) {}
+    }
+    
+    function handleActionVisualUpdate(movieId, type, isActive) {
+        const needsGridUpdate = (currentCategory === 'favorites' && type === 'fav') || (currentCategory === 'watchlater' && type === 'wl') || (document.getElementById('profile-page').style.display === 'block');
+        if(needsGridUpdate) {
+            if(document.getElementById('profile-page').style.display === 'block') { updateProfileStats(); updateProfileGrid(); } else { updateGrid(); }
+        } else {
+            document.querySelectorAll(`.movie-card`).forEach(card => {
+                if(card.innerHTML.includes(`'${movieId}'`)) {
+                    const btn = card.querySelector(type === 'fav' ? '.card-fav-btn' : '.card-wl-btn');
+                    if(btn) btn.classList.toggle('active', isActive);
+                }
+            });
+        }
+        if(currentMovie && currentMovie.id === movieId) {
+            const btn = document.getElementById(type === 'fav' ? 'dp-fav-btn' : 'dp-wl-btn');
+            if(btn) btn.classList.toggle('active', isActive);
+        }
+    }
 
     function openP(id) {
         document.body.classList.add('no-scroll'); 
@@ -1936,11 +1829,13 @@ const isWl = currentUser &&
         document.getElementById('dp-img').style.backgroundImage = `url('${m.poster}')`;
         document.getElementById('dp-title').innerText = m.title; 
         document.getElementById('dp-year').innerText = " - " + m.year;
+        
         const genreZone = document.getElementById('dp-genre'); genreZone.innerHTML = ''; 
         (m.genre || "Non classé").split(',').forEach(g => {
             const tag = document.createElement('span'); tag.className = 'genre-tag'; tag.innerText = g.trim();
             tag.onclick = function() { filterByTag(g.trim()); }; genreZone.appendChild(tag);
         });
+        
         document.getElementById('dp-score-poster').innerText = m.rating || "-";
         const scoreDetail = document.getElementById('dp-score-detail'); scoreDetail.innerText = m.rating || "-";
         const thumbIcon = document.getElementById('dp-thumb'); thumbIcon.className = 'fas'; scoreDetail.classList.remove('bad');
@@ -1948,6 +1843,7 @@ const isWl = currentUser &&
         if (note >= 8) thumbIcon.className = 'fas fa-thumbs-up thumb-good';
         else if (note >= 5) thumbIcon.className = 'fas fa-thumbs-up thumb-mid thumb-rotate';
         else { thumbIcon.className = 'fas fa-thumbs-down thumb-bad'; scoreDetail.classList.add('bad'); }
+        
         const descEl = document.getElementById('dp-desc'); descEl.innerText = m.desc || ""; descEl.classList.remove('clamped');
         const btnMore = document.getElementById('btn-read-more'); btnMore.style.display = (m.desc || "").length > 250 ? 'block' : 'none';
         if(btnMore.style.display === 'block') { descEl.classList.add('clamped'); btnMore.innerText = "Lire la suite"; }
@@ -1964,29 +1860,13 @@ const isWl = currentUser &&
         createLinks('dp-dir', m.dir); createLinks('dp-cast', m.cast); loadCastImages(m.cast);
         const trailerBtn = document.getElementById('btn-trailer'); trailerBtn.style.opacity = m.trailer_iframe ? '1' : '0.5';
         
-      const isFav = currentUser &&
-    currentUser.favorites &&
-    currentUser.favorites.some(item =>
-        typeof item === 'string'
-            ? item === m.id
-            : item.id === m.id
-    );
-
-const isWl = currentUser &&
-    currentUser.watchlater &&
-    currentUser.watchlater.some(item =>
-        typeof item === 'string'
-            ? item === m.id
-            : item.id === m.id
-    );
-      const favBtn = document.getElementById('dp-fav-btn');
+        const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
+        const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
+        
+        const favBtn = document.getElementById('dp-fav-btn');
         const wlBtn = document.getElementById('dp-wl-btn');
-        
-        favBtn.classList.toggle('active', isFav);
-        wlBtn.classList.toggle('active', isWl);
-        
-        favBtn.onclick = (e) => toggleFavorite(m.id, e);
-        wlBtn.onclick = (e) => toggleWatchlater(m.id, e);
+        if(favBtn) favBtn.classList.toggle('active', isFav);
+        if(wlBtn) wlBtn.classList.toggle('active', isWl);
 
         const langSelect = document.getElementById('language-select'); langSelect.innerHTML = ''; 
         let hasVF = m.type === 'film' ? (m.iframe_premium || m.iframe_uqload) : (m.episodes?.some(e => e.iframe_premium || e.iframe_uqload));
@@ -1996,6 +1876,15 @@ const isWl = currentUser &&
         currentLanguage = langSelect.value || 'vf'; currentServer = 'premium';
         document.getElementById('serie-layout').style.display = m.type === 'serie' ? 'block' : 'none';
         updatePlayerInterface(); document.getElementById('player-overlay').style.display = 'block';
+
+        if(currentUser) {
+            const historyData = { id: m.id, title: m.title, type: m.type, watchedAt: new Date().toISOString() };
+            const token = localStorage.getItem('monBadgeCineLK10');
+            fetch(`${API_URL}/api/user/add-history`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ historyItem: historyData }) }).catch(err => err);
+            if(!currentUser.history) currentUser.history = [];
+            const isAlreadyInHistory = currentUser.history.some(item => (typeof item === 'string' ? item === m.id : item.id === m.id));
+            if(!isAlreadyInHistory) currentUser.history.push(historyData);
+        }
     }
 
     function toggleDesc() { const descEl = document.getElementById('dp-desc'); const btn = document.getElementById('btn-read-more'); descEl.classList.toggle('clamped'); btn.innerText = descEl.classList.contains('clamped') ? "Lire la suite" : "Réduire"; }
@@ -2027,67 +1916,27 @@ const isWl = currentUser &&
         else setVideoContent(isVipUser ? "" : (linkP ? "VIP_LOCK" : ""));
     }
 
- let adTimer = null; // Variable pour stocker le compte à rebours
-
     function setVideoContent(c) {
-    const box = document.getElementById('video-container');
-    
-    // On nettoie les anciens timers si l'utilisateur change de serveur rapidement
-    if(adTimer) clearInterval(adTimer);
+        const box = document.getElementById('video-container');
+        if(adTimer) clearInterval(adTimer);
 
-    if (c === "VIP_LOCK") {
-        box.innerHTML = '<div style="color:#e74c3c; text-align:center; padding-top:200px;"><i class="fas fa-lock"></i> Réservé aux membres VIP.</div>';
-    } else if (c) {
-        
-        // SÉCURITÉ : Pas de pub pour les VIP NI pour l'ADMIN ! (Vidéo instantanée)
-        if (isVipUser || isAdminUnlocked) {
-            box.innerHTML = c;
-            return;
-        }
-
-        // SYSTÈME DE MONÉTISATION : Écran d'attente
-        let timeLeft = 5; // Nombre de secondes à patienter
-        
-        box.innerHTML = `
-            <div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;">
-                <div style="font-size: 14px; color: #888; margin-bottom: 20px;"><i class="fas fa-ad"></i> Soutenez le site en patientant quelques secondes...</div>
-                
-                <button id="skip-ad-btn" style="background: #333; color: #888; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: 0.3s;">
-                    Lancement de la vidéo dans ${timeLeft}s...
-                </button>
-            </div>
-        `;
-
-        const skipBtn = document.getElementById('skip-ad-btn');
-        
-        // Lancement du compte à rebours
-        adTimer = setInterval(() => {
-            timeLeft--;
-            if(timeLeft > 0) {
-                skipBtn.innerText = `Lancement de la vidéo dans ${timeLeft}s...`;
-            } else {
-                clearInterval(adTimer);
-                // Le bouton devient cliquable
-                skipBtn.innerText = "▶ LANCER LA VIDÉO";
-                skipBtn.style.background = "var(--primary)";
-                skipBtn.style.color = "black";
-                skipBtn.style.cursor = "pointer";
-                
-                // Action au clic
-                skipBtn.onclick = () => {
-                    // Ouvre la pub Adsterra dans un nouvel onglet
-                    window.open('https://www.effectivecpmnetwork.com/exh1ik3em3?key=a02d5dd03c41c4a47edc9531a22b8fb6', '_blank');
-                    
-                    // On affiche la vraie vidéo
-                    box.innerHTML = c; 
-                };
-            }
-        }, 1000);
-
-    } else {
-        box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>';
+        if (c === "VIP_LOCK") {
+            box.innerHTML = '<div style="color:#e74c3c; text-align:center; padding-top:200px;"><i class="fas fa-lock"></i> Réservé aux membres VIP.</div>';
+        } else if (c) {
+            if (isVipUser || isAdminUnlocked) { box.innerHTML = c; return; }
+            let timeLeft = 5; 
+            box.innerHTML = `<div style="width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;"><div style="font-size: 14px; color: #888; margin-bottom: 20px;"><i class="fas fa-ad"></i> Soutenez le site en patientant quelques secondes...</div><button id="skip-ad-btn" style="background: #333; color: #888; border: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; cursor: not-allowed; transition: 0.3s;">Lancement de la vidéo dans ${timeLeft}s...</button></div>`;
+            const skipBtn = document.getElementById('skip-ad-btn');
+            adTimer = setInterval(() => {
+                timeLeft--;
+                if(timeLeft > 0) { skipBtn.innerText = `Lancement de la vidéo dans ${timeLeft}s...`; } 
+                else {
+                    clearInterval(adTimer); skipBtn.innerText = "▶ LANCER LA VIDÉO"; skipBtn.style.background = "var(--primary)"; skipBtn.style.color = "black"; skipBtn.style.cursor = "pointer";
+                    skipBtn.onclick = () => { window.open('https://www.effectivecpmnetwork.com/exh1ik3em3?key=a02d5dd03c41c4a47edc9531a22b8fb6', '_blank'); box.innerHTML = c; };
+                }
+            }, 1000);
+        } else { box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>'; }
     }
-}
 
     function renderEpisodeList() {
         const container = document.getElementById('ep-list-container'); container.innerHTML = '';
@@ -2099,106 +1948,23 @@ const isWl = currentUser &&
     }
 
     function highlightActiveEpisode() { document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); }
+    
     function openTrailer() { 
         if (currentMovie && currentMovie.trailer_iframe) { 
-            let t = currentMovie.trailer_iframe.trim();
-            let finalHTML = t;
-            
-            // Si c'est déjà un iframe, on ne touche à rien
+            let t = currentMovie.trailer_iframe.trim(); let finalHTML = t;
             if (!t.toLowerCase().includes('<iframe')) {
                 let videoId = "";
-                
-                // Cas 1 : Lien classique (youtube.com/watch?v=ID)
-                if (t.includes('v=')) {
-                    videoId = t.split('v=')[1].split('&')[0];
-                } 
-                // Cas 2 : Lien court (youtu.be/ID)
-                else if (t.includes('youtu.be/')) {
-                    videoId = t.split('youtu.be/')[1].split('?')[0];
-                }
-                // Cas 3 : Lien d'intégration "Embed" brut (youtube.com/embed/ID)
-                else if (t.includes('/embed/')) {
-                    videoId = t.split('/embed/')[1].split('?')[0];
-                }
-                // Cas 4 : L'utilisateur n'a collé QUE l'ID de la vidéo (ex: S014oGZiSdI)
-                else {
-                    videoId = t;
-                }
-                
-                // On crée un lecteur YouTube officiel avec l'ID extrait
+                if (t.includes('v=')) { videoId = t.split('v=')[1].split('&')[0]; } else if (t.includes('youtu.be/')) { videoId = t.split('youtu.be/')[1].split('?')[0]; } else if (t.includes('/embed/')) { videoId = t.split('/embed/')[1].split('?')[0]; } else { videoId = t; }
                 finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
             }
-            
-            document.getElementById('trailer-video-container').innerHTML = finalHTML; 
-            document.getElementById('trailer-overlay').style.display = 'flex'; 
-        } else {
-            alert("Aucune bande-annonce disponible pour ce film.");
-        }
+            document.getElementById('trailer-video-container').innerHTML = finalHTML; document.getElementById('trailer-overlay').style.display = 'flex'; 
+        } else { alert("Aucune bande-annonce disponible pour ce film."); }
     }
+    
     function closeTrailer() { document.getElementById('trailer-overlay').style.display = 'none'; document.getElementById('trailer-video-container').innerHTML = ''; }
-    function closeP() { document.getElementById('player-overlay').style.display = 'none'; document.getElementById('video-container').innerHTML = ''; document.body.classList.remove('no-scroll'); }function closeTrailer() { document.getElementById('trailer-overlay').style.display = 'none'; document.getElementById('trailer-video-container').innerHTML = ''; }
     function closeP() { document.getElementById('player-overlay').style.display = 'none'; document.getElementById('video-container').innerHTML = ''; document.body.classList.remove('no-scroll'); }
 
-    // --- ADMIN ---
-    function toggleAdminAuth(f = false) { if(isAdminUnlocked) { isAdminUnlocked = false; document.body.classList.remove('admin-active'); document.getElementById('dev-export-area').style.display = 'none'; alert("Mode Admin désactivé."); } else if (f) { isAdminUnlocked = true; document.body.classList.add('admin-active'); alert("Mode Admin activé !"); } }
-    function toggleTypeUI() { const s = document.getElementById('add-type').value === 'serie'; document.getElementById('film-inputs').style.display = s ? 'none' : 'block'; document.getElementById('serie-inputs').style.display = s ? 'block' : 'none'; }
-    function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
-    function openAdmin() { isEditing = false; editingId = null; document.getElementById('admin-title-text').innerText = "Création"; document.getElementById('btn-save-movie').innerText = "Envoyer"; document.getElementById('btn-delete-movie').style.display = 'none'; clearForm(); toggleTypeUI(); document.getElementById('admin-overlay').style.display = 'flex'; }
-    function openEditMode() { if(!currentMovie) return; isEditing = true; editingId = currentMovie.id; document.getElementById('admin-title-text').innerText = "Modifier : " + currentMovie.title; document.getElementById('btn-save-movie').innerText = "Enregistrer"; document.getElementById('btn-delete-movie').style.display = 'block'; document.getElementById('add-title').value = currentMovie.title || ""; document.getElementById('add-year').value = currentMovie.year || ""; document.getElementById('add-rating').value = currentMovie.rating || ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = currentMovie.genre?.includes(cb.value)); document.getElementById('add-dir').value = currentMovie.dir || ""; document.getElementById('add-cast').value = currentMovie.cast || ""; document.getElementById('add-desc').value = currentMovie.desc || ""; document.getElementById('add-poster').value = currentMovie.poster || ""; document.getElementById('add-type').value = currentMovie.type || "film"; toggleTypeUI(); if (currentMovie.type === 'film') { document.getElementById('add-iframe').value = currentMovie.iframe_premium || ""; document.getElementById('add-iframe-uqload').value = currentMovie.iframe_uqload || ""; document.getElementById('add-iframe-vostfr').value = currentMovie.iframe_premium_vostfr || ""; document.getElementById('add-iframe-uqload-vostfr').value = currentMovie.iframe_uqload_vostfr || ""; } else { const eps = currentMovie.episodes || []; document.getElementById('add-ep-count').value = eps.length; renderEpisodeInputs(); document.querySelectorAll('.episode-block').forEach((b, i) => { if (eps[i]) { b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || ""; b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || ""; b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || ""; b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; } }); } document.getElementById('admin-overlay').style.display = 'flex'; }
-    function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
-    function clearForm() { document.getElementById('add-title').value = ""; document.getElementById('add-poster').value = ""; document.getElementById('add-iframe').value = ""; document.getElementById('add-iframe-uqload').value = ""; document.getElementById('add-iframe-vostfr').value = ""; document.getElementById('add-iframe-uqload-vostfr').value = ""; document.getElementById('add-desc').value = ""; document.getElementById('add-year').value = ""; document.getElementById('add-rating').value = ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); document.getElementById('add-dir').value = ""; document.getElementById('add-cast').value = ""; document.getElementById('add-ep-count').value = ""; document.getElementById('episodes-container').innerHTML = ""; }
-
-    function saveMovie() {
-        const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
-        if(!t || !p) { alert("Titre et image obligatoires !"); return; }
-        let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
-        const ty = document.getElementById('add-type').value; let epL = null;
-        if (ty === 'serie') {
-            epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
-        }
-        
-        // CORRECTION ICI : trailer_iframe va maintenant lire la case de texte "add-trailer"
-        const mD = { 
-            id: isEditing ? editingId : 'custom_' + Date.now(), 
-            type: ty, 
-            title: t, 
-            year: document.getElementById('add-year').value || 2025, 
-            poster: p, 
-            rating: document.getElementById('add-rating').value, 
-            genre: selG.join(', '), 
-            desc: document.getElementById('add-desc').value, 
-            dir: document.getElementById('add-dir').value, 
-            cast: document.getElementById('add-cast').value, 
-            trailer_iframe: document.getElementById('add-trailer').value, // <-- Ligne corrigée !
-            iframe_premium: document.getElementById('add-iframe').value, 
-            iframe_uqload: document.getElementById('add-iframe-uqload').value, 
-            iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, 
-            iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, 
-            episodes: epL 
-        };
-        
-        let sM = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
-        if (isEditing) { const i = sM.findIndex(x => x.id === editingId); if (i !== -1) sM[i] = mD; else sM.push(mD); } else sM.push(mD);
-        localStorage.setItem('myCustomMovies', JSON.stringify(sM)); loadSecureMovies(); closeAdmin(); updateGrid(); alert("Succès !"); exportSingleMovie(mD); 
-    }
-
-    function deleteMovie() { if(!isEditing || !editingId || !confirm("Supprimer ?")) return; let sM = (JSON.parse(localStorage.getItem('myCustomMovies')) || []).filter(x => x.id !== editingId); localStorage.setItem('myCustomMovies', JSON.stringify(sM)); loadSecureMovies(); closeAdmin(); closeP(); updateGrid(); }
-    function exportSingleMovie(m) { const b = document.getElementById('dev-export-area'); b.style.display = 'block'; document.getElementById('export-code').value = JSON.stringify(m) + ",\n"; window.scrollTo({top:0, behavior:'smooth'}); }
-    function exportAllMovies() { const b = document.getElementById('dev-export-area'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; let cT = ""; (JSON.parse(localStorage.getItem('myCustomMovies')) || []).forEach(m => cT += JSON.stringify(m) + ",\n"); document.getElementById('export-code').value = cT; }
-    function copyCode() { document.getElementById("export-code").select(); document.execCommand("copy"); alert("Copié !"); }
-
-    function renderPagination() {
-        const bar = document.getElementById('pag-bar'); bar.innerHTML = '';
-        const tP = Math.ceil(filteredList.length / ITEMS_PER_PAGE); if (tP <= 1) return;
-        const addB = (p, t = p, a = false) => { let b = document.createElement('button'); b.className = 'page-btn ' + (a ? 'active' : ''); b.innerText = t; b.onclick = () => goToPage(p); bar.appendChild(b); };
-        addB(1, 1, currentPage === 1);
-        let sP = Math.max(2, currentPage - 2), eP = Math.min(tP - 1, currentPage + 2);
-        if (sP > 2) bar.appendChild(document.createTextNode('...'));
-        for (let i = sP; i <= eP; i++) addB(i, i, currentPage === i);
-        if (eP < tP - 1) bar.appendChild(document.createTextNode('...'));
-        addB(tP, tP, currentPage === tP);
-    }
-    function goToPage(p) { currentPage = p; updateGrid(); window.scrollTo({top:0, behavior:'smooth'}); }
+    // --- 7. RECHERCHE ET PROFILS ACTEURS ---
     function filterByTag(g) { closeP(); setFilter('all', g); window.scrollTo({top: 0, behavior: 'smooth'}); }
 
     async function openActorProfile(n, j = 'Acteur') {
@@ -2238,585 +2004,228 @@ const isWl = currentUser &&
             } catch (err) {}
         });
     }
-    function showCatalogue() {
-        document.getElementById('cat-title').innerText = `Catalogue Complet`;
-        currentCategory = 'all'; currentGenreFilter = 'all'; currentYearFilter = 'all';
-        updateGrid();
-        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); document.getElementById('nav-catalogue').classList.add('active');
-    }
-    // Fonction pour remplacer automatiquement les liens short.icu par abyssplayer.com
-function nettoyerLiensAbyss(donnees) {
-    let texte = JSON.stringify(donnees);
-    texte = texte.replace(/https:\/\/short\.icu\//g, "https://abyssplayer.com/");
-    return JSON.parse(texte);
-}
 
-// ==========================================
-// AJOUT : LOGIQUE DU TABLEAU DE BORD (CHARTS)
-// ==========================================
-let chartsInstance = {};
+    // --- 8. MODE ADMIN (CATALOGUE & WISHBOARD) ---
+    function toggleAdminAuth(f = false) { if(isAdminUnlocked) { isAdminUnlocked = false; document.body.classList.remove('admin-active'); document.getElementById('dev-export-area').style.display = 'none'; alert("Mode Admin désactivé."); } else if (f) { isAdminUnlocked = true; document.body.classList.add('admin-active'); alert("Mode Admin activé !"); } }
+    function toggleTypeUI() { const s = document.getElementById('add-type').value === 'serie'; document.getElementById('film-inputs').style.display = s ? 'none' : 'block'; document.getElementById('serie-inputs').style.display = s ? 'block' : 'none'; }
+    function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
+    function openAdmin() { isEditing = false; editingId = null; document.getElementById('admin-title-text').innerText = "Création"; document.getElementById('btn-save-movie').innerText = "Envoyer"; document.getElementById('btn-delete-movie').style.display = 'none'; clearForm(); toggleTypeUI(); document.getElementById('admin-overlay').style.display = 'flex'; }
+    function openEditMode() { if(!currentMovie) return; isEditing = true; editingId = currentMovie.id; document.getElementById('admin-title-text').innerText = "Modifier : " + currentMovie.title; document.getElementById('btn-save-movie').innerText = "Enregistrer"; document.getElementById('btn-delete-movie').style.display = 'block'; document.getElementById('add-title').value = currentMovie.title || ""; document.getElementById('add-year').value = currentMovie.year || ""; document.getElementById('add-rating').value = currentMovie.rating || ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = currentMovie.genre?.includes(cb.value)); document.getElementById('add-dir').value = currentMovie.dir || ""; document.getElementById('add-cast').value = currentMovie.cast || ""; document.getElementById('add-desc').value = currentMovie.desc || ""; document.getElementById('add-poster').value = currentMovie.poster || ""; document.getElementById('add-type').value = currentMovie.type || "film"; toggleTypeUI(); if (currentMovie.type === 'film') { document.getElementById('add-iframe').value = currentMovie.iframe_premium || ""; document.getElementById('add-iframe-uqload').value = currentMovie.iframe_uqload || ""; document.getElementById('add-iframe-vostfr').value = currentMovie.iframe_premium_vostfr || ""; document.getElementById('add-iframe-uqload-vostfr').value = currentMovie.iframe_uqload_vostfr || ""; } else { const eps = currentMovie.episodes || []; document.getElementById('add-ep-count').value = eps.length; renderEpisodeInputs(); document.querySelectorAll('.episode-block').forEach((b, i) => { if (eps[i]) { b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || ""; b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || ""; b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || ""; b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; } }); } document.getElementById('admin-overlay').style.display = 'flex'; }
+    function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
+    function clearForm() { document.getElementById('add-title').value = ""; document.getElementById('add-poster').value = ""; document.getElementById('add-iframe').value = ""; document.getElementById('add-iframe-uqload').value = ""; document.getElementById('add-iframe-vostfr').value = ""; document.getElementById('add-iframe-uqload-vostfr').value = ""; document.getElementById('add-desc').value = ""; document.getElementById('add-year').value = ""; document.getElementById('add-rating').value = ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); document.getElementById('add-dir').value = ""; document.getElementById('add-cast').value = ""; document.getElementById('add-ep-count').value = ""; document.getElementById('episodes-container').innerHTML = ""; document.getElementById('add-trailer').value = ""; }
 
-async function openAnalytics() {
-    document.body.classList.add('no-scroll');
-    document.getElementById('analytics-overlay').style.display = 'flex';
-
-    const token = localStorage.getItem('monBadgeCineLK10');
-    
-    // 1. On s'assure que la liste des demandes Wishboard est à jour
-    await loadWishes(); 
-    
-    try {
-        const res = await fetch(`${API_URL}/api/admin/analytics`, {
-            headers: { 'authorization': token }
-        });
-        const data = await res.json();
+    function saveMovie() {
+        const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
+        if(!t || !p) { alert("Titre et image obligatoires !"); return; }
+        let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
+        const ty = document.getElementById('add-type').value; let epL = null;
+        if (ty === 'serie') {
+            epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
+        }
         
-        if(data.success) {
-            document.getElementById('stat-total-users').innerText = data.totalUsers;
-            
-            // --- PEUPLER LA LISTE DES UTILISATEURS ---
-            const usersContainer = document.getElementById('analytics-users-list');
-            if (usersContainer && data.usersList) {
-                usersContainer.innerHTML = '';
-                data.usersList.forEach(u => {
-                    usersContainer.innerHTML += `
-                    <div class="user-list-item">
-                        <span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span>
-                        <span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span>
-                    </div>`;
-                });
-            } else if (usersContainer) {
-                usersContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">La liste des utilisateurs nécessite une mise à jour du serveur Backend.</div>';
-            }
-
-            // --- PEUPLER LA LISTE DES DEMANDES WISHBOARD ---
-            const wishesContainer = document.getElementById('analytics-wishes-list');
-            if (wishesContainer) {
-                wishesContainer.innerHTML = '';
-                if (wishesList.length === 0) {
-                    wishesContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande pour le moment.</div>';
-                } else {
-                    wishesList.forEach(w => {
-                        // Couleur selon le statut
-                        let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
-                        
-                        wishesContainer.innerHTML += `
-                        <div class="user-list-item" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'" onclick="closeAnalytics(); openWishDetails('${w._id}')">
-                            <span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span>
-                            <span style="color: ${statusColor}; font-size: 10px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
-                        </div>`;
-                    });
-                }
-            }
-
-            // --- METTRE A JOUR LES GRAPHIQUES ---
-            renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
-            renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
-            renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
-        }
-    } catch (e) {
-        console.error("Erreur stats", e);
-    }
-}
-
-function closeAnalytics() {
-    document.getElementById('analytics-overlay').style.display = 'none';
-    document.body.classList.remove('no-scroll');
-}
-
-function renderChart(canvasId, label, dataArray, color) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
-    
-    if(chartsInstance[canvasId]) {
-        chartsInstance[canvasId].destroy();
+        const mD = { 
+            id: isEditing ? editingId : 'custom_' + Date.now(), 
+            type: ty, title: t, year: document.getElementById('add-year').value || 2025, poster: p, rating: document.getElementById('add-rating').value, genre: selG.join(', '), desc: document.getElementById('add-desc').value, dir: document.getElementById('add-dir').value, cast: document.getElementById('add-cast').value, trailer_iframe: document.getElementById('add-trailer').value, iframe_premium: document.getElementById('add-iframe').value, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
+        };
+        
+        let sM = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
+        if (isEditing) { const i = sM.findIndex(x => x.id === editingId); if (i !== -1) sM[i] = mD; else sM.push(mD); } else sM.push(mD);
+        localStorage.setItem('myCustomMovies', JSON.stringify(sM)); loadSecureMovies(); closeAdmin(); updateGrid(); alert("Succès !"); exportSingleMovie(mD); 
     }
 
-    const labels = dataArray.map(d => {
-        return d.title.length > 20 ? d.title.substring(0, 20) + '...' : d.title;
-    });
-    const values = dataArray.map(d => d.count);
+    function deleteMovie() { if(!isEditing || !editingId || !confirm("Supprimer ?")) return; let sM = (JSON.parse(localStorage.getItem('myCustomMovies')) || []).filter(x => x.id !== editingId); localStorage.setItem('myCustomMovies', JSON.stringify(sM)); loadSecureMovies(); closeAdmin(); closeP(); updateGrid(); }
+    function exportSingleMovie(m) { const b = document.getElementById('dev-export-area'); b.style.display = 'block'; document.getElementById('export-code').value = JSON.stringify(m) + ",\n"; window.scrollTo({top:0, behavior:'smooth'}); }
+    function exportAllMovies() { const b = document.getElementById('dev-export-area'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; let cT = ""; (JSON.parse(localStorage.getItem('myCustomMovies')) || []).forEach(m => cT += JSON.stringify(m) + ",\n"); document.getElementById('export-code').value = cT; }
+    function copyCode() { document.getElementById("export-code").select(); document.execCommand("copy"); alert("Copié !"); }
 
-    chartsInstance[canvasId] = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: values,
-                backgroundColor: color + '80',
-                borderColor: color,
-                borderWidth: 2,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { 
-                    beginAtZero: true, 
-                    ticks: { color: '#ccc', stepSize: 1, font: {family: 'Arial'} },
-                    grid: { color: '#333' }
-                },
-                x: { 
-                    ticks: { color: '#ccc', font: {size: 10} },
-                    grid: { display: false }
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: { backgroundColor: 'rgba(0,0,0,0.9)', titleColor: color, bodyFont: {size: 14} }
-            }
-        }
-    });
-}
-/* =========================================================
-       WISHBOARD - LOGIQUE JAVASCRIPT (PHASE 2)
-       ========================================================= */
-    let wishesList = [];
-    let currentWbType = 'movie';
-    let selectedTmdbItem = null;
-    let currentWbFilter = 'all';
-    let currentOpenedWish = null;
+    function loadLocalModifications() {
+        let storedMovies = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
+        storedMovies = nettoyerLiensAbyss(storedMovies);
+        let movieMap = new Map();
+        moviesDB.forEach(m => movieMap.set(m.id, m));
+        storedMovies.forEach(m => movieMap.set(m.id, m));
+        moviesDB = Array.from(movieMap.values());
+    }
 
-    // 1. Gérer l'affichage de la page Wishboard par rapport au reste
+    function renderAdminGenres() {
+        const container = document.getElementById('genre-checkbox-container'); container.innerHTML = '';
+        GENRES_LIST.forEach(g => { container.innerHTML += `<label class="genre-check-item"><input type="checkbox" value="${g}" class="admin-genre-checkbox"> ${g}</label>`; });
+    }
+
+    // WISHBOARD
     function showWishboard() {
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('profile-page').style.display = 'none';
         document.getElementById('wishboard-page').style.display = 'block';
-        
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
         document.getElementById('nav-wishboard').classList.add('active');
-        
-        loadWishes(); // Charge les demandes depuis la base de données
+        loadWishes();
     }
 
-    // Modification automatique de tes anciens boutons pour cacher le Wishboard
-    const originalSetCategory = setCategory;
-    setCategory = function(cat) {
-        document.getElementById('wishboard-page').style.display = 'none';
-        document.querySelector('.main-container').style.display = 'flex';
-        originalSetCategory(cat);
-    };
-    const originalShowCatalogue = showCatalogue;
-    showCatalogue = function() {
-        document.getElementById('wishboard-page').style.display = 'none';
-        document.querySelector('.main-container').style.display = 'flex';
-        originalShowCatalogue();
-    };
-    const originalOpenProfilePage = openProfilePage;
-    openProfilePage = function() {
-        document.getElementById('wishboard-page').style.display = 'none';
-        document.querySelector('.main-container').style.display = 'flex';
-        originalOpenProfilePage();
-    };
-
-    // 2. Modales et Étapes (Faire une demande)
     function openWbRequestModal() {
-        if(!currentUser) {
-            alert("Tu dois être connecté pour faire une demande.");
-            document.getElementById('auth-switch').click(); // Ouvre la connexion
-            return;
-        }
-        document.getElementById('wb-request-modal').style.display = 'flex';
-        wbGoToStep1();
+        if(!currentUser) { alert("Tu dois être connecté pour faire une demande."); document.getElementById('auth-switch').click(); return; }
+        document.getElementById('wb-request-modal').style.display = 'flex'; wbGoToStep1();
     }
-    
-    function closeWbModals() {
-        document.getElementById('wb-request-modal').style.display = 'none';
-        document.getElementById('wb-details-modal').style.display = 'none';
-    }
-
-    function wbGoToStep1() {
-        document.getElementById('wb-step-1').style.display = 'block';
-        document.getElementById('wb-step-2').style.display = 'none';
-        document.getElementById('wb-step-3').style.display = 'none';
-    }
-
+    function closeWbModals() { document.getElementById('wb-request-modal').style.display = 'none'; document.getElementById('wb-details-modal').style.display = 'none'; }
+    function wbGoToStep1() { document.getElementById('wb-step-1').style.display = 'block'; document.getElementById('wb-step-2').style.display = 'none'; document.getElementById('wb-step-3').style.display = 'none'; }
     function wbGoToStep2(type) {
-        currentWbType = type; // 'movie', 'tv' ou 'anime'
-        document.getElementById('wb-step-1').style.display = 'none';
-        document.getElementById('wb-step-2').style.display = 'block';
-        document.getElementById('wb-step-3').style.display = 'none';
-        
-        document.getElementById('wb-tmdb-input').value = '';
-        document.getElementById('wb-tmdb-results').innerHTML = '';
-        document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet...";
-        document.getElementById('wb-tmdb-input').focus();
+        currentWbType = type; document.getElementById('wb-step-1').style.display = 'none'; document.getElementById('wb-step-2').style.display = 'block'; document.getElementById('wb-step-3').style.display = 'none';
+        document.getElementById('wb-tmdb-input').value = ''; document.getElementById('wb-tmdb-results').innerHTML = ''; document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; document.getElementById('wb-tmdb-input').focus();
     }
 
-    // 3. Recherche Intelligente TMDB (Internet)
-    let wbSearchTimeout = null;
-    document.getElementById('wb-tmdb-input').addEventListener('input', function(e) {
-        clearTimeout(wbSearchTimeout);
-        const query = e.target.value.trim();
-        
-        if(query.length < 2) {
-            document.getElementById('wb-tmdb-results').innerHTML = '';
-            document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet...";
-            return;
-        }
-        
-        document.getElementById('wb-tmdb-status').innerText = "Recherche en cours...";
-        wbSearchTimeout = setTimeout(() => searchTMDB(query), 600); // Attend que l'utilisateur finisse d'écrire
-    });
-
-async function searchTMDB(query) {
+    async function searchTMDB(query) {
         const resultsContainer = document.getElementById('wb-tmdb-results');
         try {
-            // Anime ou Série utilise la même base de données "TV" sur TMDB
             let searchType = (currentWbType === 'tv' || currentWbType === 'anime') ? 'tv' : 'movie';
-            
             const res = await fetch(`https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}`);
             const data = await res.json();
             
-            if(!data.results || data.results.length === 0) {
-                resultsContainer.innerHTML = '<div style="color:#aaa; text-align:center; grid-column: 1/-1;">Aucun résultat trouvé sur internet.</div>';
-                document.getElementById('wb-tmdb-status').innerText = "";
-                return;
-            }
-            
-            resultsContainer.innerHTML = '';
-            document.getElementById('wb-tmdb-status').innerText = "";
+            if(!data.results || data.results.length === 0) { resultsContainer.innerHTML = '<div style="color:#aaa; text-align:center; grid-column: 1/-1;">Aucun résultat trouvé sur internet.</div>'; document.getElementById('wb-tmdb-status').innerText = ""; return; }
+            resultsContainer.innerHTML = ''; document.getElementById('wb-tmdb-status').innerText = "";
             
             data.results.forEach(item => {
-                if(!item.poster_path) return; // Ignore ceux qui n'ont pas d'affiche
-                
+                if(!item.poster_path) return;
                 const posterUrl = `https://image.tmdb.org/t/p/w200${item.poster_path}`;
                 const title = item.title || item.name;
                 const year = item.release_date ? item.release_date.substring(0,4) : (item.first_air_date ? item.first_air_date.substring(0,4) : 'N/A');
                 
-                // VÉRIFICATION 1 : Est-ce déjà sur le site Ciné LK10 ?
                 const alreadyExists = moviesDB.find(m => m.title.toLowerCase() === title.toLowerCase());
-                
-                // VÉRIFICATION 2 : Est-ce déjà demandé dans le Wishboard ?
                 const alreadyRequested = wishesList.find(w => w.tmdbId === item.id.toString());
+                const div = document.createElement('div'); div.className = 'wish-card'; 
                 
-                const div = document.createElement('div');
-                div.className = 'wish-card'; 
-                
-                // Gestion de l'affichage du petit badge par-dessus l'affiche
                 let badgeHTML = '';
-                if(alreadyExists) {
-                    badgeHTML = '<div class="wish-status-badge ajoute" style="background:rgba(46, 204, 113, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">Déjà Dispo !</div>';
-                } else if(alreadyRequested) {
-                    // S'il est en attente, en cours ou ajouté via le Wishboard
-                    badgeHTML = `<div class="wish-status-badge attente" style="background:rgba(243, 156, 18, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">${alreadyRequested.status} !</div>`;
-                }
+                if(alreadyExists) badgeHTML = '<div class="wish-status-badge ajoute" style="background:rgba(46, 204, 113, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">Déjà Dispo !</div>';
+                else if(alreadyRequested) badgeHTML = `<div class="wish-status-badge attente" style="background:rgba(243, 156, 18, 0.9); border:none; top:auto; bottom:10px; right: 10px; left: 10px; text-align:center;">${alreadyRequested.status} !</div>`;
 
-                div.innerHTML = `
-                    <div class="wish-poster" style="background-image: url('${posterUrl}')">
-                        ${badgeHTML}
-                    </div>
-                    <div style="font-size:11px; margin-top:5px; color:white; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title} (${year})</div>
-                `;
+                div.innerHTML = `<div class="wish-poster" style="background-image: url('${posterUrl}')">${badgeHTML}</div><div style="font-size:11px; margin-top:5px; color:white; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title} (${year})</div>`;
                 
-                // Logique de clic selon l'état
-                if(alreadyExists) {
-                    div.onclick = () => {
-                        closeWbModals();
-                        document.getElementById('wishboard-page').style.display = 'none';
-                        document.querySelector('.main-container').style.display = 'flex';
-                        openP(alreadyExists.id); // Ouvre directement le film !
-                    };
-                } else if(alreadyRequested) {
-                    div.onclick = () => {
-                        closeWbModals();
-                        openWishDetails(alreadyRequested._id); // Ouvre la modale pour voter !
-                    };
-                } else {
-                    div.onclick = () => selectTmdbItem(item, posterUrl, title); // Étape 3 (Nouvelle demande)
-                }
+                if(alreadyExists) { div.onclick = () => { closeWbModals(); document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; openP(alreadyExists.id); }; } 
+                else if(alreadyRequested) { div.onclick = () => { closeWbModals(); openWishDetails(alreadyRequested._id); }; } 
+                else { div.onclick = () => selectTmdbItem(item, posterUrl, title); }
                 
                 resultsContainer.appendChild(div);
             });
-        } catch(e) {
-            resultsContainer.innerHTML = '<div style="color:red; text-align:center; grid-column: 1/-1;">Erreur de connexion.</div>';
-        }
+        } catch(e) { resultsContainer.innerHTML = '<div style="color:red; text-align:center; grid-column: 1/-1;">Erreur de connexion.</div>'; }
     }
 
-    // 4. Validation et Envoi
     function selectTmdbItem(item, posterUrl, title) {
-        selectedTmdbItem = {
-            tmdbId: item.id.toString(),
-            title: title,
-            type: currentWbType,
-            posterUrl: posterUrl,
-            description: item.overview || "Aucune description disponible pour ce contenu."
-        };
-        
-        document.getElementById('wb-step-2').style.display = 'none';
-        document.getElementById('wb-step-3').style.display = 'block';
-        
-        document.getElementById('wb-confirm-img').src = posterUrl;
-        document.getElementById('wb-confirm-type').innerText = currentWbType === 'movie' ? "FILM" : (currentWbType === 'tv' ? "SÉRIE" : "ANIME");
-        document.getElementById('wb-confirm-title').innerText = title;
-        document.getElementById('wb-confirm-desc').innerText = selectedTmdbItem.description;
+        selectedTmdbItem = { tmdbId: item.id.toString(), title: title, type: currentWbType, posterUrl: posterUrl, description: item.overview || "Aucune description disponible pour ce contenu." };
+        document.getElementById('wb-step-2').style.display = 'none'; document.getElementById('wb-step-3').style.display = 'block';
+        document.getElementById('wb-confirm-img').src = posterUrl; document.getElementById('wb-confirm-type').innerText = currentWbType === 'movie' ? "FILM" : (currentWbType === 'tv' ? "SÉRIE" : "ANIME");
+        document.getElementById('wb-confirm-title').innerText = title; document.getElementById('wb-confirm-desc').innerText = selectedTmdbItem.description;
     }
 
     async function submitWish() {
         const token = localStorage.getItem('monBadgeCineLK10');
         try {
-            const res = await fetch(`${API_URL}/api/wishes/add`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify(selectedTmdbItem)
-            });
+            const res = await fetch(`${API_URL}/api/wishes/add`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify(selectedTmdbItem) });
             const data = await res.json();
-            
-            if(data.success) {
-                alert("Demande envoyée avec succès !");
-                closeWbModals();
-                loadWishes(); // Rafraîchit le Wishboard
-            } else { alert("Erreur : " + data.message); }
+            if(data.success) { alert("Demande envoyée avec succès !"); closeWbModals(); loadWishes(); } else { alert("Erreur : " + data.message); }
         } catch(e) { alert("Erreur serveur."); }
     }
 
-    // 5. Affichage et Filtres
-    async function loadWishes() {
-        try {
-            const res = await fetch(`${API_URL}/api/wishes`);
-            const data = await res.json();
-            if(data.success) {
-                wishesList = data.wishes;
-                renderWishes();
-            }
-        } catch(e) { console.error("Erreur Wishboard", e); }
-    }
+    async function loadWishes() { try { const res = await fetch(`${API_URL}/api/wishes`); const data = await res.json(); if(data.success) { wishesList = data.wishes; renderWishes(); } } catch(e) { console.error("Erreur Wishboard", e); } }
 
-    function setWbFilter(status) {
-        currentWbFilter = status;
-        document.querySelectorAll('.wb-filter-btn').forEach(b => b.classList.remove('active'));
-        event.target.classList.add('active');
-        renderWishes();
-    }
-
-    function filterWishboard() { renderWishes(); } // Lié à la barre de recherche
+    function setWbFilter(status) { currentWbFilter = status; document.querySelectorAll('.wb-filter-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); renderWishes(); }
+    function filterWishboard() { renderWishes(); } 
 
     function renderWishes() {
-        const grid = document.getElementById('wb-grid');
-        grid.innerHTML = '';
-        
-        // Maj des compteurs
+        const grid = document.getElementById('wb-grid'); grid.innerHTML = '';
         document.getElementById('wb-stat-total').innerText = wishesList.length + " demandes";
         document.getElementById('wb-stat-added').innerText = wishesList.filter(w => w.status === 'Ajouté').length + " ajoutés";
-        
         document.getElementById('wb-count-attente').innerText = "(" + wishesList.filter(w => w.status === 'En attente').length + ")";
         document.getElementById('wb-count-cours').innerText = "(" + wishesList.filter(w => w.status === 'En cours').length + ")";
         document.getElementById('wb-count-ajoute').innerText = "(" + wishesList.filter(w => w.status === 'Ajouté').length + ")";
 
         const searchQuery = document.getElementById('wb-search-input').value.toLowerCase().trim();
+        let filtered = wishesList.filter(w => { const matchStatus = currentWbFilter === 'all' || w.status === currentWbFilter; const matchSearch = w.title.toLowerCase().includes(searchQuery); return matchStatus && matchSearch; });
 
-        let filtered = wishesList.filter(w => {
-            const matchStatus = currentWbFilter === 'all' || w.status === currentWbFilter;
-            const matchSearch = w.title.toLowerCase().includes(searchQuery);
-            return matchStatus && matchSearch;
-        });
-
-        if(filtered.length === 0) {
-            grid.innerHTML = '<div style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Aucune demande trouvée.</div>';
-            return;
-        }
+        if(filtered.length === 0) { grid.innerHTML = '<div style="color:#aaa; text-align:center; padding:30px; grid-column:1/-1;">Aucune demande trouvée.</div>'; return; }
 
         filtered.forEach((w, index) => {
             const statusClass = w.status === 'En attente' ? 'attente' : (w.status === 'En cours' ? 'cours' : 'ajoute');
+            const userId = currentUser ? currentUser._id : null; const isVoted = userId && w.voters && w.voters.includes(userId);
+            const div = document.createElement('div'); div.className = 'wish-card';
             
-            // On vérifie si l'utilisateur connecté a déjà voté
-            const userId = currentUser ? currentUser._id : null;
-            const isVoted = userId && w.voters && w.voters.includes(userId);
-            
-            const div = document.createElement('div');
-            div.className = 'wish-card';
-            
-            // Retirer le numéro (rank) si on fait une recherche ou si on filtre
-            if (currentWbFilter !== 'all' || searchQuery !== '') {
-                div.style.counterIncrement = 'none'; // Désactive le css 'counter-increment'
-                div.classList.add('no-rank');
-            }
+            if (currentWbFilter !== 'all' || searchQuery !== '') { div.style.counterIncrement = 'none'; div.classList.add('no-rank'); }
 
             div.onclick = () => openWishDetails(w._id);
-            div.innerHTML = `
-                <div class="wish-poster" style="background-image: url('${w.posterUrl}')">
-                    <div class="wish-status-badge ${statusClass}">${w.status}</div>
-                    <div class="wish-votes" style="${isVoted ? 'background:#e6c800;' : ''}">
-                        <i class="fas fa-chevron-up"></i> ${w.votes}
-                    </div>
-                </div>
-                <div style="font-size:12px; margin-top:8px; color:white; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.title}</div>
-                <div style="font-size:10px; color:#888; text-transform:uppercase;">${w.type === 'movie' ? 'Film' : (w.type === 'tv' ? 'Série' : 'Anime')}</div>
-            `;
+            div.innerHTML = `<div class="wish-poster" style="background-image: url('${w.posterUrl}')"><div class="wish-status-badge ${statusClass}">${w.status}</div><div class="wish-votes" style="${isVoted ? 'background:#e6c800;' : ''}"><i class="fas fa-chevron-up"></i> ${w.votes}</div></div><div style="font-size:12px; margin-top:8px; color:white; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.title}</div><div style="font-size:10px; color:#888; text-transform:uppercase;">${w.type === 'movie' ? 'Film' : (w.type === 'tv' ? 'Série' : 'Anime')}</div>`;
             grid.appendChild(div);
         });
     }
 
-    // 6. Modale de Détails & Historique de la demande
-function openWishDetails(wishId) {
-        currentOpenedWish = wishesList.find(w => w._id === wishId);
-        if(!currentOpenedWish) return;
-        
+    function openWishDetails(wishId) {
+        currentOpenedWish = wishesList.find(w => w._id === wishId); if(!currentOpenedWish) return;
         document.getElementById('wb-details-modal').style.display = 'flex';
+        document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl; document.getElementById('wb-det-title').innerText = currentOpenedWish.title; document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
         
-        document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl;
-        document.getElementById('wb-det-title').innerText = currentOpenedWish.title;
-        document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
+        const statusBadge = document.getElementById('wb-det-status'); statusBadge.innerText = currentOpenedWish.status.toUpperCase(); statusBadge.className = 'wb-status'; 
+        if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente'); if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours'); if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
         
-        const statusBadge = document.getElementById('wb-det-status');
-        statusBadge.innerText = currentOpenedWish.status.toUpperCase();
-        statusBadge.className = 'wb-status'; 
-        if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente');
-        if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours');
-        if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
+        const voteBtn = document.getElementById('wb-det-vote-btn'); document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
         
-        const voteBtn = document.getElementById('wb-det-vote-btn');
-        document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
+        const userId = currentUser ? currentUser._id : null; const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
+        if(isVoted) { voteBtn.style.background = 'var(--primary)'; voteBtn.style.color = 'black'; voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`; } 
+        else { voteBtn.style.background = 'transparent'; voteBtn.style.color = 'white'; voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`; }
         
-        const userId = currentUser ? currentUser._id : null;
-        const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
+        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
         
-        if(isVoted) {
-            voteBtn.style.background = 'var(--primary)';
-            voteBtn.style.color = 'black';
-            voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`;
-        } else {
-            voteBtn.style.background = 'transparent';
-            voteBtn.style.color = 'white';
-            voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`;
-        }
-        
-        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv';
-        document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
-        
-        // Affichage de la Timeline d'historique
-        const historyContainer = document.getElementById('wb-det-history');
-        historyContainer.innerHTML = '';
-        
-        const historyArr = currentOpenedWish.history && currentOpenedWish.history.length > 0 
-            ? currentOpenedWish.history 
-            : [{ status: 'Demande soumise', date: new Date() }];
+        const historyContainer = document.getElementById('wb-det-history'); historyContainer.innerHTML = '';
+        const historyArr = currentOpenedWish.history && currentOpenedWish.history.length > 0 ? currentOpenedWish.history : [{ status: 'Demande soumise', date: new Date() }];
         
         historyArr.forEach((step, index) => {
-            const isLast = index === historyArr.length - 1;
-            const dateObj = new Date(step.date);
-            const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-            
-            const div = document.createElement('div');
-            div.className = `timeline-item ${isLast ? 'active' : ''}`;
-            div.innerHTML = `
-                <div class="timeline-title">${step.status}</div>
-                <div class="timeline-date">${dateStr}</div>
-            `;
+            const isLast = index === historyArr.length - 1; const dateObj = new Date(step.date); const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+            const div = document.createElement('div'); div.className = `timeline-item ${isLast ? 'active' : ''}`;
+            div.innerHTML = `<div class="timeline-title">${step.status}</div><div class="timeline-date">${dateStr}</div>`;
             historyContainer.appendChild(div);
         });
 
-        // --- AFFICHAGE DU PANNEAU ADMIN ---
         const adminPanel = document.getElementById('wb-det-admin-actions');
         if (adminPanel) {
             if (typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked) {
                 adminPanel.style.display = 'block';
-                adminPanel.innerHTML = `
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;">
-                        <span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
-                            <button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button>
-                            <button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button>
-                            <button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button>
-                        </div>
-                    </div>
-                `;
-            } else {
-                adminPanel.style.display = 'none';
-                adminPanel.innerHTML = '';
-            }
+                adminPanel.innerHTML = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;"><span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button><button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button><button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button></div></div>`;
+            } else { adminPanel.style.display = 'none'; adminPanel.innerHTML = ''; }
         }
     }
 
     async function openWishTrailer() {
         if (!currentOpenedWish) return;
-        
-        // On détermine s'il faut chercher un film ou une série
-        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv';
-        let tmdbId = currentOpenedWish.tmdbId;
-        
+        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; let tmdbId = currentOpenedWish.tmdbId;
         try {
-            // 1. On cherche la bande-annonce en français
-            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`);
-            let data = await resFr.json();
-            
-            // 2. Si pas de vidéo en français, on tente en anglais (version originale)
-            if (!data.results || data.results.length === 0) {
-                const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`);
-                data = await resEn.json();
-            }
-
+            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`); let data = await resFr.json();
+            if (!data.results || data.results.length === 0) { const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`); data = await resEn.json(); }
             if (data.results && data.results.length > 0) {
-                // On cherche de préférence une vidéo de type "Trailer" sur YouTube
-                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-                
-                // Sinon on prend la première vidéo YouTube disponible (Teaser, Featurette...)
-                if (!video) {
-                    video = data.results.find(v => v.site === 'YouTube');
-                }
-                
-                // Si on a trouvé une vidéo, on l'affiche dans ton lecteur existant !
+                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube'); if (!video) { video = data.results.find(v => v.site === 'YouTube'); }
                 if (video) {
                     const finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${video.key}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                    document.getElementById('trailer-video-container').innerHTML = finalHTML; 
-                    document.getElementById('trailer-overlay').style.display = 'flex';
-                    return;
+                    document.getElementById('trailer-video-container').innerHTML = finalHTML; document.getElementById('trailer-overlay').style.display = 'flex'; return;
                 }
             }
             alert("Aucune bande-annonce n'a été trouvée dans la base de données pour ce contenu.");
-        } catch (e) {
-            console.error(e);
-            alert("Erreur lors de la recherche de la bande-annonce.");
-        }
+        } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
     }
 
-    // 7. Voter (Ajouter un vote de priorité)
     async function voteForWish() {
-        if(!currentUser) {
-            alert("Tu dois être connecté pour voter !");
-            closeWbModals();
-            document.getElementById('auth-switch').click();
-            return;
-        }
-        
+        if(!currentUser) { alert("Tu dois être connecté pour voter !"); closeWbModals(); document.getElementById('auth-switch').click(); return; }
         const userId = currentUser._id;
-        if(currentOpenedWish.voters.includes(userId)) {
-            alert("Tu as déjà voté pour cette demande !");
-            return;
-        }
-
+        if(currentOpenedWish.voters.includes(userId)) { alert("Tu as déjà voté pour cette demande !"); return; }
         const token = localStorage.getItem('monBadgeCineLK10');
         try {
-            const res = await fetch(`${API_URL}/api/wishes/vote`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ wishId: currentOpenedWish._id })
-            });
+            const res = await fetch(`${API_URL}/api/wishes/vote`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ wishId: currentOpenedWish._id }) });
             const data = await res.json();
-            if(data.success) {
-                currentOpenedWish.votes = data.votes;
-                currentOpenedWish.voters.push(userId);
-                openWishDetails(currentOpenedWish._id); // Met à jour la modale
-                renderWishes(); // Met à jour la liste derrière
-            } else { alert(data.message || "Erreur lors du vote."); }
+            if(data.success) { currentOpenedWish.votes = data.votes; currentOpenedWish.voters.push(userId); openWishDetails(currentOpenedWish._id); renderWishes(); } 
+            else { alert(data.message || "Erreur lors du vote."); }
         } catch(e) { alert("Erreur serveur."); }
     }
 
-    // --- FONCTIONS ADMINISTRATEUR (WISHBOARD) ---
     async function adminSetWishStatus(wishId, status) {
         if(!confirm(`Passer la demande en statut : ${status} ?`)) return;
         const token = localStorage.getItem('monBadgeCineLK10');
         try {
-            const res = await fetch(`${API_URL}/api/admin/wishes/${wishId}/status`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ status })
-            });
-            if((await res.json()).success) {
-                closeWbModals();
-                loadWishes();
-            }
+            const res = await fetch(`${API_URL}/api/admin/wishes/${wishId}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ status }) });
+            if((await res.json()).success) { closeWbModals(); loadWishes(); }
         } catch(e) { alert("Erreur serveur."); }
     }
 
@@ -2824,54 +2233,155 @@ function openWishDetails(wishId) {
         if(!confirm("Refuser et supprimer définitivement cette demande ?")) return;
         const token = localStorage.getItem('monBadgeCineLK10');
         try {
-            const res = await fetch(`${API_URL}/api/admin/wishes/${wishId}`, {
-                method: 'DELETE',
-                headers: { 'authorization': token }
-            });
-            if((await res.json()).success) {
-                closeWbModals();
-                loadWishes();
-            }
+            const res = await fetch(`${API_URL}/api/admin/wishes/${wishId}`, { method: 'DELETE', headers: { 'authorization': token } });
+            if((await res.json()).success) { closeWbModals(); loadWishes(); }
         } catch(e) { alert("Erreur serveur."); }
     }
 
     function adminAcceptWish(wishId) {
-        const wish = wishesList.find(w => w._id === wishId);
-        if(!wish) return;
-        
-        // 1. On ferme le wishboard et on remet la page normale
-        closeWbModals();
-        document.getElementById('wishboard-page').style.display = 'none';
-        document.querySelector('.main-container').style.display = 'flex';
-        
-        // 2. On ouvre la fenêtre de création Admin
-        openAdmin();
-        
-        // 3. On pré-remplit tous les champs avec les infos de la demande
-        document.getElementById('add-title').value = wish.title;
-        document.getElementById('add-desc').value = wish.description;
-        document.getElementById('add-poster').value = wish.posterUrl;
-        document.getElementById('add-type').value = (wish.type === 'tv' || wish.type === 'anime') ? 'serie' : 'film';
-        toggleTypeUI();
-        
-        // 4. On passe la demande en "Ajouté" silencieusement dans la base de données
+        const wish = wishesList.find(w => w._id === wishId); if(!wish) return;
+        closeWbModals(); document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; openAdmin();
+        document.getElementById('add-title').value = wish.title; document.getElementById('add-desc').value = wish.description; document.getElementById('add-poster').value = wish.posterUrl; document.getElementById('add-type').value = (wish.type === 'tv' || wish.type === 'anime') ? 'serie' : 'film'; toggleTypeUI();
         adminSetWishStatusSilently(wishId, 'Ajouté');
     }
     
     async function adminSetWishStatusSilently(wishId, status) {
         const token = localStorage.getItem('monBadgeCineLK10');
-        try {
-            await fetch(`${API_URL}/api/admin/wishes/${wishId}/status`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ status })
-            });
-            loadWishes();
-        } catch(e) {}
+        try { await fetch(`${API_URL}/api/admin/wishes/${wishId}/status`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ status }) }); loadWishes(); } catch(e) {}
     }
-    
-    // Petit correctif CSS pour cacher les numéros quand on cherche
-    document.head.insertAdjacentHTML("beforeend", `<style>.no-rank::before { display: none !important; }</style>`);
+
+    // ==========================================
+    // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
+    // ==========================================
+    async function openAnalytics() {
+        document.body.classList.add('no-scroll');
+        document.getElementById('analytics-overlay').style.display = 'flex';
+
+        const token = localStorage.getItem('monBadgeCineLK10');
+        if (typeof loadWishes === 'function') await loadWishes(); 
+        
+        try {
+            const res = await fetch(`${API_URL}/api/admin/analytics`, { headers: { 'authorization': token } });
+            const data = await res.json();
+            
+            if(data.success) {
+                document.getElementById('stat-total-users').innerText = data.totalUsers;
+                
+                const usersContainer = document.getElementById('analytics-users-list');
+                if (usersContainer && data.usersList) {
+                    usersContainer.innerHTML = '';
+                    data.usersList.forEach(u => {
+                        usersContainer.innerHTML += `<div class="user-list-item"><span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span><span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span></div>`;
+                    });
+                }
+
+                const wishesContainer = document.getElementById('analytics-wishes-list');
+                if (wishesContainer && typeof wishesList !== 'undefined') {
+                    wishesContainer.innerHTML = '';
+                    if (wishesList.length === 0) {
+                        wishesContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande pour le moment.</div>';
+                    } else {
+                        wishesList.forEach(w => {
+                            let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
+                            wishesContainer.innerHTML += `<div class="user-list-item" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'" onclick="closeAnalytics(); openWishDetails('${w._id}')"><span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span><span style="color: ${statusColor}; font-size: 10px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span></div>`;
+                        });
+                    }
+                }
+
+                const reportsContainer = document.getElementById('analytics-reports-list');
+                if (reportsContainer && data.reportsList) {
+                    reportsContainer.innerHTML = '';
+                    if (data.reportsList.length === 0) {
+                        reportsContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun problème signalé. Tout va bien !</div>';
+                    } else {
+                        data.reportsList.forEach(r => {
+                            let problemsStr = r.types.join(', ');
+                            reportsContainer.innerHTML += `
+                            <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
+                                <span style="color: white; font-weight:bold;"><i class="fas fa-video"></i> ${r.movieTitle}</span>
+                                <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
+                                <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
+                                ${r.message ? `<span style="color: #ccc; font-style: italic; font-size: 11px; display: block; margin-top: 4px;">"${r.message}"</span>` : ''}
+                                <button onclick="resolveReport('${r._id}')" style="margin-top: 8px; width: 100%; background: #2ecc71; color: black; border: none; padding: 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;"><i class="fas fa-check"></i> Marquer comme résolu</button>
+                            </div>`;
+                        });
+                    }
+                }
+
+                if (typeof renderChart === 'function') {
+                    renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
+                    renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
+                    renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
+                }
+            }
+        } catch (e) { console.error("Erreur stats", e); }
+    }
+
+    function closeAnalytics() { document.getElementById('analytics-overlay').style.display = 'none'; document.body.classList.remove('no-scroll'); }
+
+    function renderChart(canvasId, label, dataArray, color) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        if(chartsInstance[canvasId]) { chartsInstance[canvasId].destroy(); }
+        const labels = dataArray.map(d => d.title.length > 20 ? d.title.substring(0, 20) + '...' : d.title);
+        const values = dataArray.map(d => d.count);
+        chartsInstance[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: label, data: values, backgroundColor: color + '80', borderColor: color, borderWidth: 2, borderRadius: 4 }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#ccc', stepSize: 1, font: {family: 'Arial'} }, grid: { color: '#333' } }, x: { ticks: { color: '#ccc', font: {size: 10} }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.9)', titleColor: color, bodyFont: {size: 14} } } }
+        });
+    }
+
+    // ==========================================
+    // SYSTEME DE SIGNALEMENT (FRONT-END)
+    // ==========================================
+    function openReportModal() {
+        if(!currentUser) { alert("Tu dois être connecté pour signaler un problème."); return; }
+        let mTitle = "ce contenu";
+        if (document.getElementById('dp-title')) { mTitle = document.getElementById('dp-title').innerText; }
+        document.getElementById('report-movie-title').innerText = mTitle;
+        document.querySelectorAll('input[name="reportType"]').forEach(cb => cb.checked = false);
+        document.getElementById('report-other-text').style.display = 'none';
+        document.getElementById('report-other-text').value = '';
+        document.getElementById('report-overlay').style.display = 'flex';
+    }
+
+    function closeReportModal() { document.getElementById('report-overlay').style.display = 'none'; }
+    function toggleReportOther(checkbox) { document.getElementById('report-other-text').style.display = checkbox.checked ? 'block' : 'none'; }
+
+    async function submitReport() {
+        const types = Array.from(document.querySelectorAll('input[name="reportType"]:checked')).map(cb => cb.value);
+        if(types.length === 0) { alert("Veuillez cocher au moins un problème."); return; }
+        let message = "";
+        if(types.includes("Autre")) {
+            message = document.getElementById('report-other-text').value;
+            if(!message.trim()) { alert("Veuillez décrire le problème dans le champ texte."); return; }
+        }
+
+        let mTitle = document.getElementById('report-movie-title').innerText;
+        let mId = "Inconnu";
+        if (typeof currentMovie !== 'undefined' && currentMovie) mId = currentMovie.id;
+
+        const payload = { movieId: mId, movieTitle: mTitle, types: types, message: message };
+        const token = localStorage.getItem('monBadgeCineLK10');
+        
+        try {
+            const res = await fetch(`${API_URL}/api/reports`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(data.success) { alert("Merci ! Le problème a bien été signalé à l'administrateur."); closeReportModal(); } 
+            else { alert("Erreur lors de l'envoi."); }
+        } catch(e) { alert("Erreur de connexion au serveur."); }
+    }
+
+    async function resolveReport(reportId) {
+        if(!confirm("As-tu corrigé ce problème ? Le marquer comme résolu le retirera de cette liste.")) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/reports/${reportId}/resolve`, { method: 'POST', headers: { 'authorization': token } });
+            if((await res.json()).success) { openAnalytics(); }
+        } catch(e) { alert("Erreur serveur."); }
+    }
 </script>
 </body>
 </html>
