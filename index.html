@@ -1631,27 +1631,21 @@ if (currentProfTab === 'favorites') {
     }
 
     // --- 5. GESTION DU CATALOGUE (LOAD, GRID, MENU) ---
-    async function loadSecureMovies() {
-        const token = localStorage.getItem('monBadgeCineLK10');
-        if (!token) return;
-        try {
-            const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
-            const data = await response.json();
-            if (data.success) {
-                moviesDB = nettoyerLiensAbyss(data.movies); 
-                try {
-                    loadLocalModifications(); 
-                } catch(e) {
-                    console.error("Erreur de nettoyage local", e);
-                }
-            }
-        } catch (error) { 
-            console.error("Erreur serveur", error); 
-        } finally {
-            // Quoi qu'il arrive, on actualise la grille à la fin !
-            updateGrid();
+   async function loadSecureMovies() {
+    const token = localStorage.getItem('monBadgeCineLK10');
+    if (!token) return;
+    try {
+        const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
+        const data = await response.json();
+        if (data.success) {
+            moviesDB = nettoyerLiensAbyss(data.movies); 
         }
+    } catch (error) { 
+        console.error("Erreur serveur", error); 
+    } finally {
+        updateGrid();
     }
+}
 
     function nettoyerLiensAbyss(donnees) {
         let texte = JSON.stringify(donnees);
@@ -2072,58 +2066,47 @@ function handleActionVisualUpdate(movieId, type, isActive) {
     }
       function clearForm() { document.getElementById('add-title').value = ""; document.getElementById('add-poster').value = ""; document.getElementById('add-iframe').value = ""; document.getElementById('add-iframe-uqload').value = ""; document.getElementById('add-iframe-vostfr').value = ""; document.getElementById('add-iframe-uqload-vostfr').value = ""; document.getElementById('add-desc').value = ""; document.getElementById('add-year').value = ""; document.getElementById('add-rating').value = ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); document.getElementById('add-dir').value = ""; document.getElementById('add-cast').value = ""; document.getElementById('add-ep-count').value = ""; document.getElementById('episodes-container').innerHTML = ""; document.getElementById('add-trailer').value = ""; }
 
-  async function saveMovie() {
-        const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
-        if(!t || !p) { alert("Titre et image obligatoires !"); return; }
-        let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
-        const ty = document.getElementById('add-type').value; let epL = null;
-        if (ty === 'serie') {
-            epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
-        }
-        
-        const mD = { 
-            id: isEditing ? editingId : 'custom_' + Date.now(), 
-            type: ty, title: t, year: document.getElementById('add-year').value || 2025, poster: p, rating: document.getElementById('add-rating').value, genre: selG.join(', '), desc: document.getElementById('add-desc').value, dir: document.getElementById('add-dir').value, cast: document.getElementById('add-cast').value, trailer_iframe: document.getElementById('add-trailer').value, iframe_premium: document.getElementById('add-iframe').value, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
-        };
-        
-        let sM = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
-        if (isEditing) { const i = sM.findIndex(x => x.id === editingId); if (i !== -1) sM[i] = mD; else sM.push(mD); } else sM.push(mD);
-        localStorage.setItem('myCustomMovies', JSON.stringify(sM)); 
-        loadSecureMovies(); 
-        
-        // --- CORRECTION : On FORCE l'attente de la mise à jour en base de données ---
-        if (linkedWishId) {
-            const token = localStorage.getItem('monBadgeCineLK10');
-            try {
-                await fetch(`${API_URL}/api/admin/wishes/${linkedWishId}/status`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'authorization': token }, 
-                    body: JSON.stringify({ status: 'Ajouté' }) 
-                });
-                await loadWishes(); // On recharge les demandes pour tout afficher au vert !
-            } catch(e) { console.error("Erreur Wishboard", e); }
-            linkedWishId = null;
-        }
-
-        closeAdmin(); 
-        updateGrid(); 
-        alert("Succès ! Le contenu a été ajouté au catalogue."); 
-        exportSingleMovie(mD); 
+async function saveMovie() {
+    const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
+    if(!t || !p) { alert("Titre et image obligatoires !"); return; }
+    let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
+    const ty = document.getElementById('add-type').value; let epL = null;
+    
+    if (ty === 'serie') {
+        epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
     }
+    
+    const mD = { 
+        id: isEditing ? editingId : 'custom_' + Date.now(), 
+        type: ty, title: t, year: document.getElementById('add-year').value || new Date().getFullYear(), poster: p, rating: document.getElementById('add-rating').value, genre: selG.join(', '), desc: document.getElementById('add-desc').value, dir: document.getElementById('add-dir').value, cast: document.getElementById('add-cast').value, trailer_iframe: document.getElementById('add-trailer').value, iframe_premium: document.getElementById('add-iframe').value, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
+    };
+    
+    const token = localStorage.getItem('monBadgeCineLK10');
+    try {
+        const res = await fetch(`${API_URL}/api/admin/movies`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'authorization': token }, 
+            body: JSON.stringify(mD) 
+        });
+        const data = await res.json();
+        if(data.success) {
+            closeAdmin(); 
+            await loadSecureMovies(); 
+            alert("Succès ! Le contenu a été ajouté à la base de données."); 
+        } else { alert("Erreur : " + data.message); }
+    } catch(e) { alert("Erreur de connexion au serveur."); }
+}
 
-    function deleteMovie() { if(!isEditing || !editingId || !confirm("Supprimer ?")) return; let sM = (JSON.parse(localStorage.getItem('myCustomMovies')) || []).filter(x => x.id !== editingId); localStorage.setItem('myCustomMovies', JSON.stringify(sM)); loadSecureMovies(); closeAdmin(); closeP(); updateGrid(); }
-    function exportSingleMovie(m) { const b = document.getElementById('dev-export-area'); b.style.display = 'block'; document.getElementById('export-code').value = JSON.stringify(m) + ",\n"; window.scrollTo({top:0, behavior:'smooth'}); }
-    function exportAllMovies() { const b = document.getElementById('dev-export-area'); b.style.display = b.style.display === 'block' ? 'none' : 'block'; let cT = ""; (JSON.parse(localStorage.getItem('myCustomMovies')) || []).forEach(m => cT += JSON.stringify(m) + ",\n"); document.getElementById('export-code').value = cT; }
-    function copyCode() { document.getElementById("export-code").select(); document.execCommand("copy"); alert("Copié !"); }
-
-    function loadLocalModifications() {
-        let storedMovies = JSON.parse(localStorage.getItem('myCustomMovies')) || [];
-        storedMovies = nettoyerLiensAbyss(storedMovies);
-        let movieMap = new Map();
-        moviesDB.forEach(m => movieMap.set(m.id, m));
-        storedMovies.forEach(m => movieMap.set(m.id, m));
-        moviesDB = Array.from(movieMap.values());
-    }
+async function deleteMovie() { 
+    if(!isEditing || !editingId || !confirm("Es-tu sûr de vouloir supprimer ce contenu définitivement ?")) return; 
+    const token = localStorage.getItem('monBadgeCineLK10');
+    try {
+        const res = await fetch(`${API_URL}/api/admin/movies/${editingId}`, { method: 'DELETE', headers: { 'authorization': token } });
+        if((await res.json()).success) {
+            closeAdmin(); closeP(); await loadSecureMovies(); alert("Contenu supprimé avec succès.");
+        }
+    } catch(e) { alert("Erreur serveur lors de la suppression."); }
+}
 
     function renderAdminGenres() {
         const container = document.getElementById('genre-checkbox-container'); container.innerHTML = '';
@@ -2544,6 +2527,20 @@ wishesList.forEach(w => {
             }
             alert("Aucune bande-annonce n'a été trouvée sur TMDB pour ce contenu.");
         } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
+    }
+    function exportAllMovies() { 
+        const b = document.getElementById('dev-export-area'); 
+        b.style.display = b.style.display === 'block' ? 'none' : 'block'; 
+        
+        // Exporte les films directement depuis la base chargée en mémoire
+        document.getElementById('export-code').value = JSON.stringify(moviesDB, null, 2); 
+    }
+    
+    function copyCode() {
+        const copyText = document.getElementById("export-code");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Code copié !");
     }
 </script>
 </body>
