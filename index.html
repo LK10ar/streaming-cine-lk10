@@ -1459,17 +1459,25 @@ function closeCover() {
         } catch (e) { alert("Erreur de connexion au serveur."); }
     }
 
-    async function autoLogin(token) {
-        try {
-            const res = await fetch(`${API_URL}/api/user/profile`, { headers: { 'authorization': token } });
-            const data = await res.json();
-            if (data.success) {
-                currentUser = data.user;
-                isVipUser = data.user.isVip;
-                finalizeAccess();
-            } else { localStorage.removeItem('monBadgeCineLK10'); }
-        } catch (e) { localStorage.removeItem('monBadgeCineLK10'); }
-    }
+   async function autoLogin(token) {
+    try {
+        const res = await fetch(`${API_URL}/api/user/profile`, { headers: { 'authorization': token } });
+        const data = await res.json();
+        if (data.success) {
+            currentUser = data.user;
+            isVipUser = data.user.isVip;
+            
+            // --- NOUVEAU : Réactivation auto des droits Admin ---
+            if (currentUser.username.toLowerCase() === 'admin') {
+                isAdminUnlocked = true;
+                document.body.classList.add('admin-active');
+            }
+            // -----------------------------------------------------
+
+            finalizeAccess();
+        } else { localStorage.removeItem('monBadgeCineLK10'); }
+    } catch (e) { localStorage.removeItem('monBadgeCineLK10'); }
+}
 
     function finalizeAccess() {
         hasAccess = true;
@@ -2222,30 +2230,30 @@ wishesList.forEach(w => {
     }
 
     function openWishDetails(wishId) {
-        currentOpenedWish = wishesList.find(w => w._id === wishId); if(!currentOpenedWish) return;
-        document.getElementById('wb-details-modal').style.display = 'flex';
-        document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl; document.getElementById('wb-det-title').innerText = currentOpenedWish.title; document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
-        
-        const statusBadge = document.getElementById('wb-det-status'); statusBadge.innerText = currentOpenedWish.status.toUpperCase(); statusBadge.className = 'wb-status'; 
-        if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente'); if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours'); if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
-        
-        const voteBtn = document.getElementById('wb-det-vote-btn'); document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
-        
-        const userId = currentUser ? currentUser._id : null; const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
-        if(isVoted) { voteBtn.style.background = 'var(--primary)'; voteBtn.style.color = 'black'; voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`; } 
-        else { voteBtn.style.background = 'transparent'; voteBtn.style.color = 'white'; voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`; }
-        
-        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
-        
-
-        const adminPanel = document.getElementById('wb-det-admin-actions');
-        if (adminPanel) {
-            if (typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked) {
-                adminPanel.style.display = 'block';
-                adminPanel.innerHTML = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;"><span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button><button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button><button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button></div></div>`;
-            } else { adminPanel.style.display = 'none'; adminPanel.innerHTML = ''; }
-        }
+    currentOpenedWish = wishesList.find(w => w._id === wishId); if(!currentOpenedWish) return;
+    document.getElementById('wb-details-modal').style.display = 'flex';
+    document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl; document.getElementById('wb-det-title').innerText = currentOpenedWish.title; document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
+    
+    const statusBadge = document.getElementById('wb-det-status'); statusBadge.innerText = currentOpenedWish.status.toUpperCase(); statusBadge.className = 'wb-status'; 
+    if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente'); if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours'); if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
+    
+    const voteBtn = document.getElementById('wb-det-vote-btn'); document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
+    
+    const userId = currentUser ? currentUser._id : null; const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
+    if(isVoted) { voteBtn.style.background = 'var(--primary)'; voteBtn.style.color = 'black'; voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`; } 
+    else { voteBtn.style.background = 'transparent'; voteBtn.style.color = 'white'; voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`; }
+    
+    let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
+    
+    // Affichage des boutons Administrateur (L'historique problématique a été supprimé)
+    const adminPanel = document.getElementById('wb-det-admin-actions');
+    if (adminPanel) {
+        if (typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked) {
+            adminPanel.style.display = 'block';
+            adminPanel.innerHTML = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;"><span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button><button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button><button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button></div></div>`;
+        } else { adminPanel.style.display = 'none'; adminPanel.innerHTML = ''; }
     }
+}
 
     async function openWishTrailer() {
         if (!currentOpenedWish) return;
