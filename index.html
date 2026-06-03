@@ -2223,7 +2223,24 @@ wishesList.forEach(w => {
             
             if (currentWbFilter !== 'all' || searchQuery !== '') { div.style.counterIncrement = 'none'; div.classList.add('no-rank'); }
 
-            div.onclick = () => openWishDetails(w._id);
+           // --- NOUVEAU COMPORTEMENT DU CLIC ---
+        div.onclick = () => {
+            if (w.status === 'Ajouté') {
+                // Cherche le film correspondant dans le catalogue par son titre exact
+                const movieInCatalog = moviesDB.find(m => m.title.toLowerCase() === w.title.toLowerCase());
+                
+                if (movieInCatalog) {
+                    // Si on le trouve, on ferme le wishboard et on ouvre le lecteur de film
+                    document.getElementById('wishboard-page').style.display = 'none';
+                    document.querySelector('.main-container').style.display = 'flex';
+                    openP(movieInCatalog.id);
+                    return; // On arrête la fonction ici
+                }
+            }
+            // S'il n'est pas encore ajouté ou introuvable, on ouvre la fenêtre de détails habituelle
+            openWishDetails(w._id);
+        };
+        // ------------------------------------
             div.innerHTML = `<div class="wish-poster" style="background-image: url('${w.posterUrl}')"><div class="wish-status-badge ${statusClass}">${w.status}</div><div class="wish-votes" style="${isVoted ? 'background:#e6c800;' : ''}"><i class="fas fa-chevron-up"></i> ${w.votes}</div></div><div style="font-size:12px; margin-top:8px; color:white; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.title}</div><div style="font-size:10px; color:#888; text-transform:uppercase;">${w.type === 'movie' ? 'Film' : (w.type === 'tv' ? 'Série' : 'Anime')}</div>`;
             grid.appendChild(div);
         });
