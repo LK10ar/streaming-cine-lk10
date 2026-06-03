@@ -929,12 +929,7 @@ function closeCover() {
 
                     <p id="wb-det-desc" class="wb-confirm-desc" style="font-size:14px; -webkit-line-clamp: 6;">Description...</p>
                     <a id="wb-det-tmdb-link" href="#" target="_blank" style="color:var(--primary); font-size:13px; text-decoration:none;"><i class="fas fa-external-link-alt"></i> Voir sur TMDB</a>
-                    
-                    <div style="margin-top:30px; border-top:1px solid #333; padding-top:20px;">
-                        <h4 style="color:white; font-size:12px; letter-spacing:1px; text-transform:uppercase; margin-bottom:15px;"><i class="fas fa-history"></i> Historique de la demande</h4>
-                        <div id="wb-det-history" style="border-left: 2px solid #333; padding-left: 15px; margin-left: 5px;">
-                            </div>
-                    </div>
+
 
                     <div id="wb-det-admin-actions"></div>
 
@@ -2192,14 +2187,14 @@ function closeCover() {
     function filterWishboard() { renderWishes(); } 
 
    function renderWishes() {
-        // NOUVEAU PATCH : Synchronisation forcée du statut avec l'historique
-        wishesList.forEach(w => {
-            if (w.history && w.history.length > 0) {
-                const lastHistory = w.history[w.history.length - 1].status;
-                if (lastHistory.includes('Ajouté')) w.status = 'Ajouté';
-                else if (lastHistory.includes('En cours')) w.status = 'En cours';
-            }
-        });
+      // NOUVEAU PATCH : Synchronisation forcée du statut avec l'historique
+wishesList.forEach(w => {
+    if (w.history && w.history.length > 0) {
+        const lastHistory = w.history[w.history.length - 1].status;
+        if (lastHistory.includes('Ajouté')) w.status = 'Ajouté';
+        else if (lastHistory.includes('En cours')) w.status = 'En cours';
+    }
+});
 
         const grid = document.getElementById('wb-grid'); grid.innerHTML = '';
         document.getElementById('wb-stat-total').innerText = wishesList.length + " demandes";
@@ -2242,15 +2237,6 @@ function closeCover() {
         
         let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
         
-        const historyContainer = document.getElementById('wb-det-history'); historyContainer.innerHTML = '';
-        const historyArr = currentOpenedWish.history && currentOpenedWish.history.length > 0 ? currentOpenedWish.history : [{ status: 'Demande soumise', date: new Date() }];
-        
-        historyArr.forEach((step, index) => {
-            const isLast = index === historyArr.length - 1; const dateObj = new Date(step.date); const dateStr = dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-            const div = document.createElement('div'); div.className = `timeline-item ${isLast ? 'active' : ''}`;
-            div.innerHTML = `<div class="timeline-title">${step.status}</div><div class="timeline-date">${dateStr}</div>`;
-            historyContainer.appendChild(div);
-        });
 
         const adminPanel = document.getElementById('wb-det-admin-actions');
         if (adminPanel) {
