@@ -101,12 +101,13 @@
         .score-badge { position: absolute; top: 5px; right: 5px; background: rgba(0, 0, 0, 0.8); color: #fff; border: 1px solid var(--primary); width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; z-index: 5; }
         
         /* BARRE D'ACTIONS DETAILS (Entre l'image et la BA) */
-        .detail-action-bar { display: flex; justify-content: center; gap: 20px; margin-top: 15px; margin-bottom: 10px; z-index: 10; position: relative; }
-        .detail-action-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: #888; font-size: 18px; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
-        .detail-action-btn:hover { background: #333; color: white; transform: scale(1.1); }
-        .detail-fav-btn.active { color: #e74c3c; background: rgba(231, 76, 60, 0.2); border-color: #e74c3c; }
+    /* BARRE D'ACTIONS DETAILS (Entre l'image et la BA) */
+/* BARRE D'ACTIONS DETAILS (Entre l'image et la BA) */
+.detail-action-bar { display: flex; justify-content: center; gap: 8px; margin-top: 15px; margin-bottom: 10px; z-index: 10; position: relative; flex-wrap: wrap; }
+.detail-action-btn { background: rgba(255,255,255,0.1); border: 1px solid #444; color: #888; font-size: 16px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }       .detail-fav-btn.active { color: #e74c3c; background: rgba(231, 76, 60, 0.2); border-color: #e74c3c; }
         .detail-wl-btn.active { color: var(--primary); background: rgba(255, 222, 0, 0.2); border-color: var(--primary); }
-
+.detail-top-btn.active { color: #f1c40f; background: rgba(241, 196, 15, 0.2); border-color: #f1c40f; }
+.card-top-btn.active { color: #f1c40f; }
         .btn-trailer { display: block; width: 100%; background: #1a1a1a; color: var(--primary); border: 1px solid #333; padding: 10px; text-align: center; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;} .btn-trailer:hover { border-color: var(--primary); background: var(--primary); color: black; }
         
         .d-center { flex: 1; min-width: 250px; } 
@@ -426,11 +427,11 @@
             .d-poster-img .score-badge { display: none !important; } 
             
             /* 2. Cœur et Horloge juste sous l'image */
-            .detail-action-bar { 
-                display: flex; justify-content: center; gap: 30px; margin: 15px 0; width: 100%; 
-                order: 2; 
-            }
-            .detail-action-btn { width: 50px; height: 50px; font-size: 20px; }
+.detail-action-bar { 
+    display: flex; justify-content: center; gap: 15px; margin: 15px 0; width: 100%; 
+    order: 2; flex-wrap: wrap;
+}
+.detail-action-btn { width: 45px; height: 45px; font-size: 18px; flex-shrink: 0; }
             
             /* 3. Bouton Bande annonce */
             .btn-trailer { 
@@ -741,18 +742,17 @@ function closeCover() {
                     <div id="stat-voir" class="stat-num">0</div>
                     <div class="stat-label">À VOIR</div>
                 </div>
-                <div id="stat-box-top" class="prof-stat-box" onclick="alert('Bientôt disponible !')">
-                    <div id="stat-top" class="stat-num">0</div>
-                    <div class="stat-label">TOP</div>
-                </div>
+                <div id="stat-box-top" class="prof-stat-box" onclick="switchProfTab('top')">
+    <div id="stat-top" class="stat-num">0</div>
+    <div class="stat-label">TOP</div>
+</div>
             </div>
 
             <div class="prof-tabs-container">
                 <div class="prof-tabs-left">
                     <span id="tab-favorites" class="prof-tab-btn active" onclick="switchProfTab('favorites')"><i class="fas fa-heart"></i> Favoris <span id="tab-fav-count" style="color: var(--primary);">0</span></span>
                     <span id="tab-watchlater" class="prof-tab-btn" onclick="switchProfTab('watchlater')"><i class="fas fa-clock"></i> À voir <span id="tab-wl-count" style="color: var(--primary);">0</span></span>
-                    <span class="prof-tab-btn" onclick="alert('Bientôt disponible !')"><i class="fas fa-trophy"></i> Mon Top <span style="color: #666;">0</span></span>
-                </div>
+                   <span id="tab-top" class="prof-tab-btn" onclick="switchProfTab('top')"><i class="fas fa-trophy"></i> Mon Top <span id="tab-top-count" style="color: #f1c40f;">0</span></span></div>
                 <div>
                     <span id="tab-history" class="prof-tab-btn" onclick="switchProfTab('history')"><i class="fas fa-eye"></i> Mon Historique</span>
                 </div>
@@ -988,11 +988,12 @@ function closeCover() {
                         <div class="score-badge" id="dp-score-poster">??</div>
                     </div>
                     
-                  <div class="detail-action-bar">
-                <button class="detail-action-btn detail-fav-btn" onclick="toggleFavorite()" title="Ajouter aux favoris"><i class="fas fa-heart"></i></button>
-                <button class="detail-action-btn detail-wl-btn" onclick="toggleWatchlater()" title="À voir plus tard"><i class="fas fa-clock"></i></button>
-                <button class="detail-action-btn" onclick="openReportModal()" title="Signaler un problème" style="color:var(--danger); border-color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></button>
-            </div>
+                 <div class="detail-action-bar">
+    <button class="detail-action-btn detail-fav-btn" id="dp-fav-btn" onclick="toggleFavorite()" title="Ajouter aux favoris"><i class="fas fa-heart"></i></button>
+    <button class="detail-action-btn detail-wl-btn" id="dp-wl-btn" onclick="toggleWatchlater()" title="À voir plus tard"><i class="fas fa-clock"></i></button>
+    <button class="detail-action-btn detail-top-btn" id="dp-top-btn" onclick="toggleTop()" title="Ajouter au Top"><i class="fas fa-trophy"></i></button>
+    <button class="detail-action-btn" onclick="openReportModal()" title="Signaler un problème" style="color:var(--danger); border-color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></button>
+</div>
 
                     <div class="btn-trailer" id="btn-trailer" onclick="openTrailer()"><i class="fas fa-play"></i> BANDE ANNONCE</div>
                 </div>
@@ -1010,7 +1011,7 @@ function closeCover() {
                         <i id="dp-thumb" class="fas fa-thumbs-up"></i>
                         <div class="score-circle" id="dp-score-detail">8.1</div>
                     </div>
-                    <div class="vote-count">Note Admin</div>
+                 
                 </div>
             </div>
         </div>
@@ -1507,13 +1508,16 @@ function closeCover() {
     }
     
     function updateProfileStats() {
-        const nbFav = currentUser.favorites ? currentUser.favorites.length : 0;
-        const nbWl = currentUser.watchlater ? currentUser.watchlater.length : 0;
-        document.getElementById('stat-fav').innerText = nbFav;
-        document.getElementById('tab-fav-count').innerText = nbFav;
-        document.getElementById('stat-voir').innerText = nbWl;
-        document.getElementById('tab-wl-count').innerText = nbWl;
-    }
+    const nbFav = currentUser.favorites ? currentUser.favorites.length : 0;
+    const nbWl = currentUser.watchlater ? currentUser.watchlater.length : 0;
+    const nbTop = currentUser.top ? currentUser.top.length : 0; // Ajout
+    document.getElementById('stat-fav').innerText = nbFav;
+    document.getElementById('tab-fav-count').innerText = nbFav;
+    document.getElementById('stat-voir').innerText = nbWl;
+    document.getElementById('tab-wl-count').innerText = nbWl;
+    if(document.getElementById('stat-top')) document.getElementById('stat-top').innerText = nbTop; // Ajout
+    if(document.getElementById('tab-top-count')) document.getElementById('tab-top-count').innerText = nbTop; // Ajout
+}
 
     function closeProfilePage() {
         document.getElementById('profile-page').style.display = 'none';
@@ -1553,13 +1557,16 @@ function closeCover() {
         grid.innerHTML = '';
         let list = [];
 
-        if (currentProfTab === 'favorites') {
-            list = moviesDB.filter(m => currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-        } else if (currentProfTab === 'history') {
-            list = moviesDB.filter(m => currentUser.history && currentUser.history.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-        } else if (currentProfTab === 'watchlater') {
-            list = moviesDB.filter(m => currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-        }
+       // ... Dans updateProfileGrid() ...
+if (currentProfTab === 'favorites') {
+    list = moviesDB.filter(m => currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+} else if (currentProfTab === 'history') {
+    list = moviesDB.filter(m => currentUser.history && currentUser.history.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+} else if (currentProfTab === 'watchlater') {
+    list = moviesDB.filter(m => currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+} else if (currentProfTab === 'top') { // <--- AJOUT DU TOP ICI
+    list = moviesDB.filter(m => currentUser.top && currentUser.top.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+}
 
         if(currentProfType !== 'all') { list = list.filter(m => m.type === currentProfType); }
 
@@ -1796,58 +1803,82 @@ function closeCover() {
 
     // --- 6. GESTION DU LECTEUR ET MODALES ---
     async function toggleFavorite(movieId, e) {
-        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-        if(!currentUser) return alert("Vous devez être connecté !");
-        const token = localStorage.getItem('monBadgeCineLK10');
-        const movieInfo = moviesDB.find(m => m.id === movieId);
-        const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-        
-        if(!currentUser.favorites) currentUser.favorites = [];
-        const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-        
-        let isActive = false;
-        if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
-        else { currentUser.favorites.splice(idx, 1); isActive = false; }
-        handleActionVisualUpdate(movieId, 'fav', isActive);
+    if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+    if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
+    if(!currentUser) return alert("Vous devez être connecté !");
+    const token = localStorage.getItem('monBadgeCineLK10');
+    const movieInfo = moviesDB.find(m => m.id === movieId);
+    const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+    
+    if(!currentUser.favorites) currentUser.favorites = [];
+    const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+    
+    let isActive = false;
+    if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
+    else { currentUser.favorites.splice(idx, 1); isActive = false; }
+    handleActionVisualUpdate(movieId, 'fav', isActive);
 
-        try { await fetch(`${API_URL}/api/user/toggle-favorite`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, favoriteItem: favoriteData }) }); } catch (err) {}
-    }
+    try { await fetch(`${API_URL}/api/user/toggle-favorite`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, favoriteItem: favoriteData }) }); } catch (err) {}
+}
+
+async function toggleWatchlater(movieId, e) {
+    if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+    if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
+    if(!currentUser) return alert("Vous devez être connecté !");
+    const token = localStorage.getItem('monBadgeCineLK10');
+    const movieInfo = moviesDB.find(m => m.id === movieId);
+    const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
     
-    async function toggleWatchlater(movieId, e) {
-        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-        if(!currentUser) return alert("Vous devez être connecté pour utiliser 'À Voir' !");
-        const token = localStorage.getItem('monBadgeCineLK10');
-        const movieInfo = moviesDB.find(m => m.id === movieId);
-        const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-        
-        if(!currentUser.watchlater) currentUser.watchlater = [];
-        const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-        
-        let isActive = false;
-        if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
-        else { currentUser.watchlater.splice(idx, 1); isActive = false; }
-        handleActionVisualUpdate(movieId, 'wl', isActive);
-        
-        try { await fetch(`${API_URL}/api/user/toggle-watchlater`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, watchlaterItem: watchlaterData }) }); } catch (err) {}
-    }
+    if(!currentUser.watchlater) currentUser.watchlater = [];
+    const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
     
-    function handleActionVisualUpdate(movieId, type, isActive) {
-        const needsGridUpdate = (currentCategory === 'favorites' && type === 'fav') || (currentCategory === 'watchlater' && type === 'wl') || (document.getElementById('profile-page').style.display === 'block');
-        if(needsGridUpdate) {
-            if(document.getElementById('profile-page').style.display === 'block') { updateProfileStats(); updateProfileGrid(); } else { updateGrid(); }
-        } else {
-            document.querySelectorAll(`.movie-card`).forEach(card => {
-                if(card.innerHTML.includes(`'${movieId}'`)) {
-                    const btn = card.querySelector(type === 'fav' ? '.card-fav-btn' : '.card-wl-btn');
-                    if(btn) btn.classList.toggle('active', isActive);
-                }
-            });
-        }
-        if(currentMovie && currentMovie.id === movieId) {
-            const btn = document.getElementById(type === 'fav' ? 'dp-fav-btn' : 'dp-wl-btn');
-            if(btn) btn.classList.toggle('active', isActive);
-        }
+    let isActive = false;
+    if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
+    else { currentUser.watchlater.splice(idx, 1); isActive = false; }
+    handleActionVisualUpdate(movieId, 'wl', isActive);
+    
+    try { await fetch(`${API_URL}/api/user/toggle-watchlater`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, watchlaterItem: watchlaterData }) }); } catch (err) {}
+}
+
+// NOUVELLE FONCTION TOP
+async function toggleTop(movieId, e) {
+    if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+    if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
+    if(!currentUser) return alert("Vous devez être connecté !");
+    const token = localStorage.getItem('monBadgeCineLK10');
+    const movieInfo = moviesDB.find(m => m.id === movieId);
+    const topData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+    
+    if(!currentUser.top) currentUser.top = [];
+    const idx = currentUser.top.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+    
+    let isActive = false;
+    if(idx === -1) { currentUser.top.push(topData); isActive = true; }
+    else { currentUser.top.splice(idx, 1); isActive = false; }
+    handleActionVisualUpdate(movieId, 'top', isActive);
+    
+    try { await fetch(`${API_URL}/api/user/toggle-top`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, topItem: topData }) }); } catch (err) {}
+}
+
+// MISE À JOUR VISUELLE GLOBALE
+function handleActionVisualUpdate(movieId, type, isActive) {
+    const needsGridUpdate = (currentCategory === 'favorites' && type === 'fav') || (currentCategory === 'watchlater' && type === 'wl') || (currentCategory === 'top' && type === 'top') || (document.getElementById('profile-page').style.display === 'block');
+    if(needsGridUpdate) {
+        if(document.getElementById('profile-page').style.display === 'block') { updateProfileStats(); updateProfileGrid(); } else { updateGrid(); }
+    } else {
+        document.querySelectorAll(`.movie-card`).forEach(card => {
+            if(card.innerHTML.includes(`'${movieId}'`)) {
+                const btn = card.querySelector(type === 'fav' ? '.card-fav-btn' : (type === 'wl' ? '.card-wl-btn' : '.card-top-btn'));
+                if(btn) btn.classList.toggle('active', isActive);
+            }
+        });
     }
+    if(currentMovie && currentMovie.id === movieId) {
+        const btnId = type === 'fav' ? 'dp-fav-btn' : (type === 'wl' ? 'dp-wl-btn' : 'dp-top-btn');
+        const btn = document.getElementById(btnId);
+        if(btn) btn.classList.toggle('active', isActive);
+    }
+}
 
     function openP(id) {
         document.body.classList.add('no-scroll'); 
@@ -1890,10 +1921,7 @@ function closeCover() {
         const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
         const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
         
-        const favBtn = document.getElementById('dp-fav-btn');
-        const wlBtn = document.getElementById('dp-wl-btn');
-        if(favBtn) favBtn.classList.toggle('active', isFav);
-        if(wlBtn) wlBtn.classList.toggle('active', isWl);
+   
 
         const langSelect = document.getElementById('language-select'); langSelect.innerHTML = ''; 
         let hasVF = m.type === 'film' ? (m.iframe_premium || m.iframe_uqload) : (m.episodes?.some(e => e.iframe_premium || e.iframe_uqload));
