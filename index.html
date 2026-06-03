@@ -2041,7 +2041,7 @@ function closeCover() {
     }
       function clearForm() { document.getElementById('add-title').value = ""; document.getElementById('add-poster').value = ""; document.getElementById('add-iframe').value = ""; document.getElementById('add-iframe-uqload').value = ""; document.getElementById('add-iframe-vostfr').value = ""; document.getElementById('add-iframe-uqload-vostfr').value = ""; document.getElementById('add-desc').value = ""; document.getElementById('add-year').value = ""; document.getElementById('add-rating').value = ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); document.getElementById('add-dir').value = ""; document.getElementById('add-cast').value = ""; document.getElementById('add-ep-count').value = ""; document.getElementById('episodes-container').innerHTML = ""; document.getElementById('add-trailer').value = ""; }
 
-   function saveMovie() {
+  async function saveMovie() {
         const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
         if(!t || !p) { alert("Titre et image obligatoires !"); return; }
         let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
@@ -2060,20 +2060,23 @@ function closeCover() {
         localStorage.setItem('myCustomMovies', JSON.stringify(sM)); 
         loadSecureMovies(); 
         
-        // --- CORRECTION : On valide le Wishboard AVANT de fermer la fenêtre Admin ---
-       // ... fin de saveMovie
-    if (linkedWishId) {
-        const wish = wishesList.find(w => w._id === linkedWishId);
-        // On ne met à jour QUE si le statut n'est pas déjà "Ajouté"
-        if (wish && wish.status !== 'Ajouté') {
-            adminSetWishStatusSilently(linkedWishId, 'Ajouté');
+        // --- CORRECTION : On FORCE l'attente de la mise à jour en base de données ---
+        if (linkedWishId) {
+            const token = localStorage.getItem('monBadgeCineLK10');
+            try {
+                await fetch(`${API_URL}/api/admin/wishes/${linkedWishId}/status`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json', 'authorization': token }, 
+                    body: JSON.stringify({ status: 'Ajouté' }) 
+                });
+                await loadWishes(); // On recharge les demandes pour tout afficher au vert !
+            } catch(e) { console.error("Erreur Wishboard", e); }
+            linkedWishId = null;
         }
-        linkedWishId = null;
-    }
 
-        closeAdmin(); // Ferme l'interface et vide linkedWishId
+        closeAdmin(); 
         updateGrid(); 
-        alert("Succès !"); 
+        alert("Succès ! Le contenu a été ajouté au catalogue."); 
         exportSingleMovie(mD); 
     }
 
