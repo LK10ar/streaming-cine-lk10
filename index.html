@@ -131,9 +131,22 @@
         .score-circle { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #2ecc71; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; } 
         .score-circle.bad { border-color: #e74c3c; color: #e74c3c; }
         .vote-count { font-size: 10px; color: #555; text-align: center; width: 100%; margin-top: 5px; }
-        #dp-thumb { font-size: 35px; transition: 0.3s; }
-        .thumb-good { color: #2ecc71; } .thumb-mid { color: #f1c40f; } .thumb-bad { color: #e74c3c; } .thumb-rotate { transform: rotate(90deg); }
+       /* --- DESIGN DU POUCE ET DE LA NOTE --- */
+        #dp-thumb { 
+            font-size: 35px; 
+            display: inline-block; /* Nécessaire pour bien animer la rotation */
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animation avec effet rebond */
+        }
         
+        /* Couleurs et Effets Néon (Glow) */
+        .thumb-good { color: #2ecc71; filter: drop-shadow(0 0 10px rgba(46, 204, 113, 0.6)); } 
+        .thumb-mid { color: #f1c40f; filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.6)); } 
+        .thumb-bad { color: #e74c3c; filter: drop-shadow(0 0 10px rgba(231, 76, 60, 0.6)); } 
+        
+        /* Le cercle de la note s'adapte aussi ! */
+        .score-circle { transition: 0.5s; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); } /* Vert par défaut */
+        .score-circle.mid { border-color: #f1c40f; color: #f1c40f; box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); } /* Jaune */
+        .score-circle.bad { border-color: #e74c3c; color: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.3); } /* Rouge */ 
         /* --- GALERIE ACTEURS --- */
         .cast-images-container { display: flex; gap: 10px; margin-top: 20px; overflow-x: auto; padding-bottom: 10px; }
         .cast-images-container::-webkit-scrollbar { height: 6px; }
@@ -1945,14 +1958,38 @@ function handleActionVisualUpdate(movieId, type, isActive) {
             tag.onclick = function() { filterByTag(g.trim()); }; genreZone.appendChild(tag);
         });
         
-        document.getElementById('dp-score-poster').innerText = m.rating || "-";
-        const scoreDetail = document.getElementById('dp-score-detail'); scoreDetail.innerText = m.rating || "-";
-        const thumbIcon = document.getElementById('dp-thumb'); thumbIcon.className = 'fas'; scoreDetail.classList.remove('bad');
-        const note = parseFloat(m.rating) || 0;
-        if (note >= 8) thumbIcon.className = 'fas fa-thumbs-up thumb-good';
-        else if (note >= 5) thumbIcon.className = 'fas fa-thumbs-up thumb-mid thumb-rotate';
-        else { thumbIcon.className = 'fas fa-thumbs-down thumb-bad'; scoreDetail.classList.add('bad'); }
+       document.getElementById('dp-score-poster').innerText = m.rating || "-";
         
+        const scoreDetail = document.getElementById('dp-score-detail'); 
+        scoreDetail.innerText = m.rating || "-";
+        scoreDetail.className = 'score-circle'; // On reset la classe du cercle
+        
+        const thumbIcon = document.getElementById('dp-thumb'); 
+        thumbIcon.className = 'fas'; // On reset l'icône
+        
+        const note = parseFloat(m.rating) || 0;
+        
+        // Disparition temporaire pour l'animation
+        thumbIcon.style.transform = 'scale(0)'; 
+        
+        if (note >= 8) { 
+            thumbIcon.className = 'fas fa-thumbs-up thumb-good'; 
+        } else if (note >= 5) { 
+            thumbIcon.className = 'fas fa-thumbs-up thumb-mid'; 
+            scoreDetail.classList.add('mid'); // Le cercle devient jaune
+        } else { 
+            thumbIcon.className = 'fas fa-thumbs-down thumb-bad'; 
+            scoreDetail.classList.add('bad'); // Le cercle devient rouge
+        }
+        
+        // Animation "Pop" qui apparaît avec un petit délai
+        setTimeout(() => {
+            if (note >= 5 && note < 8) {
+                thumbIcon.style.transform = 'scale(1) rotate(90deg)';
+            } else {
+                thumbIcon.style.transform = 'scale(1)';
+            }
+        }, 50);  
         const descEl = document.getElementById('dp-desc'); descEl.innerText = m.desc || ""; descEl.classList.remove('clamped');
         const btnMore = document.getElementById('btn-read-more'); btnMore.style.display = (m.desc || "").length > 250 ? 'block' : 'none';
         if(btnMore.style.display === 'block') { descEl.classList.add('clamped'); btnMore.innerText = "Lire la suite"; }
