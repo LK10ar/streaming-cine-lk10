@@ -2090,6 +2090,14 @@ async function saveMovie() {
         });
         const data = await res.json();
         if(data.success) {
+            
+            // --- LE FIX EST ICI ---
+            // On valide le changement de statut en "Ajouté" AVANT de fermer la fenêtre
+            if (linkedWishId) {
+                await adminSetWishStatusSilently(linkedWishId, 'Ajouté');
+            }
+            // ----------------------
+
             closeAdmin(); 
             await loadSecureMovies(); 
             alert("Succès ! Le contenu a été ajouté à la base de données."); 
