@@ -90,11 +90,16 @@
         .server-btn { background: transparent; color: #888; border: none; padding: 8px 15px; font-size: 13px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 4px; }
         .server-btn:hover { color: white; background: #222; } .server-btn.active { color: black; background: var(--primary); }
         
-        .episode-section { display: flex; gap: 20px; padding: 20px; background: #0a0a0a; flex-direction: column; }
-        .ep-list { max-height: 350px; overflow-y: auto; border: 1px solid #222; background: #111; }
+      .episode-section { display: flex; gap: 0; padding: 20px; background: #0a0a0a; flex-direction: column; }
+        .episodes-toggle-btn { background: #111; color: var(--primary); border: 1px solid #333; padding: 15px 20px; width: 100%; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.3s; border-radius: 4px; outline: none; }
+        .episodes-toggle-btn:hover { background: #1a1a1a; border-color: var(--primary); }
+        .episodes-toggle-btn.active-dropdown { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--primary); }
+        .episodes-toggle-btn.active-dropdown #ep-chevron { transform: rotate(180deg); }
+        #ep-chevron { transition: transform 0.3s; }
+        #current-ep-badge { color: black; font-size: 11px; margin-left: 10px; background: var(--primary); padding: 3px 8px; border-radius: 12px; font-weight: bold; }
+        .ep-list { max-height: 350px; overflow-y: auto; border: 1px solid var(--primary); background: #111; border-top: none; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
         .ep-item { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #222; cursor: pointer; font-size: 13px; transition: 0.2s; }
-        .ep-item:hover { background: #161616; color: var(--primary); } .ep-item.active { background: #1a1a1a; color: var(--primary); border-left: 3px solid var(--primary); }
-        
+        .ep-item:hover { background: #161616; color: var(--primary); } .ep-item.active { background: #1a1a1a; color: var(--primary); border-left: 3px solid var(--primary); } 
         .details-area { display: flex; padding: 25px; gap: 30px; background: #111; color: #ddd; align-items: flex-start; border-top: 1px solid #222; flex-wrap: wrap; }
         .d-left { width: 180px; flex-shrink: 0; display: flex; flex-direction: column; } 
         .d-poster-img { width: 100%; height: 260px; background-size: cover; border-radius: 4px; box-shadow: 0 0 10px black; position: relative; }
@@ -580,7 +585,40 @@
         }
 
         @media (max-width: 480px) { .logo img { height: 50px; } .poster { height: 220px; } }
-    </style>
+    /* ================================================== */
+        /* ============ BOUTON ALÉATOIRE & ANIMATION ======== */
+        /* ================================================== */
+        
+        .random-btn-header { background-color: rgba(255, 222, 0, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; margin-right: 15px; text-transform: uppercase; font-size: 13px; box-shadow: 0 0 10px rgba(255, 222, 0, 0.2); }
+        .random-btn-header:hover { background-color: var(--primary); color: black; box-shadow: 0 0 20px rgba(255, 222, 0, 0.6); transform: scale(1.05); }
+
+        #random-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 15, 0.95); z-index: 20000; justify-content: center; align-items: center; flex-direction: column; overflow: hidden; backdrop-filter: blur(8px); }
+        .random-scanner { text-align: center; position: relative; }
+        
+        .dice-container { position: relative; width: 180px; height: 180px; margin: 0 auto 30px; display: flex; justify-content: center; align-items: center; }
+        .dice-container::before { content: ''; position: absolute; width: 100%; height: 100%; border: 3px dashed var(--primary); border-radius: 50%; animation: spin-ring 4s linear infinite; opacity: 0.4; }
+        .dice-container::after { content: ''; position: absolute; width: 120%; height: 120%; border: 2px solid rgba(255, 222, 0, 0.1); border-radius: 50%; border-top-color: var(--primary); border-bottom-color: var(--primary); animation: spin-ring 2s linear infinite reverse; }
+        
+        .spinning-dice { font-size: 80px; color: var(--primary); filter: drop-shadow(0 0 15px var(--primary)); animation: pulse-dice 0.5s ease-in-out infinite alternate; }
+        
+        .scanning-text { color: #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 16px; letter-spacing: 5px; margin-bottom: 20px; animation: blink-text 0.8s infinite; text-shadow: 0 0 10px #00ff00; }
+        .random-title-display { color: white; font-size: 35px; font-weight: bold; text-transform: uppercase; text-shadow: 0 0 15px rgba(255,255,255,0.5); min-height: 40px; padding: 0 20px; }
+        .random-title-display.found { color: var(--primary); text-shadow: 0 0 25px var(--primary); font-size: 45px; transform: scale(1.1); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        @keyframes spin-ring { 100% { transform: rotate(360deg); } }
+        @keyframes pulse-dice { 0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 10px var(--primary)); } 100% { transform: scale(1.15) rotate(15deg); filter: drop-shadow(0 0 35px var(--primary)); } }
+        @keyframes blink-text { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+      @media (max-width: 992px) { 
+            .random-btn-header { padding: 8px 10px; margin-right: 8px; }
+            .random-btn-header .random-text { display: none; } /* Cache le texte sur mobile, garde l'icône */
+            .dice-container { width: 130px; height: 130px; margin-bottom: 20px; }
+            .spinning-dice { font-size: 60px; }
+            .scanning-text { font-size: 13px; letter-spacing: 2px; }
+            .random-title-display { font-size: 18px; padding: 0 10px; } 
+            .random-title-display.found { font-size: 22px; } 
+        }
+        </style>
 </head>
 <body class="no-scroll">
 
@@ -709,7 +747,9 @@ function closeCover() {
         <button class="add-btn-header admin-btn" onclick="openAdmin()">
             <i class="fas fa-plus"></i>
         </button>
-
+<button class="random-btn-header" onclick="startRandomPicker()" title="Contenu au hasard">
+            <i class="fas fa-dice-d20"></i> <span class="random-text">Aléatoire</span>
+        </button>
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="Rechercher...">
             <i class="fas fa-search" id="searchIcon"></i>
@@ -977,8 +1017,14 @@ function closeCover() {
             </div>
             <div id="serie-layout" style="display: none;">
                 <div class="episode-section">
-                    <div style="color: #888; font-size: 12px; margin-bottom: 5px;">LISTE DES ÉPISODES</div>
-                    <div class="ep-list" id="ep-list-container"></div>
+                    <button class="episodes-toggle-btn" onclick="toggleEpisodes()">
+                        <span>
+                            <i class="fas fa-list-ul"></i> SÉLECTIONNER UN ÉPISODE 
+                            <span id="current-ep-badge"></span>
+                        </span>
+                        <i class="fas fa-chevron-down" id="ep-chevron"></i>
+                    </button>
+                    <div class="ep-list" id="ep-list-container" style="display: none;"></div>
                 </div>
             </div>
 
@@ -1182,6 +1228,17 @@ function closeCover() {
             <button onclick="submitReport()" class="wb-btn-submit" style="width: 100%; background: var(--danger); color: white;"><i class="fas fa-paper-plane"></i> Envoyer le signalement</button>
         </div>
     </div>
+
+    <div id="random-overlay">
+        <div class="random-scanner">
+            <div class="dice-container">
+                <i class="fas fa-dice-d20 spinning-dice"></i>
+            </div>
+            <div class="scanning-text">RECHERCHE DANS LA MATRICE...</div>
+            <div class="random-title-display" id="random-title-display">INITIALISATION</div>
+        </div>
+    </div>
+
 <script>
     // --- 0. CONFIGURATION & UTILITAIRES ---
     const API_URL = 'https://backend-cin-lk10.onrender.com';
@@ -1923,9 +1980,16 @@ function handleActionVisualUpdate(movieId, type, isActive) {
         if (hasVF) langSelect.add(new Option('VF', 'vf'));
         if (hasVOST) langSelect.add(new Option('VOSTFR', 'vostfr'));
         currentLanguage = langSelect.value || 'vf'; currentServer = 'premium';
+        
         document.getElementById('serie-layout').style.display = m.type === 'serie' ? 'block' : 'none';
-        updatePlayerInterface(); document.getElementById('player-overlay').style.display = 'block';
+        
+        // --- LA NOUVELLE LIGNE À AJOUTER ICI ---
+        const epList = document.getElementById('ep-list-container');
+        const epBtn = document.querySelector('.episodes-toggle-btn');
+        if(epList && epBtn) { epList.style.display = 'none'; epBtn.classList.remove('active-dropdown'); }
+        // --------------------------------------
 
+        updatePlayerInterface(); document.getElementById('player-overlay').style.display = 'block';
         if(currentUser) {
             const historyData = { id: m.id, title: m.title, type: m.type, watchedAt: new Date().toISOString() };
             const token = localStorage.getItem('monBadgeCineLK10');
@@ -1987,18 +2051,44 @@ function handleActionVisualUpdate(movieId, type, isActive) {
         } else { box.innerHTML = '<div style="color:white; text-align:center; padding-top:200px;">Lien indisponible.</div>'; }
     }
 
+  function toggleEpisodes() {
+        const list = document.getElementById('ep-list-container');
+        const btn = document.querySelector('.episodes-toggle-btn');
+        if (list.style.display === 'none') {
+            list.style.display = 'block';
+            btn.classList.add('active-dropdown');
+        } else {
+            list.style.display = 'none';
+            btn.classList.remove('active-dropdown');
+        }
+    }
+
     function renderEpisodeList() {
         const container = document.getElementById('ep-list-container'); container.innerHTML = '';
         (currentMovie.episodes || []).forEach((ep, i) => {
             const div = document.createElement('div'); div.className = 'ep-item'; div.innerHTML = `<span><i class="fas fa-play" style="font-size:10px; margin-right:8px;"></i> ${ep.title}</span>`;
-            div.onclick = () => { currentEpisodeIndex = i; updatePlayerInterface(); }; container.appendChild(div);
+            div.onclick = () => { 
+                currentEpisodeIndex = i; 
+                updatePlayerInterface(); 
+                // Referme le menu automatiquement pour gagner de la place
+                document.getElementById('ep-list-container').style.display = 'none';
+                document.querySelector('.episodes-toggle-btn').classList.remove('active-dropdown');
+            }; 
+            container.appendChild(div);
         });
         highlightActiveEpisode();
     }
 
-    function highlightActiveEpisode() { document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); }
-    
-    function openTrailer() { 
+    function highlightActiveEpisode() { 
+        document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); 
+        
+        // Met à jour le badge jaune sur le bouton avec le nom de l'épisode en cours
+        const badge = document.getElementById('current-ep-badge');
+        if (badge && currentMovie && currentMovie.episodes && currentMovie.episodes[currentEpisodeIndex]) {
+            badge.innerText = "▶ " + currentMovie.episodes[currentEpisodeIndex].title;
+        }
+    }
+        function openTrailer() { 
         if (currentMovie && currentMovie.trailer_iframe) { 
             let t = currentMovie.trailer_iframe.trim(); let finalHTML = t;
             if (!t.toLowerCase().includes('<iframe')) {
@@ -2549,6 +2639,79 @@ wishesList.forEach(w => {
         copyText.select();
         document.execCommand("copy");
         alert("Code copié !");
+    }
+
+    // ==========================================
+    // MOTEUR ALÉATOIRE FUTURISTE
+    // ==========================================
+    function startRandomPicker() {
+        if (!moviesDB || moviesDB.length === 0) {
+            alert("Le catalogue est encore vide ou en cours de chargement.");
+            return;
+        }
+        
+        // Ferme le menu mobile si ouvert
+        if (typeof closeMobileMenu === 'function') closeMobileMenu(); 
+        
+        const overlay = document.getElementById('random-overlay');
+        const titleDisplay = document.getElementById('random-title-display');
+        const scannerText = document.querySelector('.scanning-text');
+        const diceIcon = document.querySelector('.spinning-dice');
+        
+        overlay.style.display = 'flex';
+        titleDisplay.classList.remove('found');
+        titleDisplay.style.color = "white";
+        scannerText.innerText = "RECHERCHE DANS LA MATRICE...";
+        
+        // Accélère la rotation du dé pendant la recherche
+        diceIcon.style.animationDuration = "0.15s";
+        
+        let counter = 0;
+        const maxTicks = 30; // Nombre de clignotements de titres
+        const intervalTime = 80; // Vitesse de défilement (ms)
+        
+        // Fait défiler des titres aléatoires très vite
+        const shuffleInterval = setInterval(() => {
+            const randomTemp = moviesDB[Math.floor(Math.random() * moviesDB.length)];
+            titleDisplay.innerText = randomTemp.title;
+            counter++;
+            
+            if (counter >= maxTicks) {
+                clearInterval(shuffleInterval);
+                finalizeRandomPick(diceIcon);
+            }
+        }, intervalTime);
+    }
+
+    function finalizeRandomPick(diceIcon) {
+        // Le choix final
+        const finalMovie = moviesDB[Math.floor(Math.random() * moviesDB.length)];
+        const titleDisplay = document.getElementById('random-title-display');
+        const scannerText = document.querySelector('.scanning-text');
+        
+        titleDisplay.innerText = finalMovie.title;
+        titleDisplay.classList.add('found');
+        scannerText.innerText = "CIBLE VÉROUILLÉE !";
+        scannerText.style.color = "var(--primary)";
+        scannerText.style.textShadow = "0 0 10px var(--primary)";
+        
+        // Calme le dé
+        diceIcon.style.animationDuration = "1s";
+        
+        // Laisse le temps d'admirer le résultat (2.5 secondes) puis ouvre le film
+        setTimeout(() => {
+            document.getElementById('random-overlay').style.display = 'none';
+            scannerText.style.color = "#00ff00"; // Reset de la couleur texte
+            scannerText.style.textShadow = "0 0 10px #00ff00";
+            
+            // Sécurité : on force l'affichage du conteneur principal
+            document.getElementById('wishboard-page').style.display = 'none';
+            document.getElementById('profile-page').style.display = 'none';
+            document.querySelector('.main-container').style.display = 'flex';
+            
+            // Lance le film
+            openP(finalMovie.id);
+        }, 2500);
     }
 </script>
 </body>
