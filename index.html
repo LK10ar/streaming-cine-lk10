@@ -631,7 +631,88 @@
             .random-title-display { font-size: 18px; padding: 0 10px; } 
             .random-title-display.found { font-size: 22px; } 
         }
-        </style>
+       /* ============ DESIGN DES SAGAS (CARROUSEL) ======== */
+        .sagas-section-title { color: white; font-size: 18px; margin-bottom: 15px; border-left: 4px solid var(--danger); padding-left: 10px; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; }
+        .sagas-carousel { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; scroll-snap-type: x mandatory; scroll-behavior: smooth; }
+        .sagas-carousel::-webkit-scrollbar { height: 8px; }
+        .sagas-carousel::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
+        .sagas-carousel::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        .sagas-carousel::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        .saga-card { flex: 0 0 160px; height: 240px; scroll-snap-align: start; border-radius: 8px; background-size: cover; background-position: center; position: relative; cursor: pointer; transition: 0.3s; overflow: hidden; border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .saga-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 70%; background: linear-gradient(to top, rgba(0,0,0,1), transparent); }
+        .saga-card:hover { transform: scale(1.05) translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 25px rgba(255, 222, 0, 0.3); z-index: 2; }
+        .saga-card-title { position: absolute; bottom: 15px; left: 10px; right: 10px; z-index: 2; color: white; font-weight: bold; font-size: 13px; text-align: center; text-transform: uppercase; text-shadow: 0 2px 4px black; }
+        .saga-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.8); border: 1px solid var(--primary); color: var(--primary); font-size: 9px; font-weight: bold; padding: 3px 6px; border-radius: 4px; z-index: 2; letter-spacing: 1px; }
+
+        /* --- PAGE DÉTAIL DE LA SAGA --- */
+        #saga-details-page { animation: fadeIn 0.4s ease; padding-bottom: 40px; width: 100%; }
+        .saga-hero { position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 30px; border: 1px solid #333; background: #111; }
+        .saga-hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.2; filter: blur(8px); z-index: 0; }
+        .saga-hero-content { position: relative; z-index: 1; display: flex; padding: 40px; gap: 30px; align-items: center; background: linear-gradient(90deg, rgba(15,15,15,1) 0%, rgba(15,15,15,0.8) 60%, rgba(15,15,15,0.3) 100%); }
+        .saga-hero-poster { width: 180px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 2px solid #333; }
+        .saga-hero-info { flex: 1; }
+        #saga-title { font-size: 40px; color: white; margin-bottom: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        .saga-meta { font-size: 12px; color: #ccc; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; }
+        #saga-desc { color: #aaa; font-size: 14px; line-height: 1.6; max-width: 800px; }
+
+        /* --- BULLES NUMÉROTÉES ROUGES --- */
+        .saga-grid { counter-reset: saga-counter; }
+        .saga-grid .movie-card { counter-increment: saga-counter; position: relative; overflow: visible; }
+        .saga-grid .movie-card .poster { border-radius: 4px; overflow: hidden; }
+        .saga-grid .movie-card::before { content: counter(saga-counter); position: absolute; top: -10px; left: -10px; background: var(--danger); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 13px; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.8); border: 2px solid #151515; }
+        
+        @media (max-width: 768px) {
+            .saga-hero-content { flex-direction: column; text-align: center; padding: 20px; background: rgba(15,15,15,0.9); }
+            .saga-hero-poster { width: 140px; }
+            #saga-title { font-size: 28px; }
+        }
+        /* ================================================== */
+        /* ============ DESIGN PAGE D'ACCUEIL NETFLIX ======= */
+        /* ================================================== */
+        
+        /* Bannière Géante */
+        .hero-banner { width: 100%; height: 70vh; min-height: 500px; max-height: 700px; position: relative; border-radius: 10px; overflow: hidden; margin-bottom: 40px; display: flex; align-items: flex-end; padding: 50px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .hero-bg-layer { position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; background-size: cover; background-position: center 20%; filter: blur(15px); opacity: 0.5; z-index: 0; transition: 0.5s; }
+        .hero-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(15,15,15,1) 0%, rgba(15,15,15,0.6) 50%, transparent 100%), linear-gradient(to top, rgba(15,15,15,1) 0%, transparent 50%); z-index: 1; }
+        .hero-content { position: relative; z-index: 2; max-width: 700px; animation: fadeIn 1s ease; }
+        .hero-title { font-size: 55px; font-weight: 900; color: white; margin-bottom: 15px; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); line-height: 1.1; letter-spacing: -1px; }
+        .hero-meta { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
+        .hero-meta span { background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; color: white; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px); }
+        .hero-desc { color: #ddd; font-size: 16px; line-height: 1.6; margin-bottom: 30px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 1px 1px 3px black; font-weight: 500; }
+        .hero-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
+        .btn-play-hero { background: var(--danger); color: white; border: none; padding: 12px 35px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); }
+        .btn-play-hero:hover { background: #c0392b; transform: scale(1.05); }
+        .btn-info-hero { background: rgba(100,100,100,0.5); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 12px 35px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; backdrop-filter: blur(10px); }
+        .btn-info-hero:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+
+        /* Rangées (Carrousels) */
+        .row-container { margin-bottom: 40px; position: relative; }
+        .row-title { color: white; font-size: 18px; font-weight: 900; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; border-left: 4px solid var(--danger); padding-left: 10px; letter-spacing: 1px; }
+        .netflix-slider { display: flex; gap: 15px; overflow-x: auto; padding: 15px 0 30px 0; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
+        .netflix-slider::-webkit-scrollbar { display: none; } /* Cache la barre de scroll pour un look fluide */
+        
+        .netflix-card { flex: 0 0 160px; scroll-snap-align: start; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--light); border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .netflix-card:hover { transform: scale(1.08) translateY(-8px); z-index: 10; border-color: var(--primary); box-shadow: 0 10px 25px rgba(255, 222, 0, 0.3); }
+
+        /* Design spécial Top 10 */
+        .top-10-slider { padding-left: 30px; }
+        .top-10-card { flex: 0 0 220px; scroll-snap-align: start; height: 240px; position: relative; cursor: pointer; transition: 0.3s; display: flex; align-items: flex-end; overflow: visible; margin-right: 20px; }
+        .top-10-card:hover { transform: scale(1.05) translateY(-5px); z-index: 10; }
+        .top-10-number { font-size: 200px; font-weight: 900; line-height: 0.75; color: #111; -webkit-text-stroke: 4px #555; position: absolute; left: -30px; bottom: -5px; z-index: 1; transition: 0.3s; text-shadow: 5px 5px 15px rgba(0,0,0,0.8); }
+        .top-10-card:hover .top-10-number { -webkit-text-stroke: 4px var(--danger); color: transparent; }
+        .top-10-poster { width: 140px; height: 210px; background-size: cover; background-position: center; border-radius: 6px; position: relative; z-index: 2; margin-left: auto; border: 1px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.9); }
+
+        @media (max-width: 768px) {
+            .hero-banner { height: 60vh; padding: 20px; text-align: center; justify-content: center; }
+            .hero-title { font-size: 35px; }
+            .hero-meta { justify-content: center; }
+            .hero-buttons { justify-content: center; width: 100%; }
+            .btn-play-hero, .btn-info-hero { width: 100%; justify-content: center; }
+            .top-10-card { flex: 0 0 180px; }
+            .top-10-number { font-size: 150px; left: -20px; }
+            .top-10-poster { width: 110px; height: 165px; }
+        }
+         </style>
 </head>
 <body class="no-scroll">
 
@@ -816,7 +897,33 @@ function closeCover() {
                 <button id="pfilter-film" class="prof-filter-btn" onclick="setProfTypeFilter('film')"><i class="fas fa-film"></i> Films</button>
                 <button id="pfilter-serie" class="prof-filter-btn" onclick="setProfTypeFilter('serie')"><i class="fas fa-tv"></i> Séries</button>
             </div>
+<div id="sagas-section" style="display: none; margin-bottom: 30px;">
+            <h2 class="sagas-section-title"><i class="fas fa-fire"></i> Les Sagas Incontournables</h2>
+            <div class="sagas-carousel" id="sagas-carousel"></div>
+        </div>
 
+      <div id="saga-details-page" style="display: none;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <button class="wb-btn-cancel" style="border:none; padding:0; font-size: 15px; color: #aaa;" onclick="closeSaga()">
+                    <i class="fas fa-arrow-left"></i> Retour au catalogue
+                </button>
+                <button class="edit-btn-player admin-btn" id="btn-edit-saga" style="position:static; display:none;"><i class="fas fa-pen"></i> Éditer la Saga</button>
+            </div>
+
+            <div class="saga-hero">
+                <div class="saga-hero-bg" id="saga-hero-bg"></div>
+                <div class="saga-hero-content">
+                    <img src="" id="saga-hero-poster" class="saga-hero-poster">
+                    <div class="saga-hero-info">
+                        <div class="saga-meta"><i class="fas fa-layer-group"></i> COLLECTION • <span id="saga-count">0</span> FILMS</div>
+                        <h1 id="saga-title">Titre Saga</h1>
+                        <p id="saga-desc">Description de la saga...</p>
+                    </div>
+                </div>
+            </div>
+            <h3 style="color: white; margin-bottom: 15px; font-size: 20px; border-left: 4px solid var(--danger); padding-left: 10px;">Films de la collection</h3>
+            <div class="movie-grid saga-grid" id="saga-movies-grid"></div>
+        </div>
             <div class="movie-grid" id="profile-grid"></div>
         </div>
     </div>
@@ -1114,30 +1221,31 @@ function closeCover() {
                 <button class="admin-close" onclick="closeAdmin()">×</button>
             </div>
             
-            <div class="form-group"><label><i class="fas fa-popcorn"></i> Titre *</label><input type="text" id="add-title" class="form-input" placeholder="Titre du film"></div>
+            <div class="form-group"><label><i class="fas fa-popcorn"></i> Titre *</label><input type="text" id="add-title" class="form-input" placeholder="Titre du contenu"></div>
             
-            <div style="display:flex; gap:10px; flex-wrap: wrap;">
+            <div style="display:flex; gap:10px; flex-wrap: wrap;" id="admin-row-year-rating">
                 <div class="form-group" style="flex:1;"><label><i class="fas fa-calendar"></i> Année</label><input type="number" id="add-year" class="form-input" placeholder="Ex: 2025"></div>
                 <div class="form-group" style="flex:1;"><label><i class="fas fa-star"></i> Note (sur 10)</label><input type="number" id="add-rating" class="form-input" placeholder="Ex: 8.5" step="0.1" max="10"></div>
             </div>
             
-            <div class="form-group">
+            <div class="form-group" id="admin-row-genre">
                 <label><i class="fas fa-tags"></i> Genre</label>
                 <div id="genre-checkbox-container" class="genre-grid-admin"></div>
             </div>
 
-            <div class="form-group"><label><i class="fas fa-video"></i> Réalisateur</label><input type="text" id="add-dir" class="form-input" placeholder="Nom du réalisateur"></div>
-            <div class="form-group"><label><i class="fas fa-users"></i> Acteurs</label><input type="text" id="add-cast" class="form-input" placeholder="Acteurs principaux"></div>
+            <div class="form-group" id="admin-row-dir"><label><i class="fas fa-video"></i> Réalisateur</label><input type="text" id="add-dir" class="form-input" placeholder="Nom du réalisateur"></div>
+            <div class="form-group" id="admin-row-cast"><label><i class="fas fa-users"></i> Acteurs</label><input type="text" id="add-cast" class="form-input" placeholder="Acteurs principaux"></div>
 
             <div class="form-group"><label><i class="fas fa-pen"></i> Description *</label><textarea id="add-desc" class="form-textarea" placeholder="Synopsis..."></textarea></div>
-            <div class="form-group"><label><i class="fas fa-play"></i> Bande-Annonce (YouTube) *</label><input type="text" id="add-trailer" class="form-input" placeholder="Lien YouTube ou ID"></div>
-            <div class="form-group"><label><i class="fas fa-image"></i> Image *</label><input type="text" id="add-poster" class="form-input" placeholder="Lien de l'image"></div>
+            <div class="form-group" id="admin-row-trailer"><label><i class="fas fa-play"></i> Bande-Annonce (YouTube)</label><input type="text" id="add-trailer" class="form-input" placeholder="Lien YouTube ou ID"></div>
+            <div class="form-group"><label><i class="fas fa-image"></i> Image (Affiche verticale) *</label><input type="text" id="add-poster" class="form-input" placeholder="Lien de l'image"></div>
             
             <div class="form-group">
                 <label><i class="fas fa-mobile"></i> Catégorie *</label>
                 <select id="add-type" class="form-select" onchange="toggleTypeUI()">
                     <option value="film">Film</option>
                     <option value="serie">Série</option>
+                    <option value="saga">Saga / Collection</option>
                 </select>
             </div>
             
@@ -1160,6 +1268,18 @@ function closeCover() {
                     <input type="number" id="add-ep-count" class="form-input" placeholder="Ex: 8" min="1" oninput="renderEpisodeInputs()">
                 </div>
                 <div id="episodes-container"></div>
+            </div>
+
+            <div id="saga-inputs" style="display: none; border-top: 1px solid #333; padding-top: 10px;">
+                <div style="background:#111; padding:10px; border:1px solid #333; margin-bottom:10px;">
+                    <label style="color:var(--danger); font-size: 14px;"><i class="fas fa-image"></i> Image de fond (Paysage)</label>
+                    <p style="font-size: 10px; color: #888; margin-bottom: 5px;">Image très large qui sera floutée derrière la saga.</p>
+                    <div class="form-group"><input type="text" id="add-saga-bg" class="form-input" placeholder="Lien de l'image de fond"></div>
+                    
+                    <label style="color:var(--danger); font-size: 14px; margin-top: 15px; display: block;"><i class="fas fa-link"></i> Ordre des films</label>
+                    <p style="font-size: 10px; color: #888; margin-bottom: 5px;">Trouve les ID dans "Mode Développeur". Sépare les ID par une virgule (Ex: custom_123, custom_456).</p>
+                    <div class="form-group"><input type="text" id="add-saga-movies" class="form-input" placeholder="ID film 1, ID film 2..."></div>
+                </div>
             </div>
             
             <div class="admin-buttons">
@@ -1324,6 +1444,9 @@ function closeCover() {
 
     let chartsInstance = {};
     let adTimer = null; 
+
+    // --- BASE DE DONNÉES DES SAGAS (Maintenant Dynamique) ---
+    let SAGAS_DB = [];
 
     // --- 2. INITIALISATION ---
     window.onload = () => {
@@ -1538,12 +1661,11 @@ function closeCover() {
             currentUser = data.user;
             isVipUser = data.user.isVip;
             
-            // --- NOUVEAU : Réactivation auto des droits Admin ---
+            // Réactivation auto des droits Admin
             if (currentUser.username.toLowerCase() === 'admin') {
                 isAdminUnlocked = true;
                 document.body.classList.add('admin-active');
             }
-            // -----------------------------------------------------
 
             finalizeAccess();
         } else { localStorage.removeItem('monBadgeCineLK10'); }
@@ -1578,16 +1700,16 @@ function closeCover() {
     }
     
     function updateProfileStats() {
-    const nbFav = currentUser.favorites ? currentUser.favorites.length : 0;
-    const nbWl = currentUser.watchlater ? currentUser.watchlater.length : 0;
-    const nbTop = currentUser.top ? currentUser.top.length : 0; // Ajout
-    document.getElementById('stat-fav').innerText = nbFav;
-    document.getElementById('tab-fav-count').innerText = nbFav;
-    document.getElementById('stat-voir').innerText = nbWl;
-    document.getElementById('tab-wl-count').innerText = nbWl;
-    if(document.getElementById('stat-top')) document.getElementById('stat-top').innerText = nbTop; // Ajout
-    if(document.getElementById('tab-top-count')) document.getElementById('tab-top-count').innerText = nbTop; // Ajout
-}
+        const nbFav = currentUser.favorites ? currentUser.favorites.length : 0;
+        const nbWl = currentUser.watchlater ? currentUser.watchlater.length : 0;
+        const nbTop = currentUser.top ? currentUser.top.length : 0; 
+        document.getElementById('stat-fav').innerText = nbFav;
+        document.getElementById('tab-fav-count').innerText = nbFav;
+        document.getElementById('stat-voir').innerText = nbWl;
+        document.getElementById('tab-wl-count').innerText = nbWl;
+        if(document.getElementById('stat-top')) document.getElementById('stat-top').innerText = nbTop; 
+        if(document.getElementById('tab-top-count')) document.getElementById('tab-top-count').innerText = nbTop; 
+    }
 
     function closeProfilePage() {
         document.getElementById('profile-page').style.display = 'none';
@@ -1627,16 +1749,15 @@ function closeCover() {
         grid.innerHTML = '';
         let list = [];
 
-       // ... Dans updateProfileGrid() ...
-if (currentProfTab === 'favorites') {
-    list = moviesDB.filter(m => currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-} else if (currentProfTab === 'history') {
-    list = moviesDB.filter(m => currentUser.history && currentUser.history.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-} else if (currentProfTab === 'watchlater') {
-    list = moviesDB.filter(m => currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-} else if (currentProfTab === 'top') { // <--- AJOUT DU TOP ICI
-    list = moviesDB.filter(m => currentUser.top && currentUser.top.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
-}
+        if (currentProfTab === 'favorites') {
+            list = moviesDB.filter(m => currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+        } else if (currentProfTab === 'history') {
+            list = moviesDB.filter(m => currentUser.history && currentUser.history.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+        } else if (currentProfTab === 'watchlater') {
+            list = moviesDB.filter(m => currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+        } else if (currentProfTab === 'top') { 
+            list = moviesDB.filter(m => currentUser.top && currentUser.top.some(item => typeof item === 'string' ? item === m.id : item.id === m.id));
+        }
 
         if(currentProfType !== 'all') { list = list.filter(m => m.type === currentProfType); }
 
@@ -1702,20 +1823,20 @@ if (currentProfTab === 'favorites') {
 
     // --- 5. GESTION DU CATALOGUE (LOAD, GRID, MENU) ---
    async function loadSecureMovies() {
-    const token = localStorage.getItem('monBadgeCineLK10');
-    if (!token) return;
-    try {
-        const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
-        const data = await response.json();
-        if (data.success) {
-            moviesDB = nettoyerLiensAbyss(data.movies); 
+        const token = localStorage.getItem('monBadgeCineLK10');
+        if (!token) return;
+        try {
+            const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
+            const data = await response.json();
+            if (data.success) {
+                moviesDB = nettoyerLiensAbyss(data.movies); 
+            }
+        } catch (error) { 
+            console.error("Erreur serveur", error); 
+        } finally {
+            updateGrid();
         }
-    } catch (error) { 
-        console.error("Erreur serveur", error); 
-    } finally {
-        updateGrid();
     }
-}
 
     function nettoyerLiensAbyss(donnees) {
         let texte = JSON.stringify(donnees);
@@ -1735,6 +1856,7 @@ if (currentProfTab === 'favorites') {
             document.getElementById('cat-title').innerText = displayTitle;
 
             filteredList = moviesDB.filter(m => {
+                if (m.type === 'saga') return false; // Cache les sagas du catalogue
                 const typeMatch = (currentCategory === 'all') || (m.type === currentCategory);
                 const genreMatch = (currentGenreFilter === 'all') || (m.genre && m.genre.includes(currentGenreFilter));
                 const yearMatch = (currentYearFilter === 'all') || (String(m.year) === String(currentYearFilter));
@@ -1760,7 +1882,6 @@ if (currentProfTab === 'favorites') {
         if(filteredList.length === 0) {
             document.getElementById('pag-bar').innerHTML = ''; // Cache la pagination
             if (moviesDB.length === 0) {
-                // Animation de chargement le temps que le serveur réponde
                 grid.innerHTML = '<div style="color:var(--primary); padding:50px; text-align:center; grid-column: 1 / -1; font-size: 16px;"><i class="fas fa-circle-notch fa-spin" style="font-size:24px; margin-bottom:10px; display:block;"></i> Chargement du catalogue en cours...</div>';
             } else {
                 grid.innerHTML = '<div style="color:#aaa; padding:30px; text-align:center; grid-column: 1 / -1;">Aucun résultat trouvé.</div>';
@@ -1788,6 +1909,19 @@ if (currentProfTab === 'favorites') {
             grid.appendChild(div);
         });
         renderPagination();
+
+        // GESTION DE L'AFFICHAGE DU CARROUSEL SAGA
+        const sagasSection = document.getElementById('sagas-section');
+        const isHome = document.getElementById('nav-all').classList.contains('active');
+        
+        if (sagasSection) {
+            if (!isSpecialMode && currentCategory === 'all' && currentGenreFilter === 'all' && currentYearFilter === 'all' && currentPage === 1 && document.getElementById('searchInput').value === '' && isHome) {
+                sagasSection.style.display = 'block';
+                initSagas(); 
+            } else {
+                sagasSection.style.display = 'none';
+            }
+        }
     }
 
     function renderPagination() {
@@ -1839,6 +1973,9 @@ if (currentProfTab === 'favorites') {
         document.querySelector('.main-container').style.display = 'flex';
         document.getElementById('pag-bar').style.display = 'flex'; 
         
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        document.getElementById('grid').style.display = 'grid'; document.querySelector('.section-title').style.display = 'flex';
+        
         const query = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
         if(forcedQuery) document.getElementById('searchInput').value = forcedQuery;
         
@@ -1849,6 +1986,7 @@ if (currentProfTab === 'favorites') {
         document.getElementById('cat-title').innerText = `Résultats pour : "${query}"`;
         
         filteredList = moviesDB.filter(m => {
+            if (m.type === 'saga') return false; // Cache les sagas de la recherche
             const inTitle = m.title && m.title.toLowerCase().includes(query);
             const inCast = m.cast && m.cast.toLowerCase().includes(query);
             const inDir = m.dir && m.dir.toLowerCase().includes(query);
@@ -1858,91 +1996,101 @@ if (currentProfTab === 'favorites') {
     }
     
     function showCatalogue() {
-        document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; document.getElementById('pag-bar').style.display = 'flex';
+        document.getElementById('wishboard-page').style.display = 'none'; 
+        document.querySelector('.main-container').style.display = 'flex'; 
+        document.getElementById('pag-bar').style.display = 'flex';
+        
+        // FORCE la fermeture de la saga si elle était ouverte
+        const sagaPage = document.getElementById('saga-details-page');
+        if(sagaPage) sagaPage.style.display = 'none';
+        document.getElementById('grid').style.display = 'grid';
+        document.querySelector('.section-title').style.display = 'flex';
+
         document.getElementById('cat-title').innerText = `Catalogue Complet`;
-        currentCategory = 'all'; currentGenreFilter = 'all'; currentYearFilter = 'all';
+        currentCategory = 'all'; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1;
+        
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); 
+        document.getElementById('nav-catalogue').classList.add('active');
+        
         updateGrid();
-        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); document.getElementById('nav-catalogue').classList.add('active');
     }
 
     // --- 6. GESTION DU LECTEUR ET MODALES ---
     async function toggleFavorite(movieId, e) {
-    if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-    if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
-    if(!currentUser) return alert("Vous devez être connecté !");
-    const token = localStorage.getItem('monBadgeCineLK10');
-    const movieInfo = moviesDB.find(m => m.id === movieId);
-    const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-    
-    if(!currentUser.favorites) currentUser.favorites = [];
-    const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-    
-    let isActive = false;
-    if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
-    else { currentUser.favorites.splice(idx, 1); isActive = false; }
-    handleActionVisualUpdate(movieId, 'fav', isActive);
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
+        if(!currentUser) return alert("Vous devez être connecté !");
+        const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        const favoriteData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+        
+        if(!currentUser.favorites) currentUser.favorites = [];
+        const idx = currentUser.favorites.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
+        let isActive = false;
+        if(idx === -1) { currentUser.favorites.push(favoriteData); isActive = true; }
+        else { currentUser.favorites.splice(idx, 1); isActive = false; }
+        handleActionVisualUpdate(movieId, 'fav', isActive);
 
-    try { await fetch(`${API_URL}/api/user/toggle-favorite`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, favoriteItem: favoriteData }) }); } catch (err) {}
-}
-
-async function toggleWatchlater(movieId, e) {
-    if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-    if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
-    if(!currentUser) return alert("Vous devez être connecté !");
-    const token = localStorage.getItem('monBadgeCineLK10');
-    const movieInfo = moviesDB.find(m => m.id === movieId);
-    const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-    
-    if(!currentUser.watchlater) currentUser.watchlater = [];
-    const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-    
-    let isActive = false;
-    if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
-    else { currentUser.watchlater.splice(idx, 1); isActive = false; }
-    handleActionVisualUpdate(movieId, 'wl', isActive);
-    
-    try { await fetch(`${API_URL}/api/user/toggle-watchlater`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, watchlaterItem: watchlaterData }) }); } catch (err) {}
-}
-
-// NOUVELLE FONCTION TOP
-async function toggleTop(movieId, e) {
-    if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
-    if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
-    if(!currentUser) return alert("Vous devez être connecté !");
-    const token = localStorage.getItem('monBadgeCineLK10');
-    const movieInfo = moviesDB.find(m => m.id === movieId);
-    const topData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
-    
-    if(!currentUser.top) currentUser.top = [];
-    const idx = currentUser.top.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
-    
-    let isActive = false;
-    if(idx === -1) { currentUser.top.push(topData); isActive = true; }
-    else { currentUser.top.splice(idx, 1); isActive = false; }
-    handleActionVisualUpdate(movieId, 'top', isActive);
-    
-    try { await fetch(`${API_URL}/api/user/toggle-top`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, topItem: topData }) }); } catch (err) {}
-}
-
-// MISE À JOUR VISUELLE GLOBALE
-function handleActionVisualUpdate(movieId, type, isActive) {
-    const needsGridUpdate = (currentCategory === 'favorites' && type === 'fav') || (currentCategory === 'watchlater' && type === 'wl') || (currentCategory === 'top' && type === 'top') || (document.getElementById('profile-page').style.display === 'block');
-    if(needsGridUpdate) {
-        if(document.getElementById('profile-page').style.display === 'block') { updateProfileStats(); updateProfileGrid(); } else { updateGrid(); }
-    } else {
-        document.querySelectorAll(`.movie-card`).forEach(card => {
-            if(card.innerHTML.includes(`'${movieId}'`)) {
-                const btn = card.querySelector(type === 'fav' ? '.card-fav-btn' : (type === 'wl' ? '.card-wl-btn' : '.card-top-btn'));
-                if(btn) btn.classList.toggle('active', isActive);
-            }
-        });
+        try { await fetch(`${API_URL}/api/user/toggle-favorite`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, favoriteItem: favoriteData }) }); } catch (err) {}
     }
-    if(currentMovie && currentMovie.id === movieId) {
-        const btnId = type === 'fav' ? 'dp-fav-btn' : (type === 'wl' ? 'dp-wl-btn' : 'dp-top-btn');
-        const btn = document.getElementById(btnId);
-        if(btn) btn.classList.toggle('active', isActive);
+
+    async function toggleWatchlater(movieId, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
+        if(!currentUser) return alert("Vous devez être connecté !");
+        const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        const watchlaterData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+        
+        if(!currentUser.watchlater) currentUser.watchlater = [];
+        const idx = currentUser.watchlater.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
+        let isActive = false;
+        if(idx === -1) { currentUser.watchlater.push(watchlaterData); isActive = true; }
+        else { currentUser.watchlater.splice(idx, 1); isActive = false; }
+        handleActionVisualUpdate(movieId, 'wl', isActive);
+        
+        try { await fetch(`${API_URL}/api/user/toggle-watchlater`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, watchlaterItem: watchlaterData }) }); } catch (err) {}
     }
-}
+
+    async function toggleTop(movieId, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        if(!movieId && typeof currentMovie !== 'undefined' && currentMovie) movieId = currentMovie.id;
+        if(!currentUser) return alert("Vous devez être connecté !");
+        const token = localStorage.getItem('monBadgeCineLK10');
+        const movieInfo = moviesDB.find(m => m.id === movieId);
+        const topData = { id: movieId, title: movieInfo ? movieInfo.title : "Titre inconnu", type: movieInfo ? movieInfo.type : "inconnu" };
+        
+        if(!currentUser.top) currentUser.top = [];
+        const idx = currentUser.top.findIndex(item => typeof item === 'string' ? item === movieId : item.id === movieId);
+        
+        let isActive = false;
+        if(idx === -1) { currentUser.top.push(topData); isActive = true; }
+        else { currentUser.top.splice(idx, 1); isActive = false; }
+        handleActionVisualUpdate(movieId, 'top', isActive);
+        
+        try { await fetch(`${API_URL}/api/user/toggle-top`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ movieId, topItem: topData }) }); } catch (err) {}
+    }
+
+    function handleActionVisualUpdate(movieId, type, isActive) {
+        const needsGridUpdate = (currentCategory === 'favorites' && type === 'fav') || (currentCategory === 'watchlater' && type === 'wl') || (currentCategory === 'top' && type === 'top') || (document.getElementById('profile-page').style.display === 'block');
+        if(needsGridUpdate) {
+            if(document.getElementById('profile-page').style.display === 'block') { updateProfileStats(); updateProfileGrid(); } else { updateGrid(); }
+        } else {
+            document.querySelectorAll(`.movie-card`).forEach(card => {
+                if(card.innerHTML.includes(`'${movieId}'`)) {
+                    const btn = card.querySelector(type === 'fav' ? '.card-fav-btn' : (type === 'wl' ? '.card-wl-btn' : '.card-top-btn'));
+                    if(btn) btn.classList.toggle('active', isActive);
+                }
+            });
+        }
+        if(currentMovie && currentMovie.id === movieId) {
+            const btnId = type === 'fav' ? 'dp-fav-btn' : (type === 'wl' ? 'dp-wl-btn' : 'dp-top-btn');
+            const btn = document.getElementById(btnId);
+            if(btn) btn.classList.toggle('active', isActive);
+        }
+    }
 
     function openP(id) {
         document.body.classList.add('no-scroll'); 
@@ -2008,8 +2156,6 @@ function handleActionVisualUpdate(movieId, type, isActive) {
         
         const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
         const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
-        
-   
 
         const langSelect = document.getElementById('language-select'); langSelect.innerHTML = ''; 
         let hasVF = m.type === 'film' ? (m.iframe_premium || m.iframe_uqload) : (m.episodes?.some(e => e.iframe_premium || e.iframe_uqload));
@@ -2020,11 +2166,10 @@ function handleActionVisualUpdate(movieId, type, isActive) {
         
         document.getElementById('serie-layout').style.display = m.type === 'serie' ? 'block' : 'none';
         
-        // --- LA NOUVELLE LIGNE À AJOUTER ICI ---
+        // --- Remise à zéro du menu épisode ---
         const epList = document.getElementById('ep-list-container');
         const epBtn = document.querySelector('.episodes-toggle-btn');
         if(epList && epBtn) { epList.style.display = 'none'; epBtn.classList.remove('active-dropdown'); }
-        // --------------------------------------
 
         updatePlayerInterface(); document.getElementById('player-overlay').style.display = 'block';
         if(currentUser) {
@@ -2107,7 +2252,6 @@ function handleActionVisualUpdate(movieId, type, isActive) {
             div.onclick = () => { 
                 currentEpisodeIndex = i; 
                 updatePlayerInterface(); 
-                // Referme le menu automatiquement pour gagner de la place
                 document.getElementById('ep-list-container').style.display = 'none';
                 document.querySelector('.episodes-toggle-btn').classList.remove('active-dropdown');
             }; 
@@ -2118,14 +2262,13 @@ function handleActionVisualUpdate(movieId, type, isActive) {
 
     function highlightActiveEpisode() { 
         document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); 
-        
-        // Met à jour le badge jaune sur le bouton avec le nom de l'épisode en cours
         const badge = document.getElementById('current-ep-badge');
         if (badge && currentMovie && currentMovie.episodes && currentMovie.episodes[currentEpisodeIndex]) {
             badge.innerText = "▶ " + currentMovie.episodes[currentEpisodeIndex].title;
         }
     }
-        function openTrailer() { 
+
+    function openTrailer() { 
         if (currentMovie && currentMovie.trailer_iframe) { 
             let t = currentMovie.trailer_iframe.trim(); let finalHTML = t;
             if (!t.toLowerCase().includes('<iframe')) {
@@ -2183,72 +2326,153 @@ function handleActionVisualUpdate(movieId, type, isActive) {
 
     // --- 8. MODE ADMIN (CATALOGUE & WISHBOARD) ---
     function toggleAdminAuth(f = false) { if(isAdminUnlocked) { isAdminUnlocked = false; document.body.classList.remove('admin-active'); document.getElementById('dev-export-area').style.display = 'none'; alert("Mode Admin désactivé."); } else if (f) { isAdminUnlocked = true; document.body.classList.add('admin-active'); alert("Mode Admin activé !"); } }
-    function toggleTypeUI() { const s = document.getElementById('add-type').value === 'serie'; document.getElementById('film-inputs').style.display = s ? 'none' : 'block'; document.getElementById('serie-inputs').style.display = s ? 'block' : 'none'; }
+    
+    function toggleTypeUI() { 
+        const ty = document.getElementById('add-type').value; 
+        const isSaga = ty === 'saga';
+        
+        document.getElementById('film-inputs').style.display = ty === 'film' ? 'block' : 'none'; 
+        document.getElementById('serie-inputs').style.display = ty === 'serie' ? 'block' : 'none'; 
+        document.getElementById('saga-inputs').style.display = isSaga ? 'block' : 'none'; 
+        
+        document.getElementById('admin-row-year-rating').style.display = isSaga ? 'none' : 'flex';
+        document.getElementById('admin-row-genre').style.display = isSaga ? 'none' : 'block';
+        document.getElementById('admin-row-dir').style.display = isSaga ? 'none' : 'block';
+        document.getElementById('admin-row-cast').style.display = isSaga ? 'none' : 'block';
+        document.getElementById('admin-row-trailer').style.display = isSaga ? 'none' : 'block';
+    } 
+
+    function clearForm() { 
+        document.getElementById('add-title').value = ""; 
+        document.getElementById('add-poster').value = ""; 
+        document.getElementById('add-iframe').value = ""; 
+        document.getElementById('add-iframe-uqload').value = ""; 
+        document.getElementById('add-iframe-vostfr').value = ""; 
+        document.getElementById('add-iframe-uqload-vostfr').value = ""; 
+        document.getElementById('add-desc').value = ""; 
+        document.getElementById('add-year').value = ""; 
+        document.getElementById('add-rating').value = ""; 
+        document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); 
+        document.getElementById('add-dir').value = ""; 
+        document.getElementById('add-cast').value = ""; 
+        document.getElementById('add-ep-count').value = ""; 
+        document.getElementById('episodes-container').innerHTML = ""; 
+        document.getElementById('add-trailer').value = ""; 
+        document.getElementById('add-saga-bg').value = "";
+        document.getElementById('add-saga-movies').value = "";
+    }
+
     function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
+    
     function openAdmin() { isEditing = false; editingId = null; document.getElementById('admin-title-text').innerText = "Création"; document.getElementById('btn-save-movie').innerText = "Envoyer"; document.getElementById('btn-delete-movie').style.display = 'none'; clearForm(); toggleTypeUI(); document.getElementById('admin-overlay').style.display = 'flex'; }
-    function openEditMode() { if(!currentMovie) return; isEditing = true; editingId = currentMovie.id; document.getElementById('admin-title-text').innerText = "Modifier : " + currentMovie.title; document.getElementById('btn-save-movie').innerText = "Enregistrer"; document.getElementById('btn-delete-movie').style.display = 'block'; document.getElementById('add-title').value = currentMovie.title || ""; document.getElementById('add-year').value = currentMovie.year || ""; document.getElementById('add-rating').value = currentMovie.rating || ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = currentMovie.genre?.includes(cb.value)); document.getElementById('add-dir').value = currentMovie.dir || ""; document.getElementById('add-cast').value = currentMovie.cast || ""; document.getElementById('add-desc').value = currentMovie.desc || ""; document.getElementById('add-poster').value = currentMovie.poster || ""; document.getElementById('add-type').value = currentMovie.type || "film"; toggleTypeUI(); if (currentMovie.type === 'film') { document.getElementById('add-iframe').value = currentMovie.iframe_premium || ""; document.getElementById('add-iframe-uqload').value = currentMovie.iframe_uqload || ""; document.getElementById('add-iframe-vostfr').value = currentMovie.iframe_premium_vostfr || ""; document.getElementById('add-iframe-uqload-vostfr').value = currentMovie.iframe_uqload_vostfr || ""; } else { const eps = currentMovie.episodes || []; document.getElementById('add-ep-count').value = eps.length; renderEpisodeInputs(); document.querySelectorAll('.episode-block').forEach((b, i) => { if (eps[i]) { b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || ""; b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || ""; b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || ""; b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; } }); } document.getElementById('admin-overlay').style.display = 'flex'; }
-   function closeAdmin() { 
-        document.getElementById('admin-overlay').style.display = 'none'; 
-        linkedWishId = null; // On annule la liaison si l'admin ferme la fenêtre
-    }
-      function clearForm() { document.getElementById('add-title').value = ""; document.getElementById('add-poster').value = ""; document.getElementById('add-iframe').value = ""; document.getElementById('add-iframe-uqload').value = ""; document.getElementById('add-iframe-vostfr').value = ""; document.getElementById('add-iframe-uqload-vostfr').value = ""; document.getElementById('add-desc').value = ""; document.getElementById('add-year').value = ""; document.getElementById('add-rating').value = ""; document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = false); document.getElementById('add-dir').value = ""; document.getElementById('add-cast').value = ""; document.getElementById('add-ep-count').value = ""; document.getElementById('episodes-container').innerHTML = ""; document.getElementById('add-trailer').value = ""; }
-
-async function saveMovie() {
-    const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
-    if(!t || !p) { alert("Titre et image obligatoires !"); return; }
-    let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
-    const ty = document.getElementById('add-type').value; let epL = null;
     
-    if (ty === 'serie') {
-        epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
-    }
-    
-    const mD = { 
-        id: isEditing ? editingId : 'custom_' + Date.now(), 
-        type: ty, title: t, year: document.getElementById('add-year').value || new Date().getFullYear(), poster: p, rating: document.getElementById('add-rating').value, genre: selG.join(', '), desc: document.getElementById('add-desc').value, dir: document.getElementById('add-dir').value, cast: document.getElementById('add-cast').value, trailer_iframe: document.getElementById('add-trailer').value, iframe_premium: document.getElementById('add-iframe').value, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
-    };
-    
-    const token = localStorage.getItem('monBadgeCineLK10');
-    try {
-        const res = await fetch(`${API_URL}/api/admin/movies`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json', 'authorization': token }, 
-            body: JSON.stringify(mD) 
-        });
-        const data = await res.json();
-        if(data.success) {
-            
-            // --- LE FIX EST ICI ---
-            // On valide le changement de statut en "Ajouté" AVANT de fermer la fenêtre
-            if (linkedWishId) {
-                await adminSetWishStatusSilently(linkedWishId, 'Ajouté');
-            }
-            // ----------------------
-
-            closeAdmin(); 
-            await loadSecureMovies(); 
-            alert("Succès ! Le contenu a été ajouté à la base de données."); 
-        } else { alert("Erreur : " + data.message); }
-    } catch(e) { alert("Erreur de connexion au serveur."); }
-}
-
-async function deleteMovie() { 
-    if(!isEditing || !editingId || !confirm("Es-tu sûr de vouloir supprimer ce contenu définitivement ?")) return; 
-    const token = localStorage.getItem('monBadgeCineLK10');
-    try {
-        const res = await fetch(`${API_URL}/api/admin/movies/${editingId}`, { method: 'DELETE', headers: { 'authorization': token } });
-        if((await res.json()).success) {
-            closeAdmin(); closeP(); await loadSecureMovies(); alert("Contenu supprimé avec succès.");
+    function openEditMode() { 
+        if(!currentMovie) return; 
+        isEditing = true; 
+        editingId = currentMovie.id; 
+        document.getElementById('admin-title-text').innerText = "Modifier : " + currentMovie.title; 
+        document.getElementById('btn-save-movie').innerText = "Enregistrer"; 
+        document.getElementById('btn-delete-movie').style.display = 'block'; 
+        
+        document.getElementById('add-title').value = currentMovie.title || ""; 
+        document.getElementById('add-year').value = currentMovie.year || ""; 
+        document.getElementById('add-rating').value = currentMovie.rating || ""; 
+        document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = currentMovie.genre?.includes(cb.value)); 
+        document.getElementById('add-dir').value = currentMovie.dir || ""; 
+        document.getElementById('add-cast').value = currentMovie.cast || ""; 
+        document.getElementById('add-desc').value = currentMovie.desc || ""; 
+        document.getElementById('add-poster').value = currentMovie.poster || ""; 
+        document.getElementById('add-type').value = currentMovie.type || "film"; 
+        
+        toggleTypeUI(); 
+        
+        if (currentMovie.type === 'film') { 
+            document.getElementById('add-iframe').value = currentMovie.iframe_premium || ""; 
+            document.getElementById('add-iframe-uqload').value = currentMovie.iframe_uqload || ""; 
+            document.getElementById('add-iframe-vostfr').value = currentMovie.iframe_premium_vostfr || ""; 
+            document.getElementById('add-iframe-uqload-vostfr').value = currentMovie.iframe_uqload_vostfr || ""; 
+        } else if (currentMovie.type === 'serie') { 
+            const eps = currentMovie.episodes || []; 
+            document.getElementById('add-ep-count').value = eps.length; 
+            renderEpisodeInputs(); 
+            document.querySelectorAll('.episode-block').forEach((b, i) => { 
+                if (eps[i]) { 
+                    b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || ""; 
+                    b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || ""; 
+                    b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || ""; 
+                    b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; 
+                } 
+            }); 
+        } else if (currentMovie.type === 'saga') {
+            document.getElementById('add-saga-bg').value = currentMovie.iframe_premium || "";
+            document.getElementById('add-saga-movies').value = currentMovie.cast || "";
         }
-    } catch(e) { alert("Erreur serveur lors de la suppression."); }
-}
+        
+        document.getElementById('admin-overlay').style.display = 'flex'; 
+    }
+
+    function closeAdmin() { 
+        document.getElementById('admin-overlay').style.display = 'none'; 
+        linkedWishId = null; 
+    }
+
+    async function saveMovie() {
+        const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
+        if(!t || !p) { alert("Titre et image obligatoires !"); return; }
+        
+        let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
+        const ty = document.getElementById('add-type').value; 
+        
+        let epL = null;
+        let finalCast = document.getElementById('add-cast').value;
+        let finalIframe = document.getElementById('add-iframe').value;
+        let finalYear = document.getElementById('add-year').value || new Date().getFullYear();
+        let finalRating = document.getElementById('add-rating').value;
+        let finalDir = document.getElementById('add-dir').value;
+        let finalTrailer = document.getElementById('add-trailer').value;
+        let finalGenre = selG.join(', ');
+
+        if (ty === 'serie') {
+            epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
+        } else if (ty === 'saga') {
+            finalCast = document.getElementById('add-saga-movies').value;
+            finalIframe = document.getElementById('add-saga-bg').value;
+            finalYear = ""; finalRating = ""; finalDir = ""; finalTrailer = ""; finalGenre = "Saga";
+        }
+        
+        const mD = { 
+            id: isEditing ? editingId : 'custom_' + Date.now(), 
+            type: ty, title: t, year: finalYear, poster: p, rating: finalRating, genre: finalGenre, desc: document.getElementById('add-desc').value, dir: finalDir, cast: finalCast, trailer_iframe: finalTrailer, iframe_premium: finalIframe, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
+        };
+        
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/movies`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify(mD) });
+            const data = await res.json();
+            if(data.success) {
+                if (linkedWishId) await adminSetWishStatusSilently(linkedWishId, 'Ajouté');
+                closeAdmin(); await loadSecureMovies(); alert("Succès ! Sauvegardé en base de données."); 
+            } else { alert("Erreur : " + data.message); }
+        } catch(e) { alert("Erreur de connexion au serveur."); }
+    }
+
+    async function deleteMovie() { 
+        if(!isEditing || !editingId || !confirm("Es-tu sûr de vouloir supprimer ce contenu définitivement ?")) return; 
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/movies/${editingId}`, { method: 'DELETE', headers: { 'authorization': token } });
+            if((await res.json()).success) {
+                closeAdmin(); closeP(); await loadSecureMovies(); alert("Contenu supprimé avec succès.");
+            }
+        } catch(e) { alert("Erreur serveur lors de la suppression."); }
+    }
 
     function renderAdminGenres() {
         const container = document.getElementById('genre-checkbox-container'); container.innerHTML = '';
         GENRES_LIST.forEach(g => { container.innerHTML += `<label class="genre-check-item"><input type="checkbox" value="${g}" class="admin-genre-checkbox"> ${g}</label>`; });
     }
 
-    // WISHBOARD
+    // --- WISHBOARD ---
     function showWishboard() {
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('profile-page').style.display = 'none';
@@ -2269,17 +2493,14 @@ async function deleteMovie() {
         document.getElementById('wb-tmdb-input').value = ''; document.getElementById('wb-tmdb-results').innerHTML = ''; document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; document.getElementById('wb-tmdb-input').focus();
     }
 
-    // --- Écouteur pour la barre de recherche TMDB (MANQUANT) ---
     document.getElementById('wb-tmdb-input').addEventListener('input', function(e) {
         clearTimeout(wbSearchTimeout); 
         const query = e.target.value.trim();
-        
         if(query.length < 2) { 
             document.getElementById('wb-tmdb-results').innerHTML = ''; 
             document.getElementById('wb-tmdb-status').innerText = "Tapez un titre pour lancer la recherche internet..."; 
             return; 
         }
-        
         document.getElementById('wb-tmdb-status').innerText = "Recherche en cours..."; 
         wbSearchTimeout = setTimeout(() => searchTMDB(query), 600);
     });
@@ -2340,15 +2561,14 @@ async function deleteMovie() {
     function setWbFilter(status) { currentWbFilter = status; document.querySelectorAll('.wb-filter-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); renderWishes(); }
     function filterWishboard() { renderWishes(); } 
 
-   function renderWishes() {
-      // NOUVEAU PATCH : Synchronisation forcée du statut avec l'historique
-wishesList.forEach(w => {
-    if (w.history && w.history.length > 0) {
-        const lastHistory = w.history[w.history.length - 1].status;
-        if (lastHistory.includes('Ajouté')) w.status = 'Ajouté';
-        else if (lastHistory.includes('En cours')) w.status = 'En cours';
-    }
-});
+    function renderWishes() {
+        wishesList.forEach(w => {
+            if (w.history && w.history.length > 0) {
+                const lastHistory = w.history[w.history.length - 1].status;
+                if (lastHistory.includes('Ajouté')) w.status = 'Ajouté';
+                else if (lastHistory.includes('En cours')) w.status = 'En cours';
+            }
+        });
 
         const grid = document.getElementById('wb-grid'); grid.innerHTML = '';
         document.getElementById('wb-stat-total').innerText = wishesList.length + " demandes";
@@ -2369,54 +2589,48 @@ wishesList.forEach(w => {
             
             if (currentWbFilter !== 'all' || searchQuery !== '') { div.style.counterIncrement = 'none'; div.classList.add('no-rank'); }
 
-           // --- NOUVEAU COMPORTEMENT DU CLIC ---
-        div.onclick = () => {
-            if (w.status === 'Ajouté') {
-                // Cherche le film correspondant dans le catalogue par son titre exact
-                const movieInCatalog = moviesDB.find(m => m.title.toLowerCase() === w.title.toLowerCase());
-                
-                if (movieInCatalog) {
-                    // Si on le trouve, on ferme le wishboard et on ouvre le lecteur de film
-                    document.getElementById('wishboard-page').style.display = 'none';
-                    document.querySelector('.main-container').style.display = 'flex';
-                    openP(movieInCatalog.id);
-                    return; // On arrête la fonction ici
+            div.onclick = () => {
+                if (w.status === 'Ajouté') {
+                    const movieInCatalog = moviesDB.find(m => m.title.toLowerCase() === w.title.toLowerCase());
+                    if (movieInCatalog) {
+                        document.getElementById('wishboard-page').style.display = 'none';
+                        document.querySelector('.main-container').style.display = 'flex';
+                        openP(movieInCatalog.id);
+                        return; 
+                    }
                 }
-            }
-            // S'il n'est pas encore ajouté ou introuvable, on ouvre la fenêtre de détails habituelle
-            openWishDetails(w._id);
-        };
-        // ------------------------------------
+                openWishDetails(w._id);
+            };
+            
             div.innerHTML = `<div class="wish-poster" style="background-image: url('${w.posterUrl}')"><div class="wish-status-badge ${statusClass}">${w.status}</div><div class="wish-votes" style="${isVoted ? 'background:#e6c800;' : ''}"><i class="fas fa-chevron-up"></i> ${w.votes}</div></div><div style="font-size:12px; margin-top:8px; color:white; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${w.title}</div><div style="font-size:10px; color:#888; text-transform:uppercase;">${w.type === 'movie' ? 'Film' : (w.type === 'tv' ? 'Série' : 'Anime')}</div>`;
             grid.appendChild(div);
         });
     }
 
     function openWishDetails(wishId) {
-    currentOpenedWish = wishesList.find(w => w._id === wishId); if(!currentOpenedWish) return;
-    document.getElementById('wb-details-modal').style.display = 'flex';
-    document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl; document.getElementById('wb-det-title').innerText = currentOpenedWish.title; document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
-    
-    const statusBadge = document.getElementById('wb-det-status'); statusBadge.innerText = currentOpenedWish.status.toUpperCase(); statusBadge.className = 'wb-status'; 
-    if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente'); if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours'); if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
-    
-    const voteBtn = document.getElementById('wb-det-vote-btn'); document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
-    
-    const userId = currentUser ? currentUser._id : null; const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
-    if(isVoted) { voteBtn.style.background = 'var(--primary)'; voteBtn.style.color = 'black'; voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`; } 
-    else { voteBtn.style.background = 'transparent'; voteBtn.style.color = 'white'; voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`; }
-    
-    let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
-    
-    // Affichage des boutons Administrateur (L'historique problématique a été supprimé)
-    const adminPanel = document.getElementById('wb-det-admin-actions');
-    if (adminPanel) {
-        if (typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked) {
-            adminPanel.style.display = 'block';
-            adminPanel.innerHTML = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;"><span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button><button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button><button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button></div></div>`;
-        } else { adminPanel.style.display = 'none'; adminPanel.innerHTML = ''; }
+        currentOpenedWish = wishesList.find(w => w._id === wishId); if(!currentOpenedWish) return;
+        document.getElementById('wb-details-modal').style.display = 'flex';
+        document.getElementById('wb-det-img').src = currentOpenedWish.posterUrl; document.getElementById('wb-det-title').innerText = currentOpenedWish.title; document.getElementById('wb-det-desc').innerText = currentOpenedWish.description;
+        
+        const statusBadge = document.getElementById('wb-det-status'); statusBadge.innerText = currentOpenedWish.status.toUpperCase(); statusBadge.className = 'wb-status'; 
+        if(currentOpenedWish.status === 'En attente') statusBadge.classList.add('status-attente'); if(currentOpenedWish.status === 'En cours') statusBadge.classList.add('status-cours'); if(currentOpenedWish.status === 'Ajouté') statusBadge.classList.add('status-ajoute');
+        
+        const voteBtn = document.getElementById('wb-det-vote-btn'); document.getElementById('wb-det-votes').innerText = currentOpenedWish.votes + (currentOpenedWish.votes > 1 ? " votes" : " vote");
+        
+        const userId = currentUser ? currentUser._id : null; const isVoted = userId && currentOpenedWish.voters && currentOpenedWish.voters.includes(userId);
+        if(isVoted) { voteBtn.style.background = 'var(--primary)'; voteBtn.style.color = 'black'; voteBtn.innerHTML = `<i class="fas fa-check" style="color:black;"></i> <span>Voté</span>`; } 
+        else { voteBtn.style.background = 'transparent'; voteBtn.style.color = 'white'; voteBtn.innerHTML = `<i class="fas fa-chevron-up" style="color:var(--primary);"></i> <span>Voter pour accélérer l'ajout</span>`; }
+        
+        let tmdbType = currentOpenedWish.type === 'movie' ? 'movie' : 'tv'; document.getElementById('wb-det-tmdb-link').href = `https://www.themoviedb.org/${tmdbType}/${currentOpenedWish.tmdbId}`;
+        
+        const adminPanel = document.getElementById('wb-det-admin-actions');
+        if (adminPanel) {
+            if (typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked) {
+                adminPanel.style.display = 'block';
+                adminPanel.innerHTML = `<div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e74c3c;"><span style="color:#e74c3c; font-size:12px; font-weight:bold; text-transform:uppercase; margin-bottom:10px; display:block;"><i class="fas fa-shield-alt"></i> Panneau Administrateur</span><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><button onclick="adminSetWishStatus('${wishId}', 'En cours')" style="background:#f39c12; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-hammer"></i> En cours</button><button onclick="adminAcceptWish('${wishId}')" style="background:#2ecc71; color:black; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:120px;"><i class="fas fa-check"></i> Accepter (Créer)</button><button onclick="adminDeleteWish('${wishId}')" style="background:var(--danger); color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; flex:1; min-width:80px;"><i class="fas fa-trash"></i> Refuser</button></div></div>`;
+            } else { adminPanel.style.display = 'none'; adminPanel.innerHTML = ''; }
+        }
     }
-}
 
     async function openWishTrailer() {
         if (!currentOpenedWish) return;
@@ -2471,7 +2685,6 @@ wishesList.forEach(w => {
         closeWbModals(); document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; openAdmin();
         document.getElementById('add-title').value = wish.title; document.getElementById('add-desc').value = wish.description; document.getElementById('add-poster').value = wish.posterUrl; document.getElementById('add-type').value = (wish.type === 'tv' || wish.type === 'anime') ? 'serie' : 'film'; toggleTypeUI();
         
-        // On ne valide plus le statut immédiatement, on le met en attente
         linkedWishId = wishId;
     }
     
@@ -2483,14 +2696,12 @@ wishesList.forEach(w => {
     // ==========================================
     // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
     // ==========================================
-
-    // --- NOUVELLE FONCTION : Éditer directement depuis un signalement ---
     function editReportedMovie(movieId) {
-        closeAnalytics(); // Ferme le tableau de bord
-        const m = moviesDB.find(x => x.id === movieId); // Cherche le film dans la base
+        closeAnalytics(); 
+        const m = moviesDB.find(x => x.id === movieId); 
         if (m) {
-            currentMovie = m; // Simule l'ouverture du film
-            openEditMode();   // Ouvre le menu de modification Admin
+            currentMovie = m; 
+            openEditMode();   
         } else {
             alert("Ce film n'est pas ou plus dans le catalogue actuel.");
         }
@@ -2635,16 +2846,15 @@ wishesList.forEach(w => {
             if((await res.json()).success) { openAnalytics(); }
         } catch(e) { alert("Erreur serveur."); }
     }
+
     async function openConfirmTrailer() {
         if (!selectedTmdbItem) return;
         let tmdbType = selectedTmdbItem.type === 'movie' ? 'movie' : 'tv'; 
         let tmdbId = selectedTmdbItem.tmdbId;
         try {
-            // Cherche la bande annonce en VF
             const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`); 
             let data = await resFr.json();
             
-            // Si pas de VF, on cherche en VO
             if (!data.results || data.results.length === 0) { 
                 const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`); 
                 data = await resEn.json(); 
@@ -2663,11 +2873,10 @@ wishesList.forEach(w => {
             alert("Aucune bande-annonce n'a été trouvée sur TMDB pour ce contenu.");
         } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
     }
+
     function exportAllMovies() { 
         const b = document.getElementById('dev-export-area'); 
         b.style.display = b.style.display === 'block' ? 'none' : 'block'; 
-        
-        // Exporte les films directement depuis la base chargée en mémoire
         document.getElementById('export-code').value = JSON.stringify(moviesDB, null, 2); 
     }
     
@@ -2687,7 +2896,6 @@ wishesList.forEach(w => {
             return;
         }
         
-        // Ferme le menu mobile si ouvert
         if (typeof closeMobileMenu === 'function') closeMobileMenu(); 
         
         const overlay = document.getElementById('random-overlay');
@@ -2700,14 +2908,12 @@ wishesList.forEach(w => {
         titleDisplay.style.color = "white";
         scannerText.innerText = "RECHERCHE DANS LA MATRICE...";
         
-        // Accélère la rotation du dé pendant la recherche
         diceIcon.style.animationDuration = "0.15s";
         
         let counter = 0;
-        const maxTicks = 30; // Nombre de clignotements de titres
-        const intervalTime = 80; // Vitesse de défilement (ms)
+        const maxTicks = 30; 
+        const intervalTime = 80; 
         
-        // Fait défiler des titres aléatoires très vite
         const shuffleInterval = setInterval(() => {
             const randomTemp = moviesDB[Math.floor(Math.random() * moviesDB.length)];
             titleDisplay.innerText = randomTemp.title;
@@ -2721,7 +2927,6 @@ wishesList.forEach(w => {
     }
 
     function finalizeRandomPick(diceIcon) {
-        // Le choix final
         const finalMovie = moviesDB[Math.floor(Math.random() * moviesDB.length)];
         const titleDisplay = document.getElementById('random-title-display');
         const scannerText = document.querySelector('.scanning-text');
@@ -2732,23 +2937,81 @@ wishesList.forEach(w => {
         scannerText.style.color = "var(--primary)";
         scannerText.style.textShadow = "0 0 10px var(--primary)";
         
-        // Calme le dé
         diceIcon.style.animationDuration = "1s";
         
-        // Laisse le temps d'admirer le résultat (2.5 secondes) puis ouvre le film
         setTimeout(() => {
             document.getElementById('random-overlay').style.display = 'none';
-            scannerText.style.color = "#00ff00"; // Reset de la couleur texte
+            scannerText.style.color = "#00ff00"; 
             scannerText.style.textShadow = "0 0 10px #00ff00";
             
-            // Sécurité : on force l'affichage du conteneur principal
             document.getElementById('wishboard-page').style.display = 'none';
             document.getElementById('profile-page').style.display = 'none';
             document.querySelector('.main-container').style.display = 'flex';
             
-            // Lance le film
             openP(finalMovie.id);
         }, 2500);
+    }
+
+    // ==========================================
+    // MOTEUR DES SAGAS INCONTOURNABLES
+    // ==========================================
+    function initSagas() {
+        const carousel = document.getElementById('sagas-carousel');
+        if(!carousel) return;
+        carousel.innerHTML = '';
+        
+        SAGAS_DB = moviesDB.filter(m => m.type === 'saga').map(m => ({
+            id: m.id, title: m.title, poster: m.poster,
+            bg: m.iframe_premium || m.poster,
+            desc: m.desc,
+            movies: m.cast ? m.cast.split(',').map(id => id.trim()) : []
+        }));
+        
+        if(SAGAS_DB.length === 0) { document.getElementById('sagas-section').style.display = 'none'; return; }
+
+        SAGAS_DB.forEach(saga => {
+            const card = document.createElement('div'); card.className = 'saga-card'; card.style.backgroundImage = `url('${saga.poster}')`; card.onclick = () => openSaga(saga.id);
+            card.innerHTML = `<div class="saga-badge">SAGA</div><div class="saga-card-title">${saga.title}</div>`;
+            carousel.appendChild(card);
+        });
+    }
+
+    function openSaga(sagaId) {
+        const saga = SAGAS_DB.find(s => s.id === sagaId); if(!saga) return;
+        document.getElementById('grid').style.display = 'none'; document.getElementById('pag-bar').style.display = 'none'; document.getElementById('sagas-section').style.display = 'none'; document.querySelector('.section-title').style.display = 'none';
+
+        document.getElementById('saga-details-page').style.display = 'block';
+        document.getElementById('saga-title').innerText = saga.title; document.getElementById('saga-desc').innerText = saga.desc; document.getElementById('saga-hero-poster').src = saga.poster; document.getElementById('saga-hero-bg').style.backgroundImage = `url('${saga.bg || saga.poster}')`; document.getElementById('saga-count').innerText = saga.movies.length;
+
+        const editBtn = document.getElementById('btn-edit-saga');
+        if(editBtn) {
+            if(isAdminUnlocked) {
+                editBtn.style.display = 'inline-block';
+                editBtn.onclick = () => { const m = moviesDB.find(x => x.id === sagaId); if (m) { currentMovie = m; openEditMode(); } };
+            } else { editBtn.style.display = 'none'; }
+        }
+
+        const sagaGrid = document.getElementById('saga-movies-grid'); sagaGrid.innerHTML = '';
+
+        saga.movies.forEach(movieId => {
+            const m = moviesDB.find(x => x.id === movieId);
+            if(m) {
+                const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
+                const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);  
+                const div = document.createElement('div'); div.className = 'movie-card'; div.style.display = 'block'; div.onclick = () => openP(m.id);
+                div.innerHTML = `<div class="card-actions"><button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris"><i class="fas fa-heart"></i></button><button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir"><i class="fas fa-clock"></i></button></div><div class="poster" style="background-image: url('${m.poster}')"><span class="badge b-hd">HD</span><div class="grid-rating">${m.rating || "-"}</div></div><div class="movie-info"><div class="movie-title">${m.title}</div></div>`;
+                sagaGrid.appendChild(div);
+            }
+        });
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function closeSaga() {
+        document.getElementById('saga-details-page').style.display = 'none';
+        document.getElementById('grid').style.display = 'grid'; 
+        document.getElementById('pag-bar').style.display = 'flex';
+        document.querySelector('.section-title').style.display = 'flex';
+        updateGrid(); 
     }
 </script>
 </body>
