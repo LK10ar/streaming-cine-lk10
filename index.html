@@ -694,25 +694,367 @@
         .netflix-card { flex: 0 0 160px; scroll-snap-align: start; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); background: var(--light); border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .netflix-card:hover { transform: scale(1.08) translateY(-8px); z-index: 10; border-color: var(--primary); box-shadow: 0 10px 25px rgba(255, 222, 0, 0.3); }
 
-        /* Design spécial Top 10 */
-        .top-10-slider { padding-left: 30px; }
-        .top-10-card { flex: 0 0 220px; scroll-snap-align: start; height: 240px; position: relative; cursor: pointer; transition: 0.3s; display: flex; align-items: flex-end; overflow: visible; margin-right: 20px; }
-        .top-10-card:hover { transform: scale(1.05) translateY(-5px); z-index: 10; }
-        .top-10-number { font-size: 200px; font-weight: 900; line-height: 0.75; color: #111; -webkit-text-stroke: 4px #555; position: absolute; left: -30px; bottom: -5px; z-index: 1; transition: 0.3s; text-shadow: 5px 5px 15px rgba(0,0,0,0.8); }
-        .top-10-card:hover .top-10-number { -webkit-text-stroke: 4px var(--danger); color: transparent; }
-        .top-10-poster { width: 140px; height: 210px; background-size: cover; background-position: center; border-radius: 6px; position: relative; z-index: 2; margin-left: auto; border: 1px solid #333; box-shadow: 0 5px 20px rgba(0,0,0,0.9); }
-
-        @media (max-width: 768px) {
-            .hero-banner { height: 60vh; padding: 20px; text-align: center; justify-content: center; }
-            .hero-title { font-size: 35px; }
-            .hero-meta { justify-content: center; }
-            .hero-buttons { justify-content: center; width: 100%; }
-            .btn-play-hero, .btn-info-hero { width: 100%; justify-content: center; }
-            .top-10-card { flex: 0 0 180px; }
-            .top-10-number { font-size: 150px; left: -20px; }
-            .top-10-poster { width: 110px; height: 165px; }
+       /* TOP 10 AVEC CHIFFRES DEVANT L'IMAGE (CORRECTION EXACTE) */
+     /* ================================================== */
+        /* TOP 10 AVEC CHIFFRES (TRANSPARENTS & GRANDES AFFICHES) */
+        /* ================================================== */
+        .top-10-slider { 
+            padding-left: 50px; 
+            padding-bottom: 40px !important; 
         }
-         </style>
+        
+        .top-10-card { 
+            flex: 0 0 250px; /* Laisse de la place pour le chiffre à gauche */
+            height: 290px; /* MÊME HAUTEUR QUE TES AUTRES CARROUSELS */
+            scroll-snap-align: start; 
+            position: relative; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: flex-end; 
+            margin-right: 25px; 
+            overflow: visible; 
+        }
+        .top-10-card:hover { transform: scale(1.05) translateY(-5px); z-index: 15; }
+        /* CHIFFRE GÉANT : Devant, totalement transparent, avec un contour */
+        .top-10-number { 
+            font-size: 260px; 
+            font-weight: 900; 
+            line-height: 0.75; 
+            position: absolute; 
+            left: -35px; /* Décalé sur la gauche */
+            bottom: -15px; 
+            z-index: 5; /* PASSE DEVANT L'AFFICHE */
+            transition: 0.3s; 
+            font-family: 'Arial Black', Impact, sans-serif; 
+            color: transparent; /* FOND 100% TRANSPARENT : ON VOIT L'AFFICHE AU TRAVERS */
+            -webkit-text-stroke: 4px #aaa; /* Contour gris bien visible */
+            text-shadow: none; /* Pas d'ombre pour ne pas salir l'image en dessous */
+            pointer-events: none; 
+            letter-spacing: -10px; 
+        }
+        .top-10-card:hover .top-10-number { -webkit-text-stroke: 4px var(--primary); }
+        
+        /* AFFICHE : Grande taille 200x290 */
+        .top-10-poster-wrap { 
+            width: 200px !important; 
+            height: 290px !important; 
+            position: relative; 
+            z-index: 2; /* L'AFFICHE EST DERRIÈRE LE CONTOUR DU CHIFFRE */
+            border-radius: 6px; 
+            overflow: hidden; 
+            border: 1px solid #333; 
+            box-shadow: -5px 5px 25px rgba(0,0,0,0.9); 
+        }
+       .top-10-poster { width: 100%; height: 100%; background-size: cover; background-position: center; }
+        /* ================================================== */
+        /* ============ DESIGN PAGE D'ACCUEIL NETFLIX ======= */
+        /* ================================================== */
+        /* ================================================== */
+        /* ============ DESIGN PAGE D'ACCUEIL NETFLIX ======= */
+        /* ================================================== */
+        #home-page { width: 100%; display: none; flex-direction: column; padding-bottom: 50px; animation: fadeIn 0.5s ease; background-color: var(--dark); overflow-x: hidden; }
+        
+        /* BANNIÈRE HERO 8 SECONDES */
+      /* BANNIÈRE HERO 8 SECONDES (STYLE MOVIX) */
+      /* BANNIÈRE HERO 8 SECONDES (STYLE MOVIX) */
+        .hero-carousel { 
+            position: relative; 
+            width: 96%; 
+            max-width: 1400px;
+            height: 65vh; 
+            min-height: 450px; 
+            max-height: 700px; 
+            margin: 20px auto 40px auto; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: none; /* On supprime l'ombre qui fait une bordure moche */
+            border: none;
+        }
+        
+       .hero-slide { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background-size: cover; 
+            background-position: center 15%; /* Remonte l'image pour mieux voir les visages */
+            opacity: 0; transition: opacity 1s ease-in-out; z-index: 0; 
+            /* Filtres pour réduire la pixellisation et donner du peps */
+            image-rendering: high-quality;
+            filter: brightness(1.1) contrast(1.05); 
+        }
+        .hero-slide.active { opacity: 1; z-index: 1; }
+        
+     /* Dégradé ultra doux : laisse l'image respirer, l'ombre reste dans le coin */
+    
+        
+        .hero-content { position: absolute; bottom: 15%; left: 5%; z-index: 3; max-width: 600px; }
+        .hero-type { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; margin-right: 10px; letter-spacing: 1px; backdrop-filter: blur(5px); }
+        .hero-rating { color: #f1c40f; font-weight: bold; font-size: 13px; }
+        .hero-title { font-size: 55px; font-weight: 900; color: white; margin: 15px 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); line-height: 1.1; letter-spacing: -1px; }
+        .hero-desc { font-size: 15px; color: #ddd; line-height: 1.6; margin-bottom: 25px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 1px 1px 3px black; font-weight: 500; }
+        
+        .hero-buttons { display: flex; gap: 15px; }
+        
+        /* Boutons VIBRANTS et LUMINEUX (Fini le gris sombre) */
+        .btn-play-hero { 
+            background: #ff0000; /* Vrai rouge vif */
+            color: white; border: none; padding: 12px 35px; font-size: 15px; font-weight: bold; border-radius: 30px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; 
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.4); /* Petite lueur rouge */
+        }
+        .btn-play-hero:hover { background: #cc0000; transform: scale(1.05); }
+        
+        .btn-info-hero { 
+            background: rgba(255, 255, 255, 0.18); /* Verre transparent clair ! */
+            color: #272525; border: 1px solid rgba(255, 255, 255, 0.4); padding: 12px 35px; font-size: 15px; font-weight: bold; border-radius: 30px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; backdrop-filter: blur(10px); 
+        }
+        .btn-info-hero:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }    /* BARRE DE PROGRESSION 8S */
+        .hero-controls { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+        .hero-dot { width: 8px; height: 8px; background: #666; border-radius: 50%; cursor: pointer; transition: 0.3s; }
+        .hero-dot.active { width: 40px; border-radius: 4px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
+        .hero-dot.active .progress-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--danger); }
+        .hero-controls.playing .hero-dot.active .progress-fill { animation: fillBar 8s linear forwards; }
+        .hero-pause-play { color: white; cursor: pointer; font-size: 14px; transition: 0.3s; padding-left: 5px; border-left: 1px solid #444; }
+        .hero-pause-play:hover { color: var(--primary); }
+        @keyframes fillBar { 0% { width: 0%; } 100% { width: 100%; } }
+
+        /* SLIDERS PLEINE LARGEUR - IMAGES AGRANDIES (STYLE PRO) */
+        .slider-section { padding: 0 4%; margin-bottom: 45px; position: relative; }
+        .slider-title { color: white; font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .slider-title .fire-icon { color: var(--danger); }
+        
+        .netflix-slider { display: flex; gap: 12px; overflow-x: auto; overflow-y: hidden !important; padding: 10px 0 20px 0; scroll-behavior: smooth; scroll-snap-type: x mandatory; }
+        .netflix-slider::-webkit-scrollbar { display: none; }
+        
+        /* Taille augmentée pour un rendu cinéma immersif */
+        .netflix-card { flex: 0 0 200px; height: 290px; scroll-snap-align: start; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer; transition: 0.3s; background: #1a1a1a; border: 1px solid #252525; }
+        .netflix-card:hover { transform: scale(1.08) translateY(-5px); z-index: 10; border-color: var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+        .netflix-poster { width: 100%; height: 100%; background-size: cover; background-position: center; }
+        .badge-card { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.8); color: white; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; border: 1px solid #444; z-index: 5; }
+
+        /* FLÈCHES CARROUSEL */
+        .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 4%; height: 85%; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 30px; cursor: pointer; z-index: 99; opacity: 0; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .slider-section:hover .slider-arrow { opacity: 1; }
+        .slider-arrow.left { left: 0; background: linear-gradient(to right, rgba(21,21,21,0.9), transparent); }
+        .slider-arrow.right { right: 0; background: linear-gradient(to left, rgba(21,21,21,0.9), transparent); }
+        .slider-arrow:hover { color: var(--primary); font-size: 40px; }
+
+        /* PLATEFORMES STREAMING (Style Premium avec Vidéo au Hover) */
+        .platforms-grid { 
+            display: flex; 
+            gap: 20px; 
+            overflow-x: auto; 
+            overflow-y: hidden !important; 
+            padding-bottom: 20px; 
+            padding-top: 10px;
+            scroll-snap-type: x mandatory; 
+        }
+        .platforms-grid::-webkit-scrollbar { display: none; }
+        
+        .platform-card { 
+            flex: 0 0 250px; /* Taille plus large format 16:9 */
+            aspect-ratio: 16 / 9;
+            height: auto;
+            scroll-snap-align: start; 
+            background: linear-gradient(to bottom, #3a3b40, #1e1f22); /* Gris bleuté premium */
+            border-radius: 10px; 
+            overflow: hidden; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            position: relative;
+            border: 3px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Effet au survol : bordure blanche et léger zoom */
+        .platform-card:hover { 
+            transform: scale(1.05); 
+            border-color: rgba(255, 255, 255, 0.8); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.9); 
+        }
+
+     /* Le logo (par-dessus la vidéo) */
+        .plat-logo { 
+            position: relative; 
+            z-index: 2; 
+            max-width: 70%; 
+            max-height: 60%; 
+            object-fit: contain; 
+            transition: all 0.4s ease; /* On autorise l'animation sur tout (zoom + transparence) */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
+        
+        /* Disparition du logo au survol */
+        .platform-card:hover .plat-logo { 
+            opacity: 0; /* Rend le logo 100% transparent */
+            transform: scale(1.1); /* Garde le petit effet de zoom pendant qu'il s'efface */
+        }
+        /* La vidéo cachée par défaut */
+        .plat-vid { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            object-fit: cover; 
+            z-index: 1; 
+            opacity: 0; 
+            transition: opacity 0.4s ease-in-out; 
+            pointer-events: none;
+        }
+        .platform-card:hover .plat-vid { opacity: 1; }
+
+  /* --- FIX FLÈCHES PLATEFORMES (DESKTOP) --- */
+        .plat-arrow {
+            height: 100% !important; /* S'aligne parfaitement avec les cartes sans toucher au titre */
+            top: 0 !important;
+            transform: none !important;
+            width: 4.5% !important;
+        }
+        .plat-arrow.left { left: -4.5% !important; }
+        .plat-arrow.right { right: -4.5% !important; }
+
+/* --- CORRECTION MOBILE GLOBALE : CARROUSELS 3 PAR 3 ET FLÈCHES --- */
+@media (max-width: 768px) {
+    /* 1. Flèches : On garde ton style original, on réduit juste leur largeur (width) */
+  .slider-arrow { 
+        display: flex !important; 
+        width: 32px !important; 
+        height: 48px !important; 
+        border: none !important;
+        align-items: center; 
+        justify-content: center;
+        z-index: 100;
+    }
+
+    .plat-arrow {
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        height: 48px !important;
+    }
+
+    /* 2. Carrousels standards à 3 affiches */
+    .netflix-slider:not(.top-10-slider) { gap: 8px !important; }
+    .netflix-card { 
+        flex: 0 0 31% !important; 
+        height: 170px !important; 
+    }
+
+    /* 3. Top 10 à 3 affiches */
+    .top-10-slider { 
+        padding-left: 20px !important; 
+        gap: 8px !important; 
+    }
+    .top-10-card { 
+        flex: 0 0 31% !important; 
+        height: 170px !important; 
+        margin-right: 0 !important; 
+    }
+    .top-10-poster-wrap { 
+        width: 100% !important; 
+        height: 100% !important; 
+    }
+    .top-10-number { 
+        font-size: 110px !important; 
+        left: -18px !important; 
+        bottom: -5px !important;
+    }
+
+    /* 4. Carrousel des plateformes à 3 cartes */
+    .platforms-grid { gap: 8px !important; }
+    .platform-card { 
+        flex: 0 0 31% !important; 
+        height: auto !important; 
+        aspect-ratio: 16 / 9 !important; 
+    }
+    /* 5. Ajustements Bannière Hero pour Mobile (Movix Style) */
+    .hero-carousel { 
+        width: 100% !important; /* Reprend toute la largeur sur petit écran */
+        border-radius: 0 !important; /* Pas de bords ronds sur mobile */
+        margin-top: 0 !important;
+        height: 60vh !important; 
+        min-height: 400px !important; 
+    }
+  
+    .hero-content { 
+        bottom: 12% !important; 
+        left: 5% !important; 
+        right: 5% !important; 
+        max-width: 100% !important; 
+        text-align: center; /* Centre le texte sur mobile */
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+    }
+    .hero-title { font-size: 32px !important; margin: 10px 0 !important; }
+    .hero-desc { font-size: 13px !important; margin-bottom: 20px !important; }
+    .hero-buttons { justify-content: center; width: 100%; }
+    .btn-play-hero, .btn-info-hero { padding: 10px 20px !important; font-size: 13px !important; }
+    .hero-controls { bottom: 3% !important; } /* Baisse la barre de progression */
+}
+/* ========================================= */
+/* TOP 10 AVEC CHIFFRES DEVANT L'IMAGE (PC)  */
+/* ========================================= */
+.top-10-slider { 
+    padding-left: 20px; 
+    padding-bottom: 40px !important; 
+}
+.top-10-card { 
+    flex: 0 0 250px; 
+    height: 290px; 
+    scroll-snap-align: start; 
+    position: relative; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    display: flex; 
+    align-items: flex-end; 
+    justify-content: flex-end; 
+    margin-right: 15px; 
+    overflow: visible; 
+}
+.top-10-card:hover { transform: scale(1.05) translateY(-5px); z-index: 15; }
+
+/* Chiffre positionné DEVANT (z-index supérieur) */
+.top-10-number { 
+    font-size: 210px; 
+    font-weight: 900; 
+    line-height: 0.8; 
+    position: absolute; 
+    left: -10px; 
+    bottom: 0px; 
+    z-index: 5; 
+    transition: 0.3s; 
+    font-family: 'Arial Black', Impact, sans-serif; 
+    color: var(--dark); 
+    -webkit-text-stroke: 4px #555; 
+    text-shadow: 8px 8px 15px rgba(0,0,0,0.8); 
+    pointer-events: none; 
+    letter-spacing: -5px; 
+}
+.top-10-card:hover .top-10-number { -webkit-text-stroke: 4px var(--primary); color: transparent; }
+
+/* L'affiche se place derrière le chiffre (z-index inférieur) */
+.top-10-poster-wrap { 
+    width: 175px; 
+    height: 100%; 
+    position: relative; 
+    z-index: 1; 
+    border-radius: 6px; 
+    overflow: hidden; 
+    border: 1px solid #333; 
+    box-shadow: 0 5px 25px rgba(0,0,0,0.9); 
+}
+.top-10-poster { width: 100%; height: 100%; background-size: cover; background-position: center; }
+ /* --- STYLE POUR LA RECHERCHE DE SAGAS --- */
+        .saga-search-item { padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #333; transition: 0.2s; }
+        .saga-search-item:hover { background: var(--primary); color: black; }
+        .saga-search-item img { width: 35px; height: 50px; object-fit: cover; border-radius: 4px; }
+        .saga-chip { background: #111; padding: 6px 15px 6px 6px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: bold; border: 1px solid #444; }
+        .saga-chip img { width: 25px; height: 35px; object-fit: cover; border-radius: 20px; }
+        .saga-chip i { cursor: pointer; color: #ff4c4c; font-size: 15px; margin-left: 5px; transition: 0.2s; }
+        .saga-chip i:hover { color: #ff0000; transform: scale(1.2); }
+        
+        </style>
 </head>
 <body class="no-scroll">
 
@@ -797,13 +1139,15 @@ function closeCover() {
     <nav id="main-nav">
         <ul class="nav-links">
             <li class="nav-item">
-                <a id="nav-all" class="nav-link active" onclick="closeProfilePage(); setCategory('all'); toggleMobileMenu()"><i class="fas fa-home"></i> ACCUEIL</a>
+                <a id="nav-all" class="nav-link active" onclick="closeProfilePage(); showHome(); toggleMobileMenu()">
+                    <i class="fas fa-home"></i> ACCUEIL
+                </a>
             </li>
             <li class="nav-item">
-            <a id="nav-catalogue" class="nav-link" onclick="closeProfilePage(); showCatalogue(); toggleMobileMenu()">
-                <i class="fas fa-book"></i> CATALOGUE
-            </a>
-           </li>
+                <a id="nav-catalogue" class="nav-link" onclick="closeProfilePage(); showCatalogue(); toggleMobileMenu()">
+                    <i class="fas fa-book"></i> CATALOGUE
+                </a>
+            </li>
            <li class="nav-item">
             <a id="nav-wishboard" class="nav-link" onclick="closeProfilePage(); showWishboard(); toggleMobileMenu()">
                 <i class="fas fa-star"></i> WISHBOARD
@@ -850,7 +1194,169 @@ function closeCover() {
         </div>
     </div>
     </header>
+<div id="home-page">
+        <div class="hero-carousel" id="hero-carousel">
+            <div id="hero-slides-container"></div>
+            <div class="hero-gradient-overlay"></div>
+            
+            <div class="hero-controls">
+                <div id="hero-dots" style="display: flex; gap: 8px; align-items: center;"></div>
+                <i class="fas fa-pause hero-pause-play" id="hero-pause-btn" onclick="toggleHeroPlay()"></i>
+            </div>
+        </div>
 
+<div class="slider-section">
+    <h2 class="slider-title">PLATEFORMES DE STREAMING</h2>
+    
+    <div style="position: relative;">
+        <button class="slider-arrow plat-arrow left" onclick="scrollSlider('platforms-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+        
+        <div class="platforms-grid" id="platforms-slider">
+            
+            <div class="platform-card" onclick="performSearch('Netflix')">
+                <img src="https://u.cubeupload.com/mystic/8df6ce62504c1ab31aab.png" alt="Netflix" class="plat-logo">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/hd7jyV_dMS8AAAPo/netflix-media-services-provider.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('Disney')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg" alt="Disney" class="plat-logo">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/h6-0yzk8pbAAAAPo/disney-disney-plus.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('Pixar')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/40/Pixar_logo.svg" alt="Pixar" class="plat-logo" style="filter: invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/35ILor7SH8QAAAPo/is-da-best.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('Marvel')">
+                <img src="https://u.cubeupload.com/mystic/hUzeosd33nzE5MCNsZxC.png" alt="Marvel" class="plat-logo">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://i.giphy.com/media/vBjLa5DQwwxbi/giphy.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('Prime')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/Amazon_Prime_Video_logo.svg" alt="Prime Video" class="plat-logo" style="filter: brightness(0) invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/jRIcyhRf9YYAAAPo/amazon-prime-video.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('Paramount')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Paramount_Plus.svg/960px-Paramount_Plus.svg.png" alt="Paramount+" class="plat-logo">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/5kb_E-h0LmYAAAPo/paramount-plus-paramount-global.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('Warner')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/64/Warner_Bros_logo.svg" alt="Warner Bros" class="plat-logo">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://i.giphy.com/media/3o7TKt3pMpzozdUsus/giphy.mp4" type="video/mp4">
+                </video>
+            </div>
+
+             <div class="platform-card" onclick="performSearch('Apple TV')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Apple_TV_Plus_Logo.svg/960px-Apple_TV_Plus_Logo.svg.png" alt="Apple TV" class="plat-logo">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/Oxl9xEn7kTEAAAPo/applo-tv.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('DC')">
+                <img src="https://u.cubeupload.com/mystic/2Tc1P3Ac8M479naPp1kY.png" alt="DC Comics" class="plat-logo" style="filter: invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/ag74wyAzYkMAAAPo/dc-comics-dceu.mp4" type="video/mp4">
+                </video>
+            </div>
+
+             <div class="platform-card" onclick="performSearch('20th')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/20th_Century_Fox_Family_logo.svg/960px-20th_Century_Fox_Family_logo.svg.png" alt="20th" class="plat-logo" style="filter: invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/4B2j48N2jMUAAAPo/20th-century-fox-logo.mp4" type="video/mp4">
+                </video>
+            </div>
+
+<div class="platform-card" onclick="performSearch('MGM')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/MGM%2B_logo.svg/1280px-MGM%2B_logo.svg.png" alt="MGM+" class="plat-logo" style="filter: brightness(0) invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/21h0ALGJH4YAAAPo/roar.mp4" type="video/mp4">
+                </video>
+            </div>
+
+            <div class="platform-card" onclick="performSearch('HBO')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/de/HBO_logo.svg" alt="HBO" class="plat-logo" style="filter: invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/7xmvr-fKGLMAAAPo/hbo-max-warner-bros-pictures.mp4" type="video/mp4">
+                </video>
+            </div>
+            
+<div class="platform-card" onclick="performSearch('Dreamworks')">
+                <img src="https://upload.wikimedia.org/wikipedia/fr/5/55/1024px-DreamWorks_Animation_SKG_logo_with_fishing_boy.png" alt="Dreamworks" class="plat-logo" style="filter: invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/6fbyjzbHLTQAAAPo/dreamworks-animation.mp4" type="video/mp4">
+                </video>
+            </div>
+
+        </div>
+        
+        <button class="slider-arrow plat-arrow right" onclick="scrollSlider('platforms-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+</div>
+        
+        <div class="slider-section">
+            <h2 class="slider-title"><i class="fas fa-fire fire-icon"></i> TENDANCES DU JOUR</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('top10-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider top-10-slider" id="top10-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('top10-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">TENDANCES</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('tendances-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="tendances-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('tendances-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section" id="home-sagas-container">
+            <h2 class="slider-title">LES SAGAS INCONTOURNABLES</h2>
+            <div class="netflix-slider" id="home-sagas-slider"></div>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">FILMS POPULAIRES</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('populaires-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="populaires-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('populaires-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">SÉRIES RÉCENTES</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('series-recentes-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="series-recentes-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('series-recentes-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">FILMS RÉCENTS</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('films-recents-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="films-recents-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('films-recents-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">AVENTURE</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('aventure-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="aventure-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('aventure-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
     <div id="profile-page" class="profile-page-wrapper">
         <div class="profile-page-inner">
             
@@ -1214,15 +1720,19 @@ function closeCover() {
         </div>
     </div>
 
-    <div id="admin-overlay">
+ <div id="admin-overlay">
         <div class="admin-modal">
             <div class="admin-header">
                 <h2 id="admin-title-text"><i class="fas fa-palette"></i> Menu de création</h2>
                 <button class="admin-close" onclick="closeAdmin()">×</button>
             </div>
             
-            <div class="form-group"><label><i class="fas fa-popcorn"></i> Titre *</label><input type="text" id="add-title" class="form-input" placeholder="Titre du contenu"></div>
+            <div style="background: #111; border: 1px solid var(--primary); padding: 15px; border-radius: 5px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="tmdb-import-input" class="form-input" placeholder="Titre du film/série ou ID TMDB..." style="flex: 1; border-color: #333; min-width: 200px;">
+                <button class="btn-submit" onclick="importFromTMDB()" style="background: var(--primary); color: black; min-width: 150px; font-weight: bold;"><i class="fas fa-magic"></i> Auto-Remplir</button>
+            </div>
             
+            <div class="form-group"><label><i class="fas fa-popcorn"></i> Titre *</label><input type="text" id="add-title" class="form-input" placeholder="Titre du contenu"></div>  
             <div style="display:flex; gap:10px; flex-wrap: wrap;" id="admin-row-year-rating">
                 <div class="form-group" style="flex:1;"><label><i class="fas fa-calendar"></i> Année</label><input type="number" id="add-year" class="form-input" placeholder="Ex: 2025"></div>
                 <div class="form-group" style="flex:1;"><label><i class="fas fa-star"></i> Note (sur 10)</label><input type="number" id="add-rating" class="form-input" placeholder="Ex: 8.5" step="0.1" max="10"></div>
@@ -1235,11 +1745,10 @@ function closeCover() {
 
             <div class="form-group" id="admin-row-dir"><label><i class="fas fa-video"></i> Réalisateur</label><input type="text" id="add-dir" class="form-input" placeholder="Nom du réalisateur"></div>
             <div class="form-group" id="admin-row-cast"><label><i class="fas fa-users"></i> Acteurs</label><input type="text" id="add-cast" class="form-input" placeholder="Acteurs principaux"></div>
-
-            <div class="form-group"><label><i class="fas fa-pen"></i> Description *</label><textarea id="add-desc" class="form-textarea" placeholder="Synopsis..."></textarea></div>
-            <div class="form-group" id="admin-row-trailer"><label><i class="fas fa-play"></i> Bande-Annonce (YouTube)</label><input type="text" id="add-trailer" class="form-input" placeholder="Lien YouTube ou ID"></div>
-            <div class="form-group"><label><i class="fas fa-image"></i> Image (Affiche verticale) *</label><input type="text" id="add-poster" class="form-input" placeholder="Lien de l'image"></div>
+<div class="form-group"><label><i class="fas fa-align-left"></i> Synopsis</label><textarea id="add-desc" class="form-textarea" placeholder="Résumé du film..."></textarea></div>
+<div class="form-group" id="admin-row-trailer"><label><i class="fas fa-play"></i> Bande-Annonce (YouTube)</label><input type="text" id="add-trailer" class="form-input" placeholder="Lien YouTube ou ID"></div>            <div class="form-group"><label><i class="fas fa-image"></i> Image (Affiche verticale) *</label><input type="text" id="add-poster" class="form-input" placeholder="Lien de l'image"></div>
             
+            <div class="form-group"><label><i class="fas fa-desktop"></i> Image de fond (Bannière HD TMDB)</label><input type="text" id="add-backdrop" class="form-input" placeholder="Lien généré par TMDB"></div> 
             <div class="form-group">
                 <label><i class="fas fa-mobile"></i> Catégorie *</label>
                 <select id="add-type" class="form-select" onchange="toggleTypeUI()">
@@ -1270,15 +1779,18 @@ function closeCover() {
                 <div id="episodes-container"></div>
             </div>
 
-            <div id="saga-inputs" style="display: none; border-top: 1px solid #333; padding-top: 10px;">
-                <div style="background:#111; padding:10px; border:1px solid #333; margin-bottom:10px;">
-                    <label style="color:var(--danger); font-size: 14px;"><i class="fas fa-image"></i> Image de fond (Paysage)</label>
-                    <p style="font-size: 10px; color: #888; margin-bottom: 5px;">Image très large qui sera floutée derrière la saga.</p>
-                    <div class="form-group"><input type="text" id="add-saga-bg" class="form-input" placeholder="Lien de l'image de fond"></div>
+          <div id="saga-fields" style="display:none; margin-top:15px; padding:15px; background:rgba(255,255,255,0.05); border-radius:5px;">
+                <div class="form-group"><label><i class="fas fa-image"></i> Image de fond Saga (Bannière HD)</label><input type="text" id="add-saga-bg" class="form-input" placeholder="Lien de l'image"></div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-film"></i> Sélection des films de la Saga</label>
+                    <input type="hidden" id="add-saga-movies">
                     
-                    <label style="color:var(--danger); font-size: 14px; margin-top: 15px; display: block;"><i class="fas fa-link"></i> Ordre des films</label>
-                    <p style="font-size: 10px; color: #888; margin-bottom: 5px;">Trouve les ID dans "Mode Développeur". Sépare les ID par une virgule (Ex: custom_123, custom_456).</p>
-                    <div class="form-group"><input type="text" id="add-saga-movies" class="form-input" placeholder="ID film 1, ID film 2..."></div>
+                    <div style="position:relative;">
+                        <input type="text" id="saga-movie-search" class="form-input" placeholder="Rechercher un film à ajouter (ex: Harry Potter)..." oninput="searchSagaMovies()">
+                        <div id="saga-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; background:#222; border:1px solid #444; max-height:250px; overflow-y:auto; z-index:100; border-radius:0 0 5px 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.8);"></div>
+                    </div>
+                    <div id="saga-selected-movies" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;"></div>
                 </div>
             </div>
             
@@ -1414,12 +1926,8 @@ function closeCover() {
     let isVipUser = false;
     let hasAccess = false; 
     let moviesDB = [];
-    const GENRES_LIST = ["Action", "Aventure", "Animation", "Disney", "Dreamworks", "Marvel", "DC", "Comédie", "Crime", "Drame", "Fantastique", "Guerre","Documentaire", "Histoire", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western"];
-    const ITEMS_PER_PAGE = 18; 
-    let currentPage = 1; 
-    let currentCategory = 'all'; 
-    let currentGenreFilter = 'all'; 
-    let currentYearFilter = 'all'; 
+    const ITEMS_PER_PAGE = 30;
+const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney", "Pixar", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all'; 
     let filteredList = []; 
     let currentMovie = null;
     let isEditing = false; 
@@ -1467,9 +1975,7 @@ function closeCover() {
         initMegaMenu(); 
         renderAdminGenres(); 
 
-        document.getElementById('home-logo').onclick = () => { closeProfilePage(); setCategory('all'); };
-        
-        const searchInput = document.getElementById('searchInput');
+   document.getElementById('home-logo').onclick = () => { closeProfilePage(); showHome(); };    const searchInput = document.getElementById('searchInput');
         if(searchInput) {
             searchInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') performSearch(); });
             searchInput.addEventListener('input', function(e) {
@@ -1493,7 +1999,7 @@ function closeCover() {
             });
         }
 
-        setCategory('all'); // Affichera un loader car moviesDB est encore vide !
+      showCatalogue(); // Lance directement le catalogue au chargement// Affichera un loader car moviesDB est encore vide !
     };
 
     // --- 3. TUNNEL D'ACCÈS & AUTHENTIFICATION ---
@@ -1685,12 +2191,14 @@ function closeCover() {
     }
 
     // --- 4. PROFIL & PARAMETRES ---
-    function openProfilePage() {
+   function openProfilePage() {
         if(!currentUser) return;
         document.body.classList.add('no-scroll');
-        document.getElementById('profile-page').style.display = 'block';
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
         document.getElementById('wishboard-page').style.display = 'none';
         document.querySelector('.main-container').style.display = 'none';
+        document.getElementById('profile-page').style.display = 'block';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
 
         document.getElementById('prof-page-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         document.getElementById('prof-page-name').innerText = currentUser.username;
@@ -1833,8 +2341,8 @@ function closeCover() {
             }
         } catch (error) { 
             console.error("Erreur serveur", error); 
-        } finally {
-            updateGrid();
+       } finally {
+            showHome(); // <-- Lance le mode Netflix par défaut !
         }
     }
 
@@ -1912,9 +2420,7 @@ function closeCover() {
 
         // GESTION DE L'AFFICHAGE DU CARROUSEL SAGA
         const sagasSection = document.getElementById('sagas-section');
-        const isHome = document.getElementById('nav-all').classList.contains('active');
-        
-        if (sagasSection) {
+const isHome = document.getElementById('nav-all') && document.getElementById('nav-all').classList.contains('active');        if (sagasSection) {
             if (!isSpecialMode && currentCategory === 'all' && currentGenreFilter === 'all' && currentYearFilter === 'all' && currentPage === 1 && document.getElementById('searchInput').value === '' && isHome) {
                 sagasSection.style.display = 'block';
                 initSagas(); 
@@ -1947,9 +2453,13 @@ function closeCover() {
         }
     }
 
-    function initMegaMenu() {
-        const studios = ["Marvel", "DC", "Disney", "Dreamworks"];
-        const filmNav = document.getElementById('nav-film').nextElementSibling; 
+function initMegaMenu() {
+        // Ajout de MGM+ pour le menu déroulant :
+        const studios = ["Marvel", "DC", "Disney", "Pixar", "Dreamworks", "Apple TV", "Paramount", "MGM+", "20th Century Fox"];      
+        
+        // LA LIGNE MANQUANTE QUI FAISAIT TOUT PLANTER EST CELLE-CI :
+        const filmNav = document.getElementById('nav-film').nextElementSibling;
+        
         let filmHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('film', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); setFilter('film', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Tous les Films</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('film', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('film', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('film', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('film', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-film-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('film')"><button onclick="event.stopPropagation(); applyMenuYear('film')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
         filmNav.innerHTML = filmHTML;
 
@@ -1957,62 +2467,108 @@ function closeCover() {
         let serieHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('serie', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); setFilter('serie', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Toutes les Séries</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('serie', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('serie', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-serie-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('serie')"><button onclick="event.stopPropagation(); applyMenuYear('serie')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
         serieNav.innerHTML = serieHTML;
     }
-
-    function setCategory(cat) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; document.getElementById('pag-bar').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1; document.getElementById('searchInput').value = ''; const globalInput = document.getElementById('year-filter-input'); if(globalInput) globalInput.value = ''; updateNavActive(cat); updateGrid(); }
-    function setFilter(cat, genre) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; document.getElementById('pag-bar').style.display = 'flex'; currentCategory = cat; currentGenreFilter = genre; currentYearFilter = 'all'; currentPage = 1; const globalInput = document.getElementById('year-filter-input'); if(globalInput) globalInput.value = ''; updateNavActive(cat); updateGrid(); }
-    function updateNavActive(cat) { document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); let navBtn = document.getElementById('nav-' + cat); if(navBtn) navBtn.classList.add('active'); }
+   function setCategory(cat) { 
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; // Cache l'accueil Netflix
+        document.getElementById('wishboard-page').style.display = 'none'; 
+        document.querySelector('.main-container').style.display = 'flex'; 
+        document.getElementById('pag-bar').style.display = 'flex'; 
+        currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1; 
+        document.getElementById('searchInput').value = ''; 
+        const globalInput = document.getElementById('year-filter-input'); 
+        if(globalInput) globalInput.value = ''; 
+        updateNavActive(cat); 
+        updateGrid(); 
+    }
+    
+    function setFilter(cat, genre) { 
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; // Cache l'accueil Netflix
+        document.getElementById('wishboard-page').style.display = 'none'; 
+        document.querySelector('.main-container').style.display = 'flex'; 
+        document.getElementById('pag-bar').style.display = 'flex'; 
+        currentCategory = cat; currentGenreFilter = genre; currentYearFilter = 'all'; currentPage = 1; 
+        const globalInput = document.getElementById('year-filter-input'); 
+        if(globalInput) globalInput.value = ''; 
+        updateNavActive(cat); 
+        updateGrid(); 
+    }  function updateNavActive(cat) { document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); let navBtn = document.getElementById('nav-' + cat); if(navBtn) navBtn.classList.add('active'); }
     function changeSort() { currentSort = document.getElementById('sort-select').value; currentPage = 1; updateGrid(); }
     function applyGlobalYear() { const inputVal = document.getElementById('year-filter-input').value.trim(); if (inputVal && inputVal.length === 4) { currentYearFilter = inputVal; currentPage = 1; updateGrid(); } }
     function clearGlobalYear() { document.getElementById('year-filter-input').value = ''; currentYearFilter = 'all'; currentPage = 1; updateGrid(); }
     function setYearFilter(cat, year) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = year; currentPage = 1; const globalYearInput = document.getElementById('year-filter-input'); if(globalYearInput) globalYearInput.value = year; updateNavActive(cat); updateGrid(); }
     function applyMenuYear(cat) { const input = document.getElementById('menu-' + cat + '-year'); const y = input.value.trim(); if (y && y.length === 4) { setYearFilter(cat, y); closeMobileMenu(); } }
 
-    function performSearch(forcedQuery = null) {
-        closeProfilePage();
+function performSearch(forcedQuery = null) {
+        if (typeof closeProfilePage === 'function') closeProfilePage();
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
         document.getElementById('wishboard-page').style.display = 'none';
+        if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
+        
         document.querySelector('.main-container').style.display = 'flex';
         document.getElementById('pag-bar').style.display = 'flex'; 
         
         const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
         document.getElementById('grid').style.display = 'grid'; document.querySelector('.section-title').style.display = 'flex';
         
-        const query = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
+        const rawQuery = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
         if(forcedQuery) document.getElementById('searchInput').value = forcedQuery;
         
-        if(query === '') { setCategory('all'); return; }
+        if(rawQuery === '') { showCatalogue(); return; }
         
         currentPage = 1; 
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
-        document.getElementById('cat-title').innerText = `Résultats pour : "${query}"`;
+        document.getElementById('cat-title').innerText = `Résultats pour : "${forcedQuery || rawQuery}"`;
         
+const smartKeywords = {
+            'dc': ['dc', 'dc comics', 'batman', 'superman', 'wonder woman', 'the flash', 'aquaman', 'justice league', 'joker', 'harley quinn', 'arrow', 'peacemaker', 'suicide squad', 'man of steel'],
+            'marvel': ['marvel', 'avengers', 'iron man', 'spider-man', 'thor', 'captain america', 'x-men', 'deadpool', 'wolverine', 'hulk', 'guardians', 'loki', 'venom', 'les 4 fantastiques', 'nouveaux mutants', 'logan', 'shang-chi'],
+            'pixar': ['pixar', 'toy story', 'nemo', 'cars', 'indestructibles', 'monstres', 'ratatouille', 'coco', 'vice-versa', 'buzz l\'éclair'],
+            'disney': ['disney', 'star wars', 'jedi', 'mandalorian', 'darth', 'luke skywalker', 'clone wars', 'andor', 'obi-wan', 'boba fett', 'roi lion', 'mulan', 'aladdin', 'reine des neiges', 'pirates des caraibes', 'mickey', 'encanto', 'vaiana', 'tron', 'la belle au bois dormant', 'zootopie', 'bluey'],
+            'warner': ['warner', 'harry potter', 'matrix', 'lord of the rings', 'seigneur des anneaux', 'hobbit', 'dune', 'godzilla', 'kong', 'mad max', 'furiosa', 'ça', 'pacific rim', 'the bride'],
+            'hbo': ['hbo', 'game of thrones', 'house of the dragon', 'last of us', 'sopranos', 'euphoria', 'true detective', 'succession'],
+            'prime': ['prime', 'amazon', 'the boys', 'rings of power', 'spider-noir', 'fallout', 'reacher', 'terminal list', 'omni-man', 'jack ryan', 'road house', 'crime 101', 'projet dernière chance', 'reconnu coupable', 'the beekeeper'],
+            'netflix': ['netflix','jojo','stranger things','one piece','war machine','peaky blinders','nature prédatrice', 'witcher', 'lupin', 'casa de papel', 'squid game', 'wednesday', 'black mirror', 'arcane', 'troll'],
+            'apple tv': ['apple', 'apple tv', 'the gorge', 'ted lasso', 'severance', 'silo', 'morning show', 'foundation', 'monarch', 'f1', 'napoléon'],
+            '20th': ['20th', '20th century', 'fox', 'alien', 'predator', 'planète des singes', 'die hard', 'kingsman', 'avatar', 'x-men', 'wolverine', 'logan', 'fight club', 'free guy', 'nouveaux mutants', 'toys'],
+            'paramount': ['paramount', 'top gun', 'mission impossible', 'halo', 'yellowstone', 'transformers', 'sonic', 'south park', 'star trek', 'gladiator', 'scream', 'forrest gump'],
+            'dreamworks': ['dreamworks', 'dragons', 'shrek', 'kung fu panda', 'madagascar'],
+            'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from']
+        };
+
+        const searchTerms = smartKeywords[rawQuery] || [rawQuery];
+
         filteredList = moviesDB.filter(m => {
-            if (m.type === 'saga') return false; // Cache les sagas de la recherche
-            const inTitle = m.title && m.title.toLowerCase().includes(query);
-            const inCast = m.cast && m.cast.toLowerCase().includes(query);
-            const inDir = m.dir && m.dir.toLowerCase().includes(query);
-            return inTitle || inCast || inDir;
+            if (m.type === 'saga') return false; 
+            const textToSearch = [m.title || "", m.cast || "", m.dir || "", m.desc || "", m.genre || ""].join(' ').toLowerCase();
+            return searchTerms.some(term => {
+                const regex = new RegExp('\\b' + term + '\\b', 'i');
+                return regex.test(textToSearch);
+            });
         });
+
         updateGrid(true); 
     }
     
-    function showCatalogue() {
-        document.getElementById('wishboard-page').style.display = 'none'; 
+function showCatalogue() {
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; 
         document.querySelector('.main-container').style.display = 'flex'; 
-        document.getElementById('pag-bar').style.display = 'flex';
+        document.getElementById('wishboard-page').style.display = 'none';
+        if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
         
-        // FORCE la fermeture de la saga si elle était ouverte
-        const sagaPage = document.getElementById('saga-details-page');
-        if(sagaPage) sagaPage.style.display = 'none';
         document.getElementById('grid').style.display = 'grid';
         document.querySelector('.section-title').style.display = 'flex';
+        document.getElementById('pag-bar').style.display = 'flex';
 
         document.getElementById('cat-title').innerText = `Catalogue Complet`;
         currentCategory = 'all'; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1;
         
-        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); 
-        document.getElementById('nav-catalogue').classList.add('active');
+        // C'est cette ligne qui recharge bien TOUS les films !
+        filteredList = moviesDB.filter(m => m.type !== 'saga');
         
-        updateGrid();
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); 
+        if(document.getElementById('nav-catalogue')) document.getElementById('nav-catalogue').classList.add('active');
+        
+        updateGrid(true); 
     }
 
     // --- 6. GESTION DU LECTEUR ET MODALES ---
@@ -2333,8 +2889,7 @@ function closeCover() {
         
         document.getElementById('film-inputs').style.display = ty === 'film' ? 'block' : 'none'; 
         document.getElementById('serie-inputs').style.display = ty === 'serie' ? 'block' : 'none'; 
-        document.getElementById('saga-inputs').style.display = isSaga ? 'block' : 'none'; 
-        
+document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none';        
         document.getElementById('admin-row-year-rating').style.display = isSaga ? 'none' : 'flex';
         document.getElementById('admin-row-genre').style.display = isSaga ? 'none' : 'block';
         document.getElementById('admin-row-dir').style.display = isSaga ? 'none' : 'block';
@@ -2342,9 +2897,10 @@ function closeCover() {
         document.getElementById('admin-row-trailer').style.display = isSaga ? 'none' : 'block';
     } 
 
-    function clearForm() { 
+   function clearForm() { 
         document.getElementById('add-title').value = ""; 
         document.getElementById('add-poster').value = ""; 
+        document.getElementById('add-backdrop').value = ""; // NOUVEAU
         document.getElementById('add-iframe').value = ""; 
         document.getElementById('add-iframe-uqload').value = ""; 
         document.getElementById('add-iframe-vostfr').value = ""; 
@@ -2360,13 +2916,17 @@ function closeCover() {
         document.getElementById('add-trailer').value = ""; 
         document.getElementById('add-saga-bg').value = "";
         document.getElementById('add-saga-movies').value = "";
-    }
+    if(typeof selectedSagaMovies !== 'undefined') {
+            selectedSagaMovies = [];
+            updateSagaUI();
+            document.getElementById('saga-movie-search').value = "";
+        }}
 
     function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
     
     function openAdmin() { isEditing = false; editingId = null; document.getElementById('admin-title-text').innerText = "Création"; document.getElementById('btn-save-movie').innerText = "Envoyer"; document.getElementById('btn-delete-movie').style.display = 'none'; clearForm(); toggleTypeUI(); document.getElementById('admin-overlay').style.display = 'flex'; }
     
-    function openEditMode() { 
+   function openEditMode() { 
         if(!currentMovie) return; 
         isEditing = true; 
         editingId = currentMovie.id; 
@@ -2382,6 +2942,7 @@ function closeCover() {
         document.getElementById('add-cast').value = currentMovie.cast || ""; 
         document.getElementById('add-desc').value = currentMovie.desc || ""; 
         document.getElementById('add-poster').value = currentMovie.poster || ""; 
+        document.getElementById('add-backdrop').value = currentMovie.backdrop || ""; // NOUVEAU
         document.getElementById('add-type').value = currentMovie.type || "film"; 
         
         toggleTypeUI(); 
@@ -2403,9 +2964,11 @@ function closeCover() {
                     b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; 
                 } 
             }); 
-        } else if (currentMovie.type === 'saga') {
+       } else if (currentMovie.type === 'saga') {
             document.getElementById('add-saga-bg').value = currentMovie.iframe_premium || "";
             document.getElementById('add-saga-movies').value = currentMovie.cast || "";
+            selectedSagaMovies = currentMovie.cast ? currentMovie.cast.split(',').map(s => s.trim()).filter(s => s) : [];
+            if(typeof updateSagaUI === "function") updateSagaUI();
         }
         
         document.getElementById('admin-overlay').style.display = 'flex'; 
@@ -2416,8 +2979,11 @@ function closeCover() {
         linkedWishId = null; 
     }
 
-    async function saveMovie() {
-        const t = document.getElementById('add-title').value, p = document.getElementById('add-poster').value;
+async function saveMovie() {
+        const t = document.getElementById('add-title').value;
+        const p = document.getElementById('add-poster').value;
+        const b = document.getElementById('add-backdrop').value; // NOUVEAU
+        
         if(!t || !p) { alert("Titre et image obligatoires !"); return; }
         
         let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
@@ -2433,7 +2999,7 @@ function closeCover() {
         let finalGenre = selG.join(', ');
 
         if (ty === 'serie') {
-            epL = []; document.getElementById('episodes-container').childNodes.forEach((b, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: b.querySelector('.ep-prem-vf').value, iframe_uqload: b.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: b.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: b.querySelector('.ep-uql-vostfr').value }));
+            epL = []; document.getElementById('episodes-container').childNodes.forEach((bl, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: bl.querySelector('.ep-prem-vf').value, iframe_uqload: bl.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: bl.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: bl.querySelector('.ep-uql-vostfr').value }));
         } else if (ty === 'saga') {
             finalCast = document.getElementById('add-saga-movies').value;
             finalIframe = document.getElementById('add-saga-bg').value;
@@ -2442,7 +3008,9 @@ function closeCover() {
         
         const mD = { 
             id: isEditing ? editingId : 'custom_' + Date.now(), 
-            type: ty, title: t, year: finalYear, poster: p, rating: finalRating, genre: finalGenre, desc: document.getElementById('add-desc').value, dir: finalDir, cast: finalCast, trailer_iframe: finalTrailer, iframe_premium: finalIframe, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
+            type: ty, title: t, year: finalYear, 
+            poster: p, backdrop: b, // NOUVEAU
+            rating: finalRating, genre: finalGenre, desc: document.getElementById('add-desc').value, dir: finalDir, cast: finalCast, trailer_iframe: finalTrailer, iframe_premium: finalIframe, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
         };
         
         const token = localStorage.getItem('monBadgeCineLK10');
@@ -2473,15 +3041,17 @@ function closeCover() {
     }
 
     // --- WISHBOARD ---
-    function showWishboard() {
+ function showWishboard() {
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('profile-page').style.display = 'none';
         document.getElementById('wishboard-page').style.display = 'block';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
-        document.getElementById('nav-wishboard').classList.add('active');
+        if(document.getElementById('nav-wishboard')) document.getElementById('nav-wishboard').classList.add('active');
         loadWishes();
     }
-
     function openWbRequestModal() {
         if(!currentUser) { alert("Tu dois être connecté pour faire une demande."); document.getElementById('auth-switch').click(); return; }
         document.getElementById('wb-request-modal').style.display = 'flex'; wbGoToStep1();
@@ -3006,13 +3576,372 @@ function closeCover() {
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    function closeSaga() {
+ function closeSaga() {
         document.getElementById('saga-details-page').style.display = 'none';
-        document.getElementById('grid').style.display = 'grid'; 
-        document.getElementById('pag-bar').style.display = 'flex';
-        document.querySelector('.section-title').style.display = 'flex';
-        updateGrid(); 
+        if(document.getElementById('nav-catalogue') && document.getElementById('nav-catalogue').classList.contains('active')) {
+            document.querySelector('.main-container').style.display = 'flex';
+            document.getElementById('grid').style.display = 'grid'; 
+            document.getElementById('pag-bar').style.display = 'flex';
+            document.querySelector('.section-title').style.display = 'flex';
+            updateGrid(); 
+        } else {
+            showHome();
+        }
     }
+    // ==========================================
+    // MOTEUR PAGE D'ACCUEIL NETFLIX
+    // ==========================================
+    let heroInterval;
+    let isHeroPlaying = true;
+    let currentHeroIndex = 0;
+    let heroMovies = [];
+
+    // Afficher la page d'accueil
+    function showHome() {
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'flex';
+        document.querySelector('.main-container').style.display = 'none';
+        document.getElementById('wishboard-page').style.display = 'none';
+        document.getElementById('profile-page').style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        const navHome = document.getElementById('nav-all');
+        if(navHome) navHome.classList.add('active');
+
+        buildNetflixHome();
+    }
+
+function buildNetflixHome() {
+        if (!moviesDB || moviesDB.length === 0) return;
+
+        // --- FILTRE : On met de côté les films Harry Potter pour éviter l'invasion ---
+        const allItems = moviesDB.filter(m => m.type !== 'saga');
+        const itemsWithoutHP = allItems.filter(m => !m.title.toLowerCase().includes('harry potter'));
+        
+        // 1. BANNIÈRE GÉANTE HERO : 3 nouveautés (sans HP) + 1 film au hasard + 1 série au hasard
+        const recent3 = [...itemsWithoutHP].reverse().slice(0, 3); 
+        
+        const otherFilms = itemsWithoutHP.filter(m => m.type === 'film' && !recent3.includes(m));
+        const randomFilm = otherFilms.length > 0 ? otherFilms[Math.floor(Math.random() * otherFilms.length)] : null;
+        
+        const otherSeries = itemsWithoutHP.filter(m => m.type === 'serie' && !recent3.includes(m));
+        const randomSerie = otherSeries.length > 0 ? otherSeries[Math.floor(Math.random() * otherSeries.length)] : null;
+        
+        heroMovies = [...recent3];
+        if (randomFilm) heroMovies.push(randomFilm);
+        if (randomSerie) heroMovies.push(randomSerie);
+        
+        renderHeroCarousel();
+
+        // 2. TOP 10 TENDANCES DU JOUR : Les 10 mieux notés du site (on garde HP si leurs notes sont tops)
+        const top10 = [...allItems].sort((a, b) => b.rating - a.rating).slice(0, 10);
+        buildTop10Slider('top10-slider', top10);
+
+        // 3. TENDANCES CLASSIQUES : Mélange des 50 derniers ajouts (sans HP)
+        const tendances = [...itemsWithoutHP].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
+        buildStandardSlider('tendances-slider', tendances);
+
+        // 4. CARROUSEL DES SAGAS : Reste intact pour afficher ta collection Harry Potter
+        const sagasContainer = document.getElementById('home-sagas-slider');
+        sagasContainer.innerHTML = '';
+        SAGAS_DB = moviesDB.filter(m => m.type === 'saga').map(m => ({ id: m.id, title: m.title, poster: m.poster, bg: m.iframe_premium || m.poster, desc: m.desc, movies: m.cast ? m.cast.split(',').map(id => id.trim()) : [] }));
+        SAGAS_DB.forEach(saga => {
+            const card = document.createElement('div'); card.className = 'netflix-card'; card.onclick = () => { if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; openSaga(saga.id); };
+            card.innerHTML = `<div class="badge-card">SAGA</div><div class="netflix-poster" style="background-image: url('${saga.poster}')"></div>`;
+            sagasContainer.appendChild(card);
+        });
+
+        // 5. FILMS POPULAIRES : Les 30 films les mieux notés
+        const filmsPopulaires = [...moviesDB].filter(m => m.type === 'film').sort((a, b) => b.rating - a.rating).slice(0, 30);
+        buildStandardSlider('populaires-slider', filmsPopulaires);
+        
+        // 6. SÉRIES RÉCENTES : Les 30 dernières séries ajoutées
+        const seriesRecentes = [...moviesDB].filter(m => m.type === 'serie').reverse().slice(0, 30);
+        buildStandardSlider('series-recentes-slider', seriesRecentes);
+        
+        // 7. FILMS RÉCENTS : Les 30 derniers films (sans HP)
+        const filmsRecents = [...itemsWithoutHP].filter(m => m.type === 'film').reverse().slice(0, 30);
+        buildStandardSlider('films-recents-slider', filmsRecents);
+        
+        // 8. AVENTURE : Les 30 derniers films d'Aventure
+        const aventures = [...moviesDB].filter(m => m.genre && m.genre.includes('Aventure')).reverse().slice(0, 30);
+        buildStandardSlider('aventure-slider', aventures);
+    }
+
+    function renderHeroCarousel() {
+        const container = document.getElementById('hero-slides-container');
+        const dotsContainer = document.getElementById('hero-dots');
+        container.innerHTML = ''; dotsContainer.innerHTML = '';
+
+        heroMovies.forEach((m, index) => {
+            const slide = document.createElement('div');
+            slide.className = `hero-slide ${index === 0 ? 'active' : ''}`;
+            
+            // ON UTILISE LE BACKDROP HD ICI, ou le poster si pas de backdrop.
+            slide.style.backgroundImage = `url('${m.backdrop || m.poster}')`; 
+            
+            slide.innerHTML = `
+                <div class="hero-content">
+                    <div style="display:flex; align-items:center; margin-bottom:10px;">
+                        <span class="hero-type">${m.type === 'serie' ? 'SÉRIE' : 'FILM'}</span>
+                        <span class="hero-rating"><i class="fas fa-star"></i> ${m.rating || "N/A"}</span>
+                    </div>
+                    <h1 class="hero-title">${m.title}</h1>
+                    <p class="hero-desc">${m.desc}</p>
+                    <div class="hero-buttons">
+                        <button class="btn-play-hero" onclick="openP('${m.id}')"><i class="fas fa-play"></i> Lecture</button>
+                        <button class="btn-info-hero" onclick="openP('${m.id}')"><i class="fas fa-info-circle"></i> Plus d'infos</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(slide);
+
+            const dot = document.createElement('div');
+            dot.className = `hero-dot ${index === 0 ? 'active' : ''}`;
+            dot.innerHTML = `<div class="progress-fill"></div>`;
+            dot.onclick = () => goToHeroSlide(index);
+            dotsContainer.appendChild(dot);
+        });
+
+        startHeroInterval();
+    }
+
+    function startHeroInterval() {
+        clearInterval(heroInterval);
+        document.getElementById('hero-pause-btn').className = "fas fa-pause hero-pause-play";
+        document.querySelector('.hero-controls').classList.add('playing');
+        isHeroPlaying = true;
+        heroInterval = setInterval(() => {
+            goToHeroSlide((currentHeroIndex + 1) % heroMovies.length);
+        }, 8000); // 8 secondes
+    }
+
+    function toggleHeroPlay() {
+        const btn = document.getElementById('hero-pause-btn');
+        const controls = document.querySelector('.hero-controls');
+        if (isHeroPlaying) {
+            clearInterval(heroInterval);
+            controls.classList.remove('playing');
+            btn.className = "fas fa-play hero-pause-play";
+            isHeroPlaying = false;
+        } else {
+            controls.classList.add('playing');
+            // Force reset animation
+            const activeDotFill = document.querySelector('.hero-dot.active .progress-fill');
+            if(activeDotFill) {
+                activeDotFill.style.animation = 'none';
+                activeDotFill.offsetHeight; /* trigger reflow */
+                activeDotFill.style.animation = null; 
+            }
+            startHeroInterval();
+        }
+    }
+
+    function goToHeroSlide(index) {
+        currentHeroIndex = index;
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.hero-dot');
+        
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+        
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+
+        if (isHeroPlaying) startHeroInterval(); // Reset le timer
+    }
+
+    // --- GÉNÉRATEURS DE CARROUSELS ---
+    function buildStandardSlider(containerId, moviesList) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        moviesList.forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'netflix-card';
+            card.onclick = () => openP(m.id);
+            card.innerHTML = `
+                <div class="badge-card">${m.type.toUpperCase()}</div>
+                <div class="netflix-poster" style="background-image: url('${m.poster}')"></div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function buildTop10Slider(containerId, moviesList) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        moviesList.forEach((m, index) => {
+            const card = document.createElement('div');
+            card.className = 'top-10-card';
+            card.onclick = () => openP(m.id);
+            card.innerHTML = `
+                <div class="top-10-number">${index + 1}</div>
+                <div class="top-10-poster-wrap">
+                    <div class="badge-card">${m.type.toUpperCase()}</div>
+                    <div class="top-10-poster" style="background-image: url('${m.poster}')"></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Fonction pour les flèches des sliders
+    function scrollSlider(sliderId, direction) {
+        const slider = document.getElementById(sliderId);
+        const scrollAmount = slider.clientWidth * 0.8; // Scroll de 80% de la largeur
+        slider.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+    // --- IMPORTATION AUTOMATIQUE TMDB ---
+    // --- IMPORTATION AUTOMATIQUE TMDB ---
+ async function importFromTMDB(forcedQuery = null) {
+        const query = forcedQuery || document.getElementById('tmdb-import-input').value.trim();
+        if (!query) return alert("Veuillez entrer un Titre ou un ID TMDB.");
+        
+        const type = document.getElementById('add-type').value || 'film';
+        const endpointType = type === 'serie' ? 'tv' : 'movie';
+        let idToFetch = query;
+        
+        if (isNaN(query)) {
+            try {
+                const searchRes = await fetch(`https://api.themoviedb.org/3/search/${endpointType}?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}`);
+                const searchData = await searchRes.json();
+                if (!searchData.results || searchData.results.length === 0) return alert("Aucun résultat trouvé sur TMDB pour ce titre.");
+                idToFetch = searchData.results[0].id;
+            } catch (e) { return alert("Erreur lors de la recherche TMDB."); }
+        }
+        
+        try {
+            const res = await fetch(`https://api.themoviedb.org/3/${endpointType}/${idToFetch}?api_key=${TMDB_API_KEY}&language=fr-FR&append_to_response=credits,videos`);
+            const data = await res.json();
+            
+            if (data.status_code === 34) return alert("ID TMDB introuvable.");
+            
+            document.getElementById('add-title').value = data.title || data.name || "";
+            document.getElementById('add-desc').value = data.overview || "";
+            document.getElementById('add-poster').value = data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : "";
+            
+            // IMPORTATION HD DE LA BANNIÈRE (BACKDROP ORIGINAL)
+// IMPORTATION HD DE LA BANNIÈRE (BACKDROP ORIGINAL)
+document.getElementById('add-backdrop').value = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : "";            
+            document.getElementById('add-year').value = data.release_date ? data.release_date.substring(0, 4) : (data.first_air_date ? data.first_air_date.substring(0, 4) : "");
+            document.getElementById('add-rating').value = data.vote_average ? data.vote_average.toFixed(1) : "";
+            
+            if (data.credits && data.credits.crew) {
+                const dirs = data.credits.crew.filter(c => c.job === 'Director').map(d => d.name);
+                if (dirs.length > 0) document.getElementById('add-dir').value = dirs.join(', ');
+                else if (data.created_by) document.getElementById('add-dir').value = data.created_by.map(c => c.name).join(', ');
+            }
+            if (data.credits && data.credits.cast) { document.getElementById('add-cast').value = data.credits.cast.slice(0, 6).map(c => c.name).join(', '); }
+            
+            if (data.videos && data.videos.results) {
+                const trailer = data.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || data.videos.results.find(v => v.site === 'YouTube');
+                if (trailer) document.getElementById('add-trailer').value = trailer.key;
+            }
+            
+            let detectedTags = data.genres ? data.genres.map(g => g.name) : [];
+            let studios = [];
+            if (data.production_companies) data.production_companies.forEach(c => studios.push(c.name.toLowerCase()));
+            if (data.networks) data.networks.forEach(n => studios.push(n.name.toLowerCase()));
+            
+            const platformMapping = { 'netflix': 'Netflix', 'amazon': 'Prime', 'prime': 'Prime', 'disney': 'Disney', 'pixar': 'Pixar', 'lucasfilm': 'Star Wars', 'marvel': 'Marvel', 'dc ': 'DC', 'dc comics': 'DC', 'dc entertainment': 'DC', 'dc films': 'DC', 'warner': 'Warner', 'hbo': 'HBO', 'max': 'HBO', 'apple': 'Apple TV', 'paramount': 'Paramount', '20th century': '20th Century Fox', 'fox': '20th Century Fox' };
+            
+            studios.forEach(studio => {
+                for (const [key, value] of Object.entries(platformMapping)) {
+                    if (studio === 'dc' && key === 'dc ') { if (!detectedTags.includes(value)) detectedTags.push(value); }
+                    else if (studio.includes(key)) { if (!detectedTags.includes(value)) detectedTags.push(value); }
+                }
+            });
+            
+            document.querySelectorAll('.admin-genre-checkbox').forEach(cb => { detectedTags.forEach(tag => { if (tag.toLowerCase().replace('-', ' ') === cb.value.toLowerCase().replace('-', ' ')) { cb.checked = true; } }); });
+            
+            document.getElementById('tmdb-import-input').value = '';
+            alert(`Succès ! Les infos pour "${data.title || data.name}" ont été remplies.`);
+            
+        } catch (e) { console.error(e); alert("Erreur d'importation TMDB."); }
+    }
+
+    // --- On modifie aussi "Accepter (Créer)" du Wishboard pour qu'il utilise l'Auto-remplissage !
+    function adminAcceptWish(wishId) {
+        const wish = wishesList.find(w => w._id === wishId); if(!wish) return;
+        closeWbModals(); 
+        document.getElementById('wishboard-page').style.display = 'none'; 
+        document.querySelector('.main-container').style.display = 'flex'; 
+        openAdmin();
+        
+        document.getElementById('add-type').value = (wish.type === 'tv' || wish.type === 'anime') ? 'serie' : 'film'; 
+        toggleTypeUI();
+        linkedWishId = wishId;
+        
+        // Lance la recherche TMDB automatiquement !
+        importFromTMDB(wish.tmdbId);
+    }
+    // ==========================================
+    // RECHERCHE INTELLIGENTE POUR LES SAGAS
+    // ==========================================
+    let selectedSagaMovies = []; 
+
+    function searchSagaMovies() {
+        const query = document.getElementById('saga-movie-search').value.toLowerCase().trim();
+        const resultsContainer = document.getElementById('saga-search-results');
+        
+        if (query.length < 2) { resultsContainer.style.display = 'none'; return; }
+
+        const matches = moviesDB.filter(m => m.type === 'film' && m.title.toLowerCase().includes(query) && !selectedSagaMovies.includes(m.id));
+        
+        if (matches.length === 0) {
+            resultsContainer.innerHTML = '<div style="padding:10px; color:#888;">Aucun film trouvé...</div>';
+            resultsContainer.style.display = 'block';
+            return;
+        }
+
+        resultsContainer.innerHTML = matches.map(m => {
+            return `
+            <div class="saga-search-item" onclick="addMovieToSaga('${m.id}')">
+                <img src="${m.poster || ''}" alt="">
+                <span>${m.title}</span>
+            </div>
+            `;
+        }).join('');
+        resultsContainer.style.display = 'block';
+    }
+
+    function addMovieToSaga(id) {
+        if (!selectedSagaMovies.includes(id)) {
+            selectedSagaMovies.push(id);
+            updateSagaUI();
+        }
+        document.getElementById('saga-movie-search').value = '';
+        document.getElementById('saga-search-results').style.display = 'none';
+    }
+
+    function removeMovieFromSaga(id) {
+        selectedSagaMovies = selectedSagaMovies.filter(movieId => movieId !== id);
+        updateSagaUI();
+    }
+
+    function updateSagaUI() {
+        document.getElementById('add-saga-movies').value = selectedSagaMovies.join(',');
+        const container = document.getElementById('saga-selected-movies');
+        container.innerHTML = selectedSagaMovies.map(id => {
+            const m = moviesDB.find(movie => movie.id === id);
+            if (!m) return '';
+            return `
+                <div class="saga-chip">
+                    <img src="${m.poster}" alt="">
+                    <span>${m.title}</span>
+                    <i class="fas fa-times" onclick="removeMovieFromSaga('${m.id}')"></i>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Ferme le menu déroulant si on clique ailleurs
+    document.addEventListener('click', function(e) {
+        if(e.target.id !== 'saga-movie-search') {
+            const res = document.getElementById('saga-search-results');
+            if(res) res.style.display = 'none';
+        }
+    });
 </script>
 </body>
 </html>
