@@ -2533,15 +2533,31 @@ const smartKeywords = {
             'dreamworks': ['dreamworks', 'dragons', 'shrek', 'kung fu panda', 'madagascar'],
             'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from']
         };
-
-        const searchTerms = smartKeywords[rawQuery] || [rawQuery];
+// 1. On force la recherche en minuscules pour être sûr que ça corresponde à la liste
+        const safeQuery = rawQuery.toLowerCase().trim();
+        
+        // 2. On détecte si c'est un clic sur le logo d'une plateforme
+        const isPlatformSearch = smartKeywords.hasOwnProperty(safeQuery);
+        const searchTerms = smartKeywords[safeQuery] || [safeQuery];
 
         filteredList = moviesDB.filter(m => {
             if (m.type === 'saga') return false; 
-            const textToSearch = [m.title || "", m.cast || "", m.dir || "", m.desc || "", m.genre || ""].join(' ').toLowerCase();
+            
+            // fullText : on cherche partout (pour la barre de recherche manuelle en haut)
+            const fullText = [m.title || "", m.cast || "", m.dir || "", m.desc || "", m.genre || ""].join(' ').toLowerCase();
+            
+            // strictText : on cherche UNIQUEMENT dans le Titre et le Genre !
+            const strictText = [m.title || "", m.genre || ""].join(' ').toLowerCase();
+            
             return searchTerms.some(term => {
                 const regex = new RegExp('\\b' + term + '\\b', 'i');
-                return regex.test(textToSearch);
+                
+                // 3. Application du filtre intelligent
+                if (isPlatformSearch) {
+                    return regex.test(strictText); // Plus aucune erreur avec les acteurs ou résumés !
+                } else {
+                    return regex.test(fullText); // Laisse la recherche manuelle fonctionner normalement
+                }
             });
         });
 
