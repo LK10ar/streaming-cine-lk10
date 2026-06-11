@@ -3953,17 +3953,24 @@ async function saveMovie() {
 function buildNetflixHome() {
         if (!moviesDB || moviesDB.length === 0) return;
 
-        // --- FILTRE : On met de côté les films Harry Potter pour éviter l'invasion ---
+        // --- FILTRES POUR ÉVITER L'INVASION DES SAGAS ---
         const allItems = moviesDB.filter(m => m.type !== 'saga');
         const itemsWithoutHP = allItems.filter(m => !m.title.toLowerCase().includes('harry potter'));
         
-        // 1. BANNIÈRE GÉANTE HERO : 3 nouveautés (sans HP) + 1 film au hasard + 1 série au hasard
-        const recent3 = [...itemsWithoutHP].reverse().slice(0, 3); 
+        // On exclut Harry Potter ET Fast & Furious spécifiquement pour la grande bannière Hero
+        const itemsForHero = allItems.filter(m => 
+            !m.title.toLowerCase().includes('harry potter') && 
+            !m.title.toLowerCase().includes('fast') && 
+            !m.title.toLowerCase().includes('furious')
+        );
         
-        const otherFilms = itemsWithoutHP.filter(m => m.type === 'film' && !recent3.includes(m));
+        // 1. BANNIÈRE GÉANTE HERO : 3 nouveautés (sans HP ni Fast) + 1 film au hasard + 1 série au hasard
+        const recent3 = [...itemsForHero].reverse().slice(0, 3); 
+        
+        const otherFilms = itemsForHero.filter(m => m.type === 'film' && !recent3.includes(m));
         const randomFilm = otherFilms.length > 0 ? otherFilms[Math.floor(Math.random() * otherFilms.length)] : null;
         
-        const otherSeries = itemsWithoutHP.filter(m => m.type === 'serie' && !recent3.includes(m));
+        const otherSeries = itemsForHero.filter(m => m.type === 'serie' && !recent3.includes(m));
         const randomSerie = otherSeries.length > 0 ? otherSeries[Math.floor(Math.random() * otherSeries.length)] : null;
         
         heroMovies = [...recent3];
@@ -3972,7 +3979,7 @@ function buildNetflixHome() {
         
         renderHeroCarousel();
 
-        // 2. TOP 10 TENDANCES DU JOUR : Les 10 mieux notés du site (on garde HP si leurs notes sont tops)
+        // 2. TOP 10 TENDANCES DU JOUR : Les 10 mieux notés du site
         const top10 = [...allItems].sort((a, b) => b.rating - a.rating).slice(0, 10);
         buildTop10Slider('top10-slider', top10);
 
@@ -3980,7 +3987,7 @@ function buildNetflixHome() {
         const tendances = [...itemsWithoutHP].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('tendances-slider', tendances);
 
-        // 4. CARROUSEL DES SAGAS : Reste intact pour afficher ta collection Harry Potter
+        // 4. CARROUSEL DES SAGAS : Reste intact
         const sagasContainer = document.getElementById('home-sagas-slider');
         sagasContainer.innerHTML = '';
         SAGAS_DB = moviesDB.filter(m => m.type === 'saga').map(m => ({ id: m.id, title: m.title, poster: m.poster, bg: m.iframe_premium || m.poster, desc: m.desc, movies: m.cast ? m.cast.split(',').map(id => id.trim()) : [] }));
@@ -3998,7 +4005,7 @@ function buildNetflixHome() {
         const seriesRecentes = [...moviesDB].filter(m => m.type === 'serie').reverse().slice(0, 30);
         buildStandardSlider('series-recentes-slider', seriesRecentes);
         
-        // 7. FILMS RÉCENTS : Les 30 derniers films (sans HP)
+        // 7. FILMS RÉCENTS : Les 30 derniers films
         const filmsRecents = [...itemsWithoutHP].filter(m => m.type === 'film').reverse().slice(0, 30);
         buildStandardSlider('films-recents-slider', filmsRecents);
         
