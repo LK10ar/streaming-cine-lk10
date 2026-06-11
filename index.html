@@ -302,9 +302,12 @@
         /* ================================================== */
         /* ============ WISHBOARD (DEMANDES - GLOBAL PC) ==== */
         /* ================================================== */
-        #wishboard-page { display: none; padding: 30px; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; animation: fadeIn 0.3s ease; }
-        .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }
-        .wb-title-area h1 { font-size: 40px; font-family: 'Georgia', serif; color: white; margin: 5px 0; }
+       /* ================================================== */
+        /* ============ WISHBOARD (DEMANDES - GLOBAL PC) ==== */
+        /* ================================================== */
+        #wishboard-page { display: none; padding: 30px; padding-bottom: 100px; max-width: 1400px; margin: 0 auto; width: 100%; flex: 1; animation: fadeIn 0.3s ease; }
+        #wb-grid { padding-bottom: 60px; }
+        .wb-header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }    .wb-title-area h1 { font-size: 40px; font-family: 'Georgia', serif; color: white; margin: 5px 0; }
         .wb-title-area span.subtitle { color: var(--primary); font-size: 12px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
         .wb-stats { color: #888; font-size: 13px; display: flex; align-items: center; gap: 15px; margin-top: 5px; }
         .wb-search-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 20px; padding: 10px 20px; display: flex; align-items: center; width: 300px; max-width: 100%; }
@@ -351,17 +354,73 @@
         .wb-btn-submit:hover { background: #e6c800; transform: scale(1.05); }
         
         /* --- DESIGN DES CARTES WISHBOARD --- */
-        .wish-card { background: #1a1a1a; border-radius: 5px; overflow: hidden; cursor: pointer; transition: 0.3s; padding-bottom: 10px; position: relative; border: 1px solid #333; counter-increment: wish-rank; }
-        .wish-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(255,222,0,0.2); }
+        /* --- DESIGN DES CARTES WISHBOARD --- */
+        .wish-card { 
+            background: #1a1a1a; 
+            border-radius: 5px; 
+            /* On a SUPPRIMÉ overflow: hidden; ici pour que les bulles puissent sortir de la carte ! */
+            cursor: pointer; 
+            transition: 0.3s; 
+            padding-bottom: 10px; 
+            position: relative; 
+            border: 1px solid #333; 
+            counter-increment: wish-rank; 
+        }
+        .wish-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(255,222,0,0.2); z-index: 20; }
         .wish-card.no-rank::before { display: none !important; }
-        .wish-card:not(.no-rank)::before { content: "#" counter(wish-rank); position: absolute; top: -10px; left: -10px; background: var(--primary); color: black; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 3px solid #1a1a1a; z-index: 10; }
-        .wish-poster { width: 100%; height: 220px; background-size: cover; background-position: center; position: relative; }
-        .wish-status-badge { position: absolute; top: 10px; left: 10px; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 3px; color: white; background: rgba(0,0,0,0.8); }
+        
+        /* La bulle de classement (#1) */
+        .wish-card:not(.no-rank)::before { 
+            content: "#" counter(wish-rank); 
+            position: absolute; 
+            top: -12px; 
+            left: -12px; 
+            background: var(--primary); 
+            color: black; 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 14px; 
+            border: 3px solid #1a1a1a; 
+            z-index: 10; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        
+        /* L'affiche avec le vrai format cinéma ! */
+        .wish-poster { 
+            width: 100%; 
+            aspect-ratio: 2 / 3; /* C'est cette ligne qui force le rectangle parfait ! */
+            height: auto; 
+            background-size: cover; 
+            background-position: center; 
+            position: relative; 
+            border-radius: 5px 5px 0 0; /* On arrondit seulement le haut de l'image */
+            overflow: hidden; /* On coupe ce qui dépasse UNIQUEMENT à l'intérieur de l'image */
+        }
+        
+        /* Le badge de statut (En attente, Ajouté...) déplacé à DROITE */
+        .wish-status-badge { 
+            position: absolute; 
+            top: 8px; 
+            right: 8px; /* On le met à droite pour ne pas toucher le numéro */
+            left: auto; /* Supprime l'ancien alignement à gauche */
+            font-size: 10px; 
+            font-weight: bold; 
+            padding: 4px 8px; 
+            border-radius: 3px; 
+            color: white; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 5;
+        }
         .wish-status-badge.attente { border-left: 3px solid #ccc; }
         .wish-status-badge.cours { border-left: 3px solid #f39c12; }
         .wish-status-badge.ajoute { border-left: 3px solid #2ecc71; }
-        .wish-votes { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; font-weight: bold; padding: 5px 10px; border-radius: 5px; font-size: 12px; display: flex; align-items: center; gap: 5px; border: 1px solid #555; }
         
+        .wish-votes { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.8); color: white; font-weight: bold; padding: 5px 10px; border-radius: 5px; font-size: 12px; display: flex; align-items: center; gap: 5px; border: 1px solid #555; z-index: 5; }
         /* Design de la timeline d'historique */
         .timeline-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; position: relative; }
         .timeline-item::before { content: ''; position: absolute; left: -21px; top: 5px; width: 10px; height: 10px; background: #555; border-radius: 50%; }
@@ -1053,7 +1112,8 @@
         .saga-chip img { width: 25px; height: 35px; object-fit: cover; border-radius: 20px; }
         .saga-chip i { cursor: pointer; color: #ff4c4c; font-size: 15px; margin-left: 5px; transition: 0.2s; }
         .saga-chip i:hover { color: #ff0000; transform: scale(1.2); }
-        
+
+
         </style>
 </head>
 <body class="no-scroll">
@@ -1398,61 +1458,239 @@ function closeCover() {
                 </div>
             </div>
 
-            <div class="prof-filters-container">
+         <div class="prof-filters-container">
                 <button id="pfilter-all" class="prof-filter-btn active" onclick="setProfTypeFilter('all')">Tout</button>
                 <button id="pfilter-film" class="prof-filter-btn" onclick="setProfTypeFilter('film')"><i class="fas fa-film"></i> Films</button>
                 <button id="pfilter-serie" class="prof-filter-btn" onclick="setProfTypeFilter('serie')"><i class="fas fa-tv"></i> Séries</button>
             </div>
-<div id="sagas-section" style="display: none; margin-bottom: 30px;">
-            <h2 class="sagas-section-title"><i class="fas fa-fire"></i> Les Sagas Incontournables</h2>
-            <div class="sagas-carousel" id="sagas-carousel"></div>
-        </div>
-
-      <div id="saga-details-page" style="display: none;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <button class="wb-btn-cancel" style="border:none; padding:0; font-size: 15px; color: #aaa;" onclick="closeSaga()">
-                    <i class="fas fa-arrow-left"></i> Retour au catalogue
-                </button>
-                <button class="edit-btn-player admin-btn" id="btn-edit-saga" style="position:static; display:none;"><i class="fas fa-pen"></i> Éditer la Saga</button>
-            </div>
-
-            <div class="saga-hero">
-                <div class="saga-hero-bg" id="saga-hero-bg"></div>
-                <div class="saga-hero-content">
-                    <img src="" id="saga-hero-poster" class="saga-hero-poster">
-                    <div class="saga-hero-info">
-                        <div class="saga-meta"><i class="fas fa-layer-group"></i> COLLECTION • <span id="saga-count">0</span> FILMS</div>
-                        <h1 id="saga-title">Titre Saga</h1>
-                        <p id="saga-desc">Description de la saga...</p>
-                    </div>
-                </div>
-            </div>
-            <h3 style="color: white; margin-bottom: 15px; font-size: 20px; border-left: 4px solid var(--danger); padding-left: 10px;">Films de la collection</h3>
-            <div class="movie-grid saga-grid" id="saga-movies-grid"></div>
-        </div>
-            <div class="movie-grid" id="profile-grid"></div>
+            
+       <div class="movie-grid" id="profile-grid"></div>
         </div>
     </div>
     
     <div class="main-container">
+
+        <div id="sagas-section" style="display: none; margin-bottom: 30px;">
+            <h2 class="sagas-section-title"><i class="fas fa-fire"></i> Les Sagas Incontournables</h2>
+            <div class="sagas-carousel" id="sagas-carousel"></div>
+        </div>
+
+<div id="saga-details-page" style="display: none; width:100%; margin-top:20px;">
+            <style>
+                /* MODIFICATION : Le wrapper principal devient semi-transparent pour laisser voir le fond du site */
+                .saga-details-wrapper { 
+                    width: 100%; 
+                    color: white; 
+                    background: rgba(21, 21, 21, 0.85); /* Fond noir à 85% d'opacité */
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                }
+
+                /* --- LE HÉROS (LA BANNIÈRE SUR FOND TRANSPARENT) --- */
+                .saga-hero-pro {
+                    position: relative;
+                    width: 100%;
+                    height: 550px;
+                    background-size: cover;
+                    background-position: center center;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: transparent; /* Force le fond transparent ici aussi */
+                }
+                
+                .saga-hero-gradient {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    /* Dégradé ajusté pour la transparence */
+                    background: linear-gradient(0deg, rgba(21,21,21,1) 0%, rgba(21,21,21,0.5) 50%, rgba(0,0,0,0) 100%);
+                    z-index: 1;
+                }
+                
+               .saga-hero-content-pro {
+                    position: relative;
+                    z-index: 2;
+                    width: 100%;
+                    padding: 40px 40px 20px 40px; /* Moins d'espace en bas pour la faire descendre */
+                    display: flex;
+                    flex-direction: row;
+                    align-items: flex-end; /* ÇA, c'est ce qui force l'image et le texte vers le bas */
+                    gap: 40px;
+                }
+                
+                .saga-poster-pro {
+                    width: 180px;
+                    height: 260px;
+                    object-fit: cover;
+                    border-radius: 6px;
+                    box-shadow: 0 5px 25px rgba(0,0,0,0.9);
+                    border: 2px solid rgba(255,255,255,0.2);
+                    flex-shrink: 0;
+                    transition: 0.3s;
+                }
+                .saga-poster-pro:hover { transform: scale(1.05); border-color: var(--primary); }
+                
+                .saga-info-pro {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: center;
+                    text-align: left;
+                }
+                
+                .saga-meta-pro {
+                    font-size: 13px;
+                    color: var(--primary);
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    margin-bottom: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    justify-content: flex-start;
+                }
+                
+                .saga-title-pro {
+                    font-size: 45px;
+                    font-weight: 900;
+                    color: white;
+                    text-transform: uppercase;
+                    margin: 0 0 15px 0;
+                    text-shadow: 3px 3px 15px rgba(0,0,0,0.9);
+                    line-height: 1.1;
+                    letter-spacing: 1px;
+                    text-align: left;
+                }
+                
+                .saga-desc-pro {
+                    font-size: 15px;
+                    color: #ddd;
+                    line-height: 1.6;
+                    margin: 0 0 20px 0; /* Marge bas pour les boutons */
+                    max-width: 700px;
+                    text-shadow: 1px 1px 5px rgba(0,0,0,0.9);
+                    text-align: left;
+                }
+
+                /* --- NOUVEAUX BOUTONS D'ACTION STYLISÉS --- */
+                .saga-actions-pro {
+                    display: flex;
+                    gap: 15px;
+                    margin-bottom: 20px;
+                }
+
+                .saga-btn-action {
+                    padding: 10px 20px;
+                    border-radius: 4px;
+                    border: 1px solid rgba(255,255,255,0.2);
+                    background: rgba(255,255,255,0.05);
+                    color: white;
+                    font-size: 14px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: 0.3s;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .saga-btn-action:hover {
+                    background: rgba(255,255,255,0.1);
+                    border-color: white;
+                }
+
+                /* Styles spécifiques pour l'état actif */
+                .saga-btn-action.active[id="btn-saga-fav"] { background-color: var(--danger); border-color: var(--danger); }
+                .saga-btn-action.active[id="btn-saga-wl"] { background-color: var(--primary); border-color: var(--primary); color: black; }
+                .saga-btn-action.active[id="btn-saga-top"] { background-color: #f1c40f; border-color: #f1c40f; color: black; }
+
+                
+                .saga-nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 10px; }
+                .saga-section-title-center { color: white; margin-top: 40px; margin-bottom: 30px; font-size: 22px; font-weight: 900; text-align: left; text-transform: uppercase; border-left: 5px solid var(--primary); padding-left: 15px; }
+
+                /* --- LA GRILLE 4 PAR 4 SÉCURISÉE (Inchangée) --- */
+                .saga-grid-4x4 { display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 20px; counter-reset: saga-counter; align-items: stretch; }
+                .pro-sg-card { background: #111; border-radius: 8px; overflow: hidden; position: relative; cursor: pointer; transition: 0.3s; border: 1px solid #222; display: flex; flex-direction: column; counter-increment: saga-counter; text-align: left !important; }
+                .pro-sg-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.6); }
+                .pro-sg-card::before { content: counter(saga-counter); position: absolute; top: 10px; left: 10px; background: var(--danger); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 13px; z-index: 20; box-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+                .pro-sg-poster { width: 100%; aspect-ratio: 2 / 3; background-size: cover; background-position: center; position: relative; border-bottom: 1px solid #222; }
+                .pro-sg-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; z-index: 10; border: 1px solid #333; }
+                .pro-sg-badge i { color: #f1c40f; }
+                .pro-sg-actions { position: absolute; top: 45px; right: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 10; opacity: 0; transition: 0.3s; }
+                .pro-sg-card:hover .pro-sg-actions { opacity: 1; }
+                .pro-sg-info { padding: 15px; display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: flex-start; text-align: left !important; }
+                .pro-sg-title { font-size: 15px; font-weight: bold; color: white; line-height: 1.3; margin: 0; text-transform: none; text-align: left !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+                .pro-sg-year { font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; margin: 0; text-align: left !important; }
+                .pro-sg-desc { font-size: 12px; color: #aaa; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: 0; text-align: left !important; }
+
+                @media (max-width: 1200px) { .saga-grid-4x4 { grid-template-columns: repeat(3, 1fr); } }
+                @media (max-width: 800px) { .saga-details-wrapper { background: rgba(21, 21, 21, 0.95); } .saga-hero-content-pro { flex-direction: column; align-items: center; text-align: center; } .saga-poster-pro { width: 140px; height: 210px; } .saga-title-pro { font-size: 32px; } .saga-meta-pro { justify-content: center; } .saga-info-pro { align-items: center; text-align: center; } .saga-desc-pro { text-align: center; } .saga-actions-pro { flex-wrap: wrap; justify-content: center; } .saga-grid-4x4 { grid-template-columns: repeat(2, 1fr); } }
+                @media (max-width: 500px) { .saga-grid-4x4 { grid-template-columns: 1fr; } .pro-sg-poster { aspect-ratio: 16 / 9; background-position: top center; } .saga-hero-pro { height: auto; padding: 20px 0;} .saga-title-pro {font-size: 28px;} }
+            </style>
+            
+            <div class="saga-details-wrapper">
+                <div class="saga-nav-bar">
+                    <button class="wb-btn-cancel" style="border:none; padding:8px 15px; font-size: 14px; color: #aaa; background: rgba(255,255,255,0.05); border-radius:4px; cursor:pointer;" onclick="closeSaga()" onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.color='#aaa'; this.style.background='rgba(255,255,255,0.05)'">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </button>
+                    <button class="edit-btn-player admin-btn" id="btn-edit-saga" style="position:static; display:none; background:#3498db; color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer; font-weight:bold;"><i class="fas fa-pen"></i> Éditer la Saga</button>
+                </div>
+
+                <div class="saga-hero-pro" id="saga-hero-pro">
+                    <div class="saga-hero-gradient"></div>
+                    <div class="saga-hero-content-pro">
+                        <img src="" id="saga-poster-pro" class="saga-poster-pro" alt="Affiche Saga">
+                        <div class="saga-info-pro">
+                            <div class="saga-meta-pro">
+                                <i class="fas fa-layer-group"></i> COLLECTION • <span id="saga-count-pro">0</span> FILMS
+                            </div>
+                            <h1 id="saga-title-pro">Titre de la Saga</h1>
+                            <p id="saga-desc-pro">Description...</p>
+
+                            <div class="saga-actions-pro">
+                                <button class="saga-btn-action" id="btn-saga-fav">
+                                    <i class="fas fa-heart"></i> Ajouter aux favoris
+                                </button>
+                                <button class="saga-btn-action" id="btn-saga-wl">
+                                    <i class="fas fa-clock"></i> À voir
+                                </button>
+                                <button class="saga-btn-action" id="btn-saga-top">
+                                    <i class="fas fa-trophy"></i> À mon top
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="saga-section-title-center">Films de la collection</h3>
+                <div class="saga-grid-4x4" id="saga-movies-grid"></div>
+            </div>
+        </div>
+
         <div class="section-title">
             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                 <button class="tab-btn" id="cat-title">Nouveautés</button>
-                
                 <select id="sort-select" style="background: #111; color: var(--primary); border: 1px solid #333; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; outline: none;" onchange="changeSort()">
                     <option value="date_desc">🕒 Plus récents d'abord</option>
                     <option value="date_asc">⏳ Plus anciens d'abord</option>
                     <option value="note_desc">⭐ Mieux notés</option>
                     <option value="alpha_asc">🔤 De A à Z</option>
                 </select>
-
                 <div style="display: flex; background: #111; border: 1px solid #333; border-radius: 4px; overflow: hidden; height: 32px;">
                     <input type="number" id="year-filter-input" placeholder="Année (ex: 2002)" style="background: transparent; border: none; color: white; padding: 0 10px; outline: none; width: 140px; font-size: 13px;" onkeypress="if(event.key === 'Enter') applyGlobalYear()">
                     <button onclick="applyGlobalYear()" style="background: #333; border: none; cursor: pointer; padding: 0 12px; color: white; transition: 0.3s;" onmouseover="this.style.background='var(--primary)'; this.style.color='black';" onmouseout="this.style.background='#333'; this.style.color='white';" title="Rechercher l'année"><i class="fas fa-search"></i></button>
                     <button onclick="clearGlobalYear()" style="background: var(--danger); border: none; cursor: pointer; padding: 0 12px; color: white;" title="Effacer le filtre"><i class="fas fa-times"></i></button>
                 </div>
             </div>
-            
             <button onclick="exportAllMovies()" class="admin-btn" style="background:none; border:none; color:#666; cursor:pointer; font-size:12px; margin-left:auto;">Mode Développeur (Tout)</button>
         </div>
         
@@ -1465,7 +1703,6 @@ function closeCover() {
         <div class="movie-grid" id="grid"></div>
         <div class="pagination" id="pag-bar"></div>
     </div>
-
     <footer>
         <div style="display:flex; flex-direction:column; align-items:center; margin-right:15px; text-align:center;">
             <span style="font-size:16px; color:#eee; margin-bottom:5px; font-weight:bold;">Rejoignez notre serveur Discord, cliquez sur le logo</span>
@@ -2252,7 +2489,7 @@ const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Crime", "Dr
         updateProfileGrid();
     }
 
-    function updateProfileGrid() {
+  function updateProfileGrid() {
         const grid = document.getElementById('profile-grid');
         grid.innerHTML = '';
         let list = [];
@@ -2281,7 +2518,18 @@ const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Crime", "Dr
             const div = document.createElement('div');
             div.className = 'movie-card';
             div.style.display = 'block';
-            div.onclick = () => { closeProfilePage(); openP(m.id); };
+            
+            // --- LA CORRECTION EST ICI ---
+            // On vérifie le type de contenu avant de l'ouvrir
+            div.onclick = () => { 
+                closeProfilePage(); 
+                if (m.type === 'saga') {
+                    openSaga(m.id); // Ouvre la belle page de la Saga
+                } else {
+                    openP(m.id); // Ouvre le lecteur pour les films et séries
+                }
+            };
+            
             div.innerHTML = `
                 <div class="card-actions">
                     <button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris"><i class="fas fa-heart"></i></button>
@@ -3562,13 +3810,68 @@ async function saveMovie() {
         });
     }
 
+// ==========================================
+    // OUVERTURE ET AFFICHAGE DES SAGAS (DESIGN PRO + FOND TRANSPARENT)
+    // ==========================================
     function openSaga(sagaId) {
+        // On récupère la saga dans ta base de données
         const saga = SAGAS_DB.find(s => s.id === sagaId); if(!saga) return;
-        document.getElementById('grid').style.display = 'none'; document.getElementById('pag-bar').style.display = 'none'; document.getElementById('sagas-section').style.display = 'none'; document.querySelector('.section-title').style.display = 'none';
-
+        
+        // --- 1. Gestion de l'affichage (Masquer le reste) ---
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
+        if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
+        if(document.getElementById('wishboard-page')) document.getElementById('wishboard-page').style.display = 'none';
+        
+        document.querySelector('.main-container').style.display = 'flex';
+        document.getElementById('grid').style.display = 'none'; 
+        document.getElementById('pag-bar').style.display = 'none'; 
+        if(document.getElementById('sagas-section')) document.getElementById('sagas-section').style.display = 'none'; 
+        document.querySelector('.section-title').style.display = 'none';
+        
+        // Afficher la page Saga
         document.getElementById('saga-details-page').style.display = 'block';
-        document.getElementById('saga-title').innerText = saga.title; document.getElementById('saga-desc').innerText = saga.desc; document.getElementById('saga-hero-poster').src = saga.poster; document.getElementById('saga-hero-bg').style.backgroundImage = `url('${saga.bg || saga.poster}')`; document.getElementById('saga-count').innerText = saga.movies.length;
 
+        // --- 2. Remplissage du nouveau Design Pro ---
+        const heroPro = document.getElementById('saga-hero-pro');
+        const bgProImageUrl = saga.bg || saga.poster; 
+        heroPro.style.backgroundImage = `url('${bgProImageUrl}')`; // APPLIQUE L'IMAGE DE FOND SUR LE HÉROS ENTIER
+
+        // L'affiche, le titre, la description et le compteur
+        document.getElementById('saga-poster-pro').src = saga.poster;
+        document.getElementById('saga-title-pro').innerText = saga.title; 
+        document.getElementById('saga-desc-pro').innerText = saga.desc || "Découvrez tous les films de cette collection incontournable."; 
+        document.getElementById('saga-count-pro').innerText = saga.movies.length;
+
+       // --- Gestion de l'état des nouveaux boutons d'action de la Saga ---
+        const btnFav = document.getElementById('btn-saga-fav');
+        const btnWl = document.getElementById('btn-saga-wl');
+        const btnTop = document.getElementById('btn-saga-top');
+
+        // Vérification des états dans tes bases de données
+        const isSagaFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === saga.id : item.id === saga.id);
+        const isSagaWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === saga.id : item.id === saga.id);
+        const isSagaTop = currentUser && currentUser.top && currentUser.top.some(item => typeof item === 'string' ? item === saga.id : item.id === saga.id);
+
+        // Application des couleurs si c'est déjà cliqué
+        if(isSagaFav) btnFav.classList.add('active'); else btnFav.classList.remove('active');
+        if(isSagaWl) btnWl.classList.add('active'); else btnWl.classList.remove('active');
+        if(isSagaTop) btnTop.classList.add('active'); else btnTop.classList.remove('active');
+
+        // CONNEXION AVEC TES FONCTIONS (Ce qui rend les boutons fonctionnels)
+        btnFav.onclick = (event) => { 
+            toggleFavorite(saga.id, event); 
+            btnFav.classList.toggle('active'); 
+        };
+        btnWl.onclick = (event) => { 
+            toggleWatchlater(saga.id, event); 
+            btnWl.classList.toggle('active'); 
+        };
+        btnTop.onclick = (event) => { 
+            toggleTop(saga.id, event); 
+            btnTop.classList.toggle('active'); 
+        };
+
+        // --- Gestion du bouton d'édition (Admin) ---
         const editBtn = document.getElementById('btn-edit-saga');
         if(editBtn) {
             if(isAdminUnlocked) {
@@ -3577,23 +3880,43 @@ async function saveMovie() {
             } else { editBtn.style.display = 'none'; }
         }
 
-        const sagaGrid = document.getElementById('saga-movies-grid'); sagaGrid.innerHTML = '';
+        // --- 3. Remplissage de la grille des films (Inchangé) ---
+        const sagaGrid = document.getElementById('saga-movies-grid'); 
+        sagaGrid.innerHTML = '';
 
         saga.movies.forEach(movieId => {
             const m = moviesDB.find(x => x.id === movieId);
             if(m) {
-                const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
-                const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);  
-                const div = document.createElement('div'); div.className = 'movie-card'; div.style.display = 'block'; div.onclick = () => openP(m.id);
-                div.innerHTML = `<div class="card-actions"><button class="card-action-btn card-fav-btn ${isFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleFavorite('${m.id}', event)" title="Favoris"><i class="fas fa-heart"></i></button><button class="card-action-btn card-wl-btn ${isWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleWatchlater('${m.id}', event)" title="À Voir"><i class="fas fa-clock"></i></button></div><div class="poster" style="background-image: url('${m.poster}')"><span class="badge b-hd">HD</span><div class="grid-rating">${m.rating || "-"}</div></div><div class="movie-info"><div class="movie-title">${m.title}</div></div>`;
+                const isMovieFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
+                const isMovieWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);  
+                
+                const div = document.createElement('div'); 
+                div.className = 'pro-sg-card'; 
+                div.onclick = () => openP(m.id);
+                
+                div.innerHTML = `
+                    <div class="pro-sg-poster" style="background-image: url('${m.poster}')">
+                        <div class="pro-sg-badge"><i class="fas fa-star"></i> ${m.rating || "N/A"}</div>
+                        <div class="pro-sg-actions">
+                            <button class="card-action-btn card-fav-btn ${isMovieFav ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite('${m.id}', event)" title="Favoris"><i class="fas fa-heart"></i></button>
+                            <button class="card-action-btn card-wl-btn ${isMovieWl ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleWatchlater('${m.id}', event)" title="À Voir"><i class="fas fa-clock"></i></button>
+                        </div>
+                    </div>
+                    <div class="pro-sg-info">
+                        <h4 class="pro-sg-title">${m.title}</h4>
+                        <div class="pro-sg-year"><i class="far fa-calendar-alt"></i> ${m.year || "Inconnu"}</div>
+                        <div class="pro-sg-desc">${m.desc || "Aucun résumé disponible."}</div>
+                    </div>`;
                 sagaGrid.appendChild(div);
             }
         });
+        
+        // On remonte tout en haut en douceur
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
-
- function closeSaga() {
+    function closeSaga() {
         document.getElementById('saga-details-page').style.display = 'none';
+        
         if(document.getElementById('nav-catalogue') && document.getElementById('nav-catalogue').classList.contains('active')) {
             document.querySelector('.main-container').style.display = 'flex';
             document.getElementById('grid').style.display = 'grid'; 
