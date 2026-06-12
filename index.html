@@ -3964,14 +3964,22 @@ function buildNetflixHome() {
             !m.title.toLowerCase().includes('furious')
         );
         
-        // 1. BANNIÈRE GÉANTE HERO : 3 nouveautés (sans HP ni Fast) + 1 film au hasard + 1 série au hasard
-        const recent3 = [...itemsForHero].reverse().slice(0, 3); 
+        // 1. BANNIÈRE GÉANTE HERO (NOUVELLE LOGIQUE) : Nouveautés 2026+ et anciens aléatoires
+        const nouveautes = itemsForHero.filter(m => parseInt(m.year) >= 2026);
+        let recent3 = [...nouveautes].reverse().slice(0, 3); 
         
-        const otherFilms = itemsForHero.filter(m => m.type === 'film' && !recent3.includes(m));
-        const randomFilm = otherFilms.length > 0 ? otherFilms[Math.floor(Math.random() * otherFilms.length)] : null;
+        // Sécurité : Si tu n'as pas encore ajouté au moins 2 films de 2026, on prend par défaut les derniers ajouts pour éviter que la bannière soit vide
+        if (recent3.length === 0) {
+            recent3 = [...itemsForHero].reverse().slice(0, 2);
+        }
+
+        // Un ancien film aléatoire (sorti avant 2026)
+        const anciensFilms = itemsForHero.filter(m => m.type === 'film' && parseInt(m.year) < 2026 && !recent3.includes(m));
+        const randomFilm = anciensFilms.length > 0 ? anciensFilms[Math.floor(Math.random() * anciensFilms.length)] : null;
         
-        const otherSeries = itemsForHero.filter(m => m.type === 'serie' && !recent3.includes(m));
-        const randomSerie = otherSeries.length > 0 ? otherSeries[Math.floor(Math.random() * otherSeries.length)] : null;
+        // Une ancienne série aléatoire (sortie avant 2026)
+        const anciennesSeries = itemsForHero.filter(m => m.type === 'serie' && parseInt(m.year) < 2026 && !recent3.includes(m));
+        const randomSerie = anciennesSeries.length > 0 ? anciennesSeries[Math.floor(Math.random() * anciennesSeries.length)] : null;
         
         heroMovies = [...recent3];
         if (randomFilm) heroMovies.push(randomFilm);
