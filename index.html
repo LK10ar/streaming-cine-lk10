@@ -2597,14 +2597,24 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
     }
 
     // --- 5. GESTION DU CATALOGUE (LOAD, GRID, MENU) ---
-   async function loadSecureMovies() {
+async function loadSecureMovies() {
         const token = localStorage.getItem('monBadgeCineLK10');
         if (!token) return;
         try {
             const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
             const data = await response.json();
             if (data.success) {
-                moviesDB = nettoyerLiensAbyss(data.movies); 
+                let rawMovies = nettoyerLiensAbyss(data.movies); 
+                
+                // ASTUCE MAGIQUE : On sépare l'Affiche et la Bannière cachées par le serveur
+                moviesDB = rawMovies.map(m => {
+                    if (m.poster && m.poster.includes('|||')) {
+                        let parts = m.poster.split('|||');
+                        m.poster = parts[0];
+                        m.backdrop = parts[1];
+                    }
+                    return m;
+                });
             }
         } catch (error) { 
             console.error("Erreur serveur", error); 
@@ -3291,9 +3301,12 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
 async function saveMovie() {
         const t = document.getElementById('add-title').value;
         const p = document.getElementById('add-poster').value;
-        const b = document.getElementById('add-backdrop').value; // NOUVEAU
+        const b = document.getElementById('add-backdrop').value; // La bannière HD
         
         if(!t || !p) { alert("Titre et image obligatoires !"); return; }
+        
+        // --- HACK : ON FUSIONNE LE POSTER ET LE BACKDROP POUR TROMPER LE SERVEUR ---
+        const finalPoster = b ? p + '|||' + b : p;
         
         let selG = []; document.querySelectorAll('.admin-genre-checkbox:checked').forEach(cb => selG.push(cb.value));
         const ty = document.getElementById('add-type').value; 
@@ -3318,7 +3331,7 @@ async function saveMovie() {
         const mD = { 
             id: isEditing ? editingId : 'custom_' + Date.now(), 
             type: ty, title: t, year: finalYear, 
-            poster: p, backdrop: b, // NOUVEAU
+            poster: finalPoster, // LE SERVEUR CROIT QU'IL N'Y A QU'UNE SEULE IMAGE !
             rating: finalRating, genre: finalGenre, desc: document.getElementById('add-desc').value, dir: finalDir, cast: finalCast, trailer_iframe: finalTrailer, iframe_premium: finalIframe, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
         };
         
