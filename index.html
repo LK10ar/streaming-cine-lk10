@@ -3718,7 +3718,7 @@ async function saveMovie() {
     // ==========================================
     // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
     // ==========================================
-    function editReportedMovie(movieId) {
+ function editReportedMovie(movieId) {
         closeAnalytics(); 
         const m = moviesDB.find(x => x.id === movieId); 
         if (m) {
@@ -3729,117 +3729,16 @@ async function saveMovie() {
         }
     }
 
-
-    // ==========================================
-    // SYSTEME DE SIGNALEMENT (FRONT-END)
-    // ==========================================
-    function openReportModal() {
-        if(!currentUser) { alert("Tu dois être connecté pour signaler un problème."); return; }
-        let mTitle = "ce contenu";
-        if (document.getElementById('dp-title')) { mTitle = document.getElementById('dp-title').innerText; }
-        document.getElementById('report-movie-title').innerText = mTitle;
-        document.querySelectorAll('input[name="reportType"]').forEach(cb => cb.checked = false);
-        document.getElementById('report-other-text').style.display = 'none';
-        document.getElementById('report-other-text').value = '';
-        document.getElementById('report-overlay').style.display = 'flex';
-    }
-
-    function closeReportModal() { document.getElementById('report-overlay').style.display = 'none'; }
-    function toggleReportOther(checkbox) { document.getElementById('report-other-text').style.display = checkbox.checked ? 'block' : 'none'; }
-
-    async function submitReport() {
-        const types = Array.from(document.querySelectorAll('input[name="reportType"]:checked')).map(cb => cb.value);
-        if(types.length === 0) { alert("Veuillez cocher au moins un problème."); return; }
-        let message = "";
-        if(types.includes("Autre")) {
-            message = document.getElementById('report-other-text').value;
-            if(!message.trim()) { alert("Veuillez décrire le problème dans le champ texte."); return; }
-        }
-
-        let mTitle = document.getElementById('report-movie-title').innerText;
-        let mId = "Inconnu";
-        if (typeof currentMovie !== 'undefined' && currentMovie) mId = currentMovie.id;
-
-        const payload = { movieId: mId, movieTitle: mTitle, types: types, message: message };
-        const token = localStorage.getItem('monBadgeCineLK10');
-        
-        try {
-            const res = await fetch(`${API_URL}/api/reports`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if(data.success) { alert("Merci ! Le problème a bien été signalé à l'administrateur."); closeReportModal(); } 
-            else { alert("Erreur lors de l'envoi."); }
-        } catch(e) { alert("Erreur de connexion au serveur."); }
-    }
-
-    async function resolveReport(reportId) {
-        if(!confirm("As-tu corrigé ce problème ? Le marquer comme résolu le retirera de cette liste.")) return;
-        const token = localStorage.getItem('monBadgeCineLK10');
-        try {
-            const res = await fetch(`${API_URL}/api/admin/reports/${reportId}/resolve`, { method: 'POST', headers: { 'authorization': token } });
-            if((await res.json()).success) { openAnalytics(); }
-        } catch(e) { alert("Erreur serveur."); }
-    }
-
-    async function openConfirmTrailer() {
-        if (!selectedTmdbItem) return;
-        let tmdbType = selectedTmdbItem.type === 'movie' ? 'movie' : 'tv'; 
-        let tmdbId = selectedTmdbItem.tmdbId;
-        try {
-            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`); 
-            let data = await resFr.json();
-            
-            if (!data.results || data.results.length === 0) { 
-                const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`); 
-                data = await resEn.json(); 
-            }
-            
-            if (data.results && data.results.length > 0) {
-                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube'); 
-                if (!video) { video = data.results.find(v => v.site === 'YouTube'); }
-                if (video) {
-                    const finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${video.key}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                    document.getElementById('trailer-video-container').innerHTML = finalHTML; 
-                    document.getElementById('trailer-overlay').style.display = 'flex'; 
-                    return;
-                }
-            }
-            alert("Aucune bande-annonce n'a été trouvée sur TMDB pour ce contenu.");
-        } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
-    }
-
-    function exportAllMovies() { 
-        const b = document.getElementById('dev-export-area'); 
-        b.style.display = b.style.display === 'block' ? 'none' : 'block'; 
-        document.getElementById('export-code').value = JSON.stringify(moviesDB, null, 2); 
-    }
-    
-    function copyCode() {
-        const copyText = document.getElementById("export-code");
-        copyText.select();
-        document.execCommand("copy");
-        alert("Code copié !");
-    }
-
-    // ==========================================
-    // MOTEUR ALÉATOIRE FUTURISTE
-    // ==========================================
- 
-// --- ANALYTICS (NON-BLOQUANT & INSTANTANÉ) ---
-   // --- ANALYTICS (NON-BLOQUANT & INSTANTANÉ) ---
     async function openAnalytics() {
         document.body.classList.add('no-scroll');
         const overlay = document.getElementById('analytics-overlay');
         overlay.style.display = 'flex';
 
-        // Set immediate loading states
         document.getElementById('stat-total-users').innerText = "...";
         document.getElementById('analytics-users-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-wishes-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-reports-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
 
-        // Fetch data asynchronously without blocking the UI thread
         setTimeout(async () => {
             const token = localStorage.getItem('monBadgeCineLK10');
             if (typeof loadWishes === 'function') {
@@ -3915,25 +3814,86 @@ async function saveMovie() {
         document.body.classList.remove('no-scroll'); 
     }
 
-    // --- ADMIN (OUVERTURE CRÉATION) ---
- // --- ADMIN (OUVERTURE CRÉATION FLUIDE) ---
-    function openAdmin() { 
-        isEditing = false; 
-        editingId = null; 
-        document.getElementById('admin-title-text').innerText = "Création"; 
-        document.getElementById('btn-save-movie').innerText = "Envoyer"; 
-        document.getElementById('btn-delete-movie').style.display = 'none'; 
-        clearForm(); 
-        toggleTypeUI(); 
-        
-        // Uses requestAnimationFrame to prevent UI thread locking
-        requestAnimationFrame(() => {
-            document.getElementById('admin-overlay').style.display = 'flex';
-        });
+    function openReportModal() {
+        if(!currentUser) { alert("Tu dois être connecté pour signaler un problème."); return; }
+        let mTitle = "ce contenu";
+        if (document.getElementById('dp-title')) { mTitle = document.getElementById('dp-title').innerText; }
+        document.getElementById('report-movie-title').innerText = mTitle;
+        document.querySelectorAll('input[name="reportType"]').forEach(cb => cb.checked = false);
+        document.getElementById('report-other-text').style.display = 'none';
+        document.getElementById('report-other-text').value = '';
+        document.getElementById('report-overlay').style.display = 'flex';
     }
 
-    // --- MODE ALÉATOIRE ---
-  // --- MODE ALÉATOIRE FLUIDE ---
+    function closeReportModal() { document.getElementById('report-overlay').style.display = 'none'; }
+    function toggleReportOther(checkbox) { document.getElementById('report-other-text').style.display = checkbox.checked ? 'block' : 'none'; }
+
+    async function submitReport() {
+        const types = Array.from(document.querySelectorAll('input[name="reportType"]:checked')).map(cb => cb.value);
+        if(types.length === 0) { alert("Veuillez cocher au moins un problème."); return; }
+        let message = "";
+        if(types.includes("Autre")) {
+            message = document.getElementById('report-other-text').value;
+            if(!message.trim()) { alert("Veuillez décrire le problème dans le champ texte."); return; }
+        }
+
+        let mTitle = document.getElementById('report-movie-title').innerText;
+        let mId = "Inconnu";
+        if (typeof currentMovie !== 'undefined' && currentMovie) mId = currentMovie.id;
+
+        const payload = { movieId: mId, movieTitle: mTitle, types: types, message: message };
+        const token = localStorage.getItem('monBadgeCineLK10');
+        
+        try {
+            const res = await fetch(`${API_URL}/api/reports`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(data.success) { alert("Merci ! Le problème a bien été signalé à l'administrateur."); closeReportModal(); } 
+            else { alert("Erreur lors de l'envoi."); }
+        } catch(e) { alert("Erreur de connexion au serveur."); }
+    }
+
+    async function resolveReport(reportId) {
+        if(!confirm("As-tu corrigé ce problème ? Le marquer comme résolu le retirera de cette liste.")) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/reports/${reportId}/resolve`, { method: 'POST', headers: { 'authorization': token } });
+            if((await res.json()).success) { openAnalytics(); }
+        } catch(e) { alert("Erreur serveur."); }
+    }
+
+    async function openConfirmTrailer() {
+        if (!selectedTmdbItem) return;
+        let tmdbType = selectedTmdbItem.type === 'movie' ? 'movie' : 'tv'; 
+        let tmdbId = selectedTmdbItem.tmdbId;
+        try {
+            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`); let data = await resFr.json();
+            if (!data.results || data.results.length === 0) { const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`); data = await resEn.json(); }
+            if (data.results && data.results.length > 0) {
+                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube'); if (!video) { video = data.results.find(v => v.site === 'YouTube'); }
+                if (video) {
+                    const finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${video.key}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    document.getElementById('trailer-video-container').innerHTML = finalHTML; document.getElementById('trailer-overlay').style.display = 'flex'; return;
+                }
+            }
+            alert("Aucune bande-annonce n'a été trouvée dans la base de données pour ce contenu.");
+        } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
+    }
+
+    function exportAllMovies() { 
+        const b = document.getElementById('dev-export-area'); 
+        b.style.display = b.style.display === 'block' ? 'none' : 'block'; 
+        document.getElementById('export-code').value = JSON.stringify(moviesDB, null, 2); 
+    }
+    
+    function copyCode() {
+        const copyText = document.getElementById("export-code");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Code copié !");
+    }
+
     function startRandomPicker() {
         if (!moviesDB || moviesDB.length === 0) {
             alert("Le catalogue est en cours de chargement, réessayez dans un instant.");
