@@ -3827,16 +3827,19 @@ async function saveMovie() {
     // ==========================================
  
 // --- ANALYTICS (NON-BLOQUANT & INSTANTANÉ) ---
+   // --- ANALYTICS (NON-BLOQUANT & INSTANTANÉ) ---
     async function openAnalytics() {
         document.body.classList.add('no-scroll');
         const overlay = document.getElementById('analytics-overlay');
         overlay.style.display = 'flex';
 
+        // Set immediate loading states
         document.getElementById('stat-total-users').innerText = "...";
         document.getElementById('analytics-users-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-wishes-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-reports-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
 
+        // Fetch data asynchronously without blocking the UI thread
         setTimeout(async () => {
             const token = localStorage.getItem('monBadgeCineLK10');
             if (typeof loadWishes === 'function') {
@@ -3913,6 +3916,7 @@ async function saveMovie() {
     }
 
     // --- ADMIN (OUVERTURE CRÉATION) ---
+ // --- ADMIN (OUVERTURE CRÉATION FLUIDE) ---
     function openAdmin() { 
         isEditing = false; 
         editingId = null; 
@@ -3922,12 +3926,14 @@ async function saveMovie() {
         clearForm(); 
         toggleTypeUI(); 
         
+        // Uses requestAnimationFrame to prevent UI thread locking
         requestAnimationFrame(() => {
             document.getElementById('admin-overlay').style.display = 'flex';
         });
     }
 
     // --- MODE ALÉATOIRE ---
+  // --- MODE ALÉATOIRE FLUIDE ---
     function startRandomPicker() {
         if (!moviesDB || moviesDB.length === 0) {
             alert("Le catalogue est en cours de chargement, réessayez dans un instant.");
