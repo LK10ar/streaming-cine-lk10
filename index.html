@@ -3126,7 +3126,7 @@ function showCatalogue() {
     const episodes = currentMovie.episodes || [];
 
     // Si la série/anime a plus de 15 épisodes, on ajoute une barre de recherche dédiée
-    if (episodes.length > 15) {
+    if (episodes.length > 10) {
         const searchBoxHTML = `
             <div style="padding: 10px; background: #151515; border-bottom: 1px solid #333;">
                 <input type="text" id="ep-search-input" placeholder="Rechercher un épisode (ex: 80)..." 
