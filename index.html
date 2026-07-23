@@ -2897,8 +2897,8 @@ function filterContent(category) {
         document.getElementById('cat-title').innerText = `Rubrique : Animés`;
         currentCategory = 'all'; currentGenreFilter = 'Anime'; currentYearFilter = 'all'; currentPage = 1;
         
-        // Filtre uniquement les contenus qui possèdent le genre "Anime"
-        filteredList = moviesDB.filter(m => m.type !== 'saga' && m.genre && m.genre.toLowerCase().includes('anime'));
+        // Filtre uniquement les SÉRIES qui possèdent le genre "Anime" (exclut les films d'animation)
+        filteredList = moviesDB.filter(m => m.type === 'serie' && m.genre && m.genre.toLowerCase().includes('anime'));
     }
 
     document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
