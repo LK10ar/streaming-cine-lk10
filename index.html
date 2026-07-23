@@ -2458,7 +2458,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         document.getElementById('user-profile-nav').style.display = 'flex';
         document.getElementById('nav-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         
-        loadSecureMovies();
+        loadSecureMovies(true);
     }
 
     // --- 4. PROFIL & PARAMETRES ---
@@ -2612,31 +2612,36 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
     }
 
     // --- 5. GESTION DU CATALOGUE (LOAD, GRID, MENU) ---
-async function loadSecureMovies() {
-        const token = localStorage.getItem('monBadgeCineLK10');
-        if (!token) return;
-        try {
-            const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
-            const data = await response.json();
-            if (data.success) {
-                let rawMovies = nettoyerLiensAbyss(data.movies); 
-                
-                // ASTUCE MAGIQUE : On sépare l'Affiche et la Bannière cachées par le serveur
-                moviesDB = rawMovies.map(m => {
-                    if (m.poster && m.poster.includes('|||')) {
-                        let parts = m.poster.split('|||');
-                        m.poster = parts[0];
-                        m.backdrop = parts[1];
-                    }
-                    return m;
-                });
-            }
-        } catch (error) { 
-            console.error("Erreur serveur", error); 
-       } finally {
-            showHome(); // <-- Lance le mode Netflix par défaut !
+async function loadSecureMovies(isInit = false) { // <-- Ajout de isInit
+    const token = localStorage.getItem('monBadgeCineLK10');
+    if (!token) return;
+    try {
+        const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
+        const data = await response.json();
+        if (data.success) {
+            let rawMovies = nettoyerLiensAbyss(data.movies); 
+            moviesDB = rawMovies.map(m => {
+                if (m.poster && m.poster.includes('|||')) {
+                    let parts = m.poster.split('|||');
+                    m.poster = parts[0];
+                    m.backdrop = parts[1];
+                }
+                return m;
+            });
+        }
+    } catch (error) { 
+        console.error("Erreur serveur", error); 
+    } finally {
+        // CORRECTION : Ne retourne à l'accueil qu'au premier lancement !
+        if (isInit) {
+            showHome(); 
+        } else {
+            // Actualise discrètement si on est déjà sur le site
+            if(document.getElementById('grid').style.display !== 'none') updateGrid();
+            if(document.getElementById('home-page').style.display !== 'none') buildNetflixHome();
         }
     }
+}
 
     function nettoyerLiensAbyss(donnees) {
         let texte = JSON.stringify(donnees);
@@ -3856,10 +3861,10 @@ function editReportedMovie(movieId) {
         });
     }
 
-    function startRandomPicker() {
+  function startRandomPicker() {
         if (!moviesDB || moviesDB.length === 0) {
             alert("Le catalogue est en cours de chargement, réessayez dans un instant.");
-            if(typeof loadSecureMovies === 'function') loadSecureMovies(); 
+            loadSecureMovies(); 
             return;
         }
         
@@ -3870,68 +3875,53 @@ function editReportedMovie(movieId) {
         const scannerText = document.querySelector('.scanning-text');
         const diceIcon = document.querySelector('.spinning-dice');
         
-        if(!overlay) return;
-        
         overlay.style.display = 'flex';
-        if(titleDisplay) {
-            titleDisplay.classList.remove('found');
-            titleDisplay.style.color = "white";
-        }
-        if(scannerText) scannerText.innerText = "RECHERCHE DANS LA MATRICE...";
-        if(diceIcon) diceIcon.style.animationDuration = "0.15s";
+        titleDisplay.classList.remove('found');
+        titleDisplay.style.color = "white";
+        scannerText.innerText = "RECHERCHE DANS LA MATRICE...";
+        diceIcon.style.animationDuration = "0.15s";
         
         let counter = 0;
         const maxTicks = 25; 
         
+        // CORRECTION : On exclut les sagas du tirage au sort !
+        const validMovies = moviesDB.filter(m => m.type !== 'saga');
+        
         const shuffleInterval = setInterval(() => {
-            const randomTemp = moviesDB[Math.floor(Math.random() * moviesDB.length)];
-            if(titleDisplay) titleDisplay.innerText = randomTemp.title;
+            const randomTemp = validMovies[Math.floor(Math.random() * validMovies.length)];
+            titleDisplay.innerText = randomTemp.title;
             counter++;
             
             if (counter >= maxTicks) {
                 clearInterval(shuffleInterval);
-                finalizeRandomPick(diceIcon);
+                finalizeRandomPick(diceIcon, validMovies); // On passe la liste filtrée
             }
         }, 70);
     }
 
-    function finalizeRandomPick(diceIcon) {
-        const finalMovie = moviesDB[Math.floor(Math.random() * moviesDB.length)];
+    function finalizeRandomPick(diceIcon, validMovies) {
+        // CORRECTION : On utilise la liste filtrée
+        const finalMovie = validMovies[Math.floor(Math.random() * validMovies.length)];
         const titleDisplay = document.getElementById('random-title-display');
         const scannerText = document.querySelector('.scanning-text');
         
-        if(titleDisplay) {
-            titleDisplay.innerText = finalMovie.title;
-            titleDisplay.classList.add('found');
-        }
-        
-        if(scannerText) {
-            scannerText.innerText = "CIBLE VÉROUILLÉE !";
-            scannerText.style.color = "var(--primary)";
-            scannerText.style.textShadow = "0 0 10px var(--primary)";
-        }
-        
-        if(diceIcon) diceIcon.style.animationDuration = "1s";
+        titleDisplay.innerText = finalMovie.title;
+        titleDisplay.classList.add('found');
+        scannerText.innerText = "CIBLE VERROUILLÉE !";
+        scannerText.style.color = "var(--primary)";
+        scannerText.style.textShadow = "0 0 10px var(--primary)";
+        diceIcon.style.animationDuration = "1s";
         
         setTimeout(() => {
-            const overlay = document.getElementById('random-overlay');
-            if(overlay) overlay.style.display = 'none';
+            document.getElementById('random-overlay').style.display = 'none';
+            scannerText.style.color = "#00ff00"; 
+            scannerText.style.textShadow = "0 0 10px #00ff00";
             
-            if(scannerText) {
-                scannerText.style.color = "#00ff00"; 
-                scannerText.style.textShadow = "0 0 10px #00ff00";
-            }
+            document.getElementById('wishboard-page').style.display = 'none';
+            document.getElementById('profile-page').style.display = 'none';
+            document.querySelector('.main-container').style.display = 'flex';
             
-            const wbPage = document.getElementById('wishboard-page');
-            if(wbPage) wbPage.style.display = 'none';
-            
-            const profPage = document.getElementById('profile-page');
-            if(profPage) profPage.style.display = 'none';
-            
-            const mainContainer = document.querySelector('.main-container');
-            if(mainContainer) mainContainer.style.display = 'flex';
-            
-            if(typeof openP === 'function') openP(finalMovie.id);
+            openP(finalMovie.id);
         }, 1500);
     }
     // ==========================================
@@ -4455,6 +4445,49 @@ document.getElementById('add-backdrop').value = data.backdrop_path ? `https://im
             if(res) res.style.display = 'none';
         }
     });
+    // ==========================================
+// FONCTION MANQUANTE POUR LES GRAPHIQUES
+// ==========================================
+function renderChart(canvasId, label, dataArray, color) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+
+    // Détruit le graphique précédent s'il existe (évite les glitchs au survol)
+    if (chartsInstance[canvasId]) {
+        chartsInstance[canvasId].destroy();
+    }
+
+    // Préparation des données
+    const labels = dataArray.map(item => item.title);
+    const data = dataArray.map(item => item.count);
+
+    // Création du nouveau graphique avec Chart.js
+    chartsInstance[canvasId] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                backgroundColor: color,
+                borderColor: color,
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: '#aaa', precision: 0 }, grid: { color: '#333' } },
+                x: { ticks: { color: '#ccc', autoSkip: false, maxRotation: 45, minRotation: 45 }, grid: { display: false } }
+            }
+        }
+    });
+}
 </script>
 </body>
 </html>
