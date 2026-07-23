@@ -3374,20 +3374,7 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
 
     function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
     
-  function openAdmin() { 
-        isEditing = false; 
-        editingId = null; 
-        document.getElementById('admin-title-text').innerText = "Création"; 
-        document.getElementById('btn-save-movie').innerText = "Envoyer"; 
-        document.getElementById('btn-delete-movie').style.display = 'none'; 
-        clearForm(); 
-        toggleTypeUI(); 
-        
-        // Affichage immédiat sans délai de rendu
-        requestAnimationFrame(() => {
-            document.getElementById('admin-overlay').style.display = 'flex';
-        });
-    }  
+ 
    function openEditMode() { 
         if(!currentMovie) return; 
         isEditing = true; 
@@ -3742,96 +3729,6 @@ async function saveMovie() {
         }
     }
 
-async function openAnalytics() {
-        // Empêche le fond de défiler
-        document.body.classList.add('no-scroll');
-        
-        // Affiche l'overlay instantanément
-        const overlay = document.getElementById('analytics-overlay');
-        overlay.style.display = 'flex';
-
-        // Message de chargement propre
-        document.getElementById('stat-total-users').innerText = "...";
-        document.getElementById('analytics-users-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
-        document.getElementById('analytics-wishes-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
-        document.getElementById('analytics-reports-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
-
-        // Exécution non bloquante pour libérer les clics de la souris
-        setTimeout(async () => {
-            const token = localStorage.getItem('monBadgeCineLK10');
-            if (typeof loadWishes === 'function') {
-                try { await loadWishes(); } catch(e) {}
-            }
-            
-            try {
-                const res = await fetch(`${API_URL}/api/admin/analytics`, { headers: { 'authorization': token } });
-                const data = await res.json();
-                
-                if(data.success) {
-                    document.getElementById('stat-total-users').innerText = data.totalUsers;
-                    
-                    const usersContainer = document.getElementById('analytics-users-list');
-                    if (usersContainer && data.usersList) {
-                        usersContainer.innerHTML = '';
-                        data.usersList.forEach(u => {
-                            usersContainer.innerHTML += `<div class="user-list-item"><span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span><span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span></div>`;
-                        });
-                    }
-
-                    const wishesContainer = document.getElementById('analytics-wishes-list');
-                    if (wishesContainer && typeof wishesList !== 'undefined') {
-                        wishesContainer.innerHTML = '';
-                        if (wishesList.length === 0) {
-                            wishesContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande.</div>';
-                        } else {
-                            wishesList.forEach(w => {
-                                let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
-                                wishesContainer.innerHTML += `
-                                <div class="user-list-item" style="cursor: pointer; display: flex; flex-direction: column;" onclick="closeAnalytics(); openWishDetails('${w._id}')">
-                                    <span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span>
-                                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 4px;">
-                                        <span style="color: #888; font-size: 10px;"><i class="fas fa-user"></i> ${w.requestedBy || "Inconnu"}</span>
-                                        <span style="color: ${statusColor}; font-size: 9px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
-                                    </div>
-                                </div>`;
-                            });
-                        }
-                    }
-
-                    const reportsContainer = document.getElementById('analytics-reports-list');
-                    if (reportsContainer && data.reportsList) {
-                        reportsContainer.innerHTML = '';
-                        if (data.reportsList.length === 0) {
-                            reportsContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun problème signalé.</div>';
-                        } else {
-                            data.reportsList.forEach(r => {
-                                let problemsStr = r.types.join(', ');
-                                reportsContainer.innerHTML += `
-                                <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
-                                    <span style="color: white; font-weight:bold; cursor:pointer;" onclick="editReportedMovie('${r.movieId}')"><i class="fas fa-pen" style="font-size: 10px; margin-right: 5px;"></i>${r.movieTitle}</span>
-                                    <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
-                                    <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
-                                    <button onclick="resolveReport('${r._id}')" style="margin-top: 8px; width: 100%; background: #2ecc71; color: black; border: none; padding: 6px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;"><i class="fas fa-check"></i> Résolu</button>
-                                </div>`;
-                            });
-                        }
-                    }
-
-                    if (typeof renderChart === 'function') {
-                        renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
-                        renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
-                        renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
-                    }
-                }
-            } catch (e) { console.error("Erreur stats", e); }
-        }, 10);
-    }
-
-    function closeAnalytics() { 
-        // CORRECTION : Masque bien l'overlay et redonne le scroll à la page
-        document.getElementById('analytics-overlay').style.display = 'none'; 
-        document.body.classList.remove('no-scroll'); 
-    }
 
     // ==========================================
     // SYSTEME DE SIGNALEMENT (FRONT-END)
@@ -3928,10 +3825,113 @@ async function openAnalytics() {
     // ==========================================
     // MOTEUR ALÉATOIRE FUTURISTE
     // ==========================================
- function startRandomPicker() {
+ 
+// --- ANALYTICS (NON-BLOQUANT & INSTANTANÉ) ---
+    async function openAnalytics() {
+        document.body.classList.add('no-scroll');
+        const overlay = document.getElementById('analytics-overlay');
+        overlay.style.display = 'flex';
+
+        document.getElementById('stat-total-users').innerText = "...";
+        document.getElementById('analytics-users-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
+        document.getElementById('analytics-wishes-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
+        document.getElementById('analytics-reports-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
+
+        setTimeout(async () => {
+            const token = localStorage.getItem('monBadgeCineLK10');
+            if (typeof loadWishes === 'function') {
+                try { await loadWishes(); } catch(e) {}
+            }
+            
+            try {
+                const res = await fetch(`${API_URL}/api/admin/analytics`, { headers: { 'authorization': token } });
+                const data = await res.json();
+                
+                if(data.success) {
+                    document.getElementById('stat-total-users').innerText = data.totalUsers;
+                    
+                    const usersContainer = document.getElementById('analytics-users-list');
+                    if (usersContainer && data.usersList) {
+                        usersContainer.innerHTML = '';
+                        data.usersList.forEach(u => {
+                            usersContainer.innerHTML += `<div class="user-list-item"><span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span><span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span></div>`;
+                        });
+                    }
+
+                    const wishesContainer = document.getElementById('analytics-wishes-list');
+                    if (wishesContainer && typeof wishesList !== 'undefined') {
+                        wishesContainer.innerHTML = '';
+                        if (wishesList.length === 0) {
+                            wishesContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande.</div>';
+                        } else {
+                            wishesList.forEach(w => {
+                                let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
+                                wishesContainer.innerHTML += `
+                                <div class="user-list-item" style="cursor: pointer; display: flex; flex-direction: column;" onclick="closeAnalytics(); openWishDetails('${w._id}')">
+                                    <span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span>
+                                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 4px;">
+                                        <span style="color: #888; font-size: 10px;"><i class="fas fa-user"></i> ${w.requestedBy || "Inconnu"}</span>
+                                        <span style="color: ${statusColor}; font-size: 9px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
+                                    </div>
+                                </div>`;
+                            });
+                        }
+                    }
+
+                    const reportsContainer = document.getElementById('analytics-reports-list');
+                    if (reportsContainer && data.reportsList) {
+                        reportsContainer.innerHTML = '';
+                        if (data.reportsList.length === 0) {
+                            reportsContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun problème signalé.</div>';
+                        } else {
+                            data.reportsList.forEach(r => {
+                                let problemsStr = r.types.join(', ');
+                                reportsContainer.innerHTML += `
+                                <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
+                                    <span style="color: white; font-weight:bold; cursor:pointer;" onclick="editReportedMovie('${r.movieId}')"><i class="fas fa-pen" style="font-size: 10px; margin-right: 5px;"></i>${r.movieTitle}</span>
+                                    <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
+                                    <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
+                                    <button onclick="resolveReport('${r._id}')" style="margin-top: 8px; width: 100%; background: #2ecc71; color: black; border: none; padding: 6px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;"><i class="fas fa-check"></i> Résolu</button>
+                                </div>`;
+                            });
+                        }
+                    }
+
+                    if (typeof renderChart === 'function') {
+                        renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
+                        renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
+                        renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
+                    }
+                }
+            } catch (e) { console.error("Erreur stats", e); }
+        }, 10);
+    }
+
+    function closeAnalytics() { 
+        document.getElementById('analytics-overlay').style.display = 'none'; 
+        document.body.classList.remove('no-scroll'); 
+    }
+
+    // --- ADMIN (OUVERTURE CRÉATION) ---
+    function openAdmin() { 
+        isEditing = false; 
+        editingId = null; 
+        document.getElementById('admin-title-text').innerText = "Création"; 
+        document.getElementById('btn-save-movie').innerText = "Envoyer"; 
+        document.getElementById('btn-delete-movie').style.display = 'none'; 
+        clearForm(); 
+        toggleTypeUI(); 
+        
+        requestAnimationFrame(() => {
+            document.getElementById('admin-overlay').style.display = 'flex';
+        });
+    }
+
+    // --- MODE ALÉATOIRE ---
+    function startRandomPicker() {
         if (!moviesDB || moviesDB.length === 0) {
             alert("Le catalogue est en cours de chargement, réessayez dans un instant.");
-            loadSecureMovies(); // Tente de recharger si vide
+            loadSecureMovies(); 
             return;
         }
         
@@ -3987,7 +3987,6 @@ async function openAnalytics() {
             openP(finalMovie.id);
         }, 1500);
     }
-
     // ==========================================
     // MOTEUR DES SAGAS INCONTOURNABLES
     // ==========================================
