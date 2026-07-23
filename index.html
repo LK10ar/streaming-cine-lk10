@@ -2179,8 +2179,7 @@ function closeCover() {
     let hasAccess = false; 
     let moviesDB = [];
     const ITEMS_PER_PAGE = 30;
-const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire","Epouvante-horreur", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney", "Pixar", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all'; 
-    let filteredList = []; 
+const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire","Epouvante-horreur", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney", "Pixar", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all';     let filteredList = []; 
     let currentMovie = null;
     let isEditing = false; 
     let editingId = null;
@@ -2458,7 +2457,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         document.getElementById('user-profile-nav').style.display = 'flex';
         document.getElementById('nav-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         
-        loadSecureMovies(true);
+        loadSecureMovies();
     }
 
     // --- 4. PROFIL & PARAMETRES ---
@@ -2612,36 +2611,31 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
     }
 
     // --- 5. GESTION DU CATALOGUE (LOAD, GRID, MENU) ---
-async function loadSecureMovies(isInit = false) { // <-- Ajout de isInit
-    const token = localStorage.getItem('monBadgeCineLK10');
-    if (!token) return;
-    try {
-        const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
-        const data = await response.json();
-        if (data.success) {
-            let rawMovies = nettoyerLiensAbyss(data.movies); 
-            moviesDB = rawMovies.map(m => {
-                if (m.poster && m.poster.includes('|||')) {
-                    let parts = m.poster.split('|||');
-                    m.poster = parts[0];
-                    m.backdrop = parts[1];
-                }
-                return m;
-            });
-        }
-    } catch (error) { 
-        console.error("Erreur serveur", error); 
-    } finally {
-        // CORRECTION : Ne retourne à l'accueil qu'au premier lancement !
-        if (isInit) {
-            showHome(); 
-        } else {
-            // Actualise discrètement si on est déjà sur le site
-            if(document.getElementById('grid').style.display !== 'none') updateGrid();
-            if(document.getElementById('home-page').style.display !== 'none') buildNetflixHome();
+async function loadSecureMovies() {
+        const token = localStorage.getItem('monBadgeCineLK10');
+        if (!token) return;
+        try {
+            const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
+            const data = await response.json();
+            if (data.success) {
+                let rawMovies = nettoyerLiensAbyss(data.movies); 
+                
+                // ASTUCE MAGIQUE : On sépare l'Affiche et la Bannière cachées par le serveur
+                moviesDB = rawMovies.map(m => {
+                    if (m.poster && m.poster.includes('|||')) {
+                        let parts = m.poster.split('|||');
+                        m.poster = parts[0];
+                        m.backdrop = parts[1];
+                    }
+                    return m;
+                });
+            }
+        } catch (error) { 
+            console.error("Erreur serveur", error); 
+       } finally {
+            showHome(); // <-- Lance le mode Netflix par défaut !
         }
     }
-}
 
     function nettoyerLiensAbyss(donnees) {
         let texte = JSON.stringify(donnees);
@@ -2887,32 +2881,6 @@ function performSearch(forcedQuery = null) {
         updateGrid(true); 
     }
     
-function filterContent(category) {
-    if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
-    document.querySelector('.main-container').style.display = 'flex';
-    document.getElementById('wishboard-page').style.display = 'none';
-    if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
-    const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
-    
-    document.getElementById('grid').style.display = 'grid';
-    document.querySelector('.section-title').style.display = 'flex';
-    document.getElementById('pag-bar').style.display = 'flex';
-
-    if (category === 'anime') {
-        document.getElementById('cat-title').innerText = `Rubrique : Animés`;
-        currentCategory = 'all'; currentGenreFilter = 'Anime'; currentYearFilter = 'all'; currentPage = 1;
-        
-        // Filtre uniquement les SÉRIES qui possèdent le genre "Anime" (exclut les films d'animation)
-        filteredList = moviesDB.filter(m => m.type === 'serie' && m.genre && m.genre.toLowerCase().includes('anime'));
-    }
-
-    document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
-    const navAnime = document.getElementById('nav-anime');
-    if(navAnime) navAnime.classList.add('active');
-
-    updateGrid(true);
-}
-    
 function showCatalogue() {
         if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; 
         document.querySelector('.main-container').style.display = 'flex'; 
@@ -3107,80 +3075,30 @@ function showCatalogue() {
     function changeLanguage() { currentLanguage = document.getElementById('language-select').value; updatePlayerInterface(); }
     function changeServer(s) { currentServer = s; updatePlayerInterface(); }
 
- function updatePlayerInterface() {
-    if (!currentMovie) return;
-
-    const classicServers = document.getElementById('classic-servers');
-    const animeServers = document.getElementById('anime-servers');
-    
-    let linkP = "", linkU = "";
-
-    // Détection automatique : Animé (Voiranime) vs Classique (FilmoFlix)
-    const isAnime = currentMovie.dir === 'Voiranime' || currentMovie.id.startsWith('voir_anime');
-
-    if (isAnime) {
-        // Mode Animé : Masque les boutons classiques et active le bouton unique "REGARDER"
-        if (classicServers) classicServers.style.display = 'none';
-        if (animeServers) animeServers.style.display = 'flex';
-
+    function updatePlayerInterface() {
+        if (!currentMovie) return;
+        let linkP = "", linkU = "";
         if (currentMovie.type === 'film') {
-            linkU = currentMovie.iframe_uqload;
+            if (currentLanguage === 'vf') { linkP = currentMovie.iframe_premium; linkU = currentMovie.iframe_uqload; }
+            else { linkP = currentMovie.iframe_premium_vostfr; linkU = currentMovie.iframe_uqload_vostfr; }
         } else {
-            renderEpisodeList();
-            const ep = currentMovie.episodes?.[currentEpisodeIndex];
+            renderEpisodeList(); const ep = currentMovie.episodes?.[currentEpisodeIndex];
             if (ep) {
-                linkU = currentLanguage === 'vf' ? ep.iframe_uqload : (ep.iframe_uqload_vostfr || ep.iframe_uqload);
+                if (currentLanguage === 'vf') { linkP = ep.iframe_premium; linkU = ep.iframe_uqload; }
+                else { linkP = ep.iframe_premium_vostfr; linkU = ep.iframe_uqload_vostfr; }
                 highlightActiveEpisode();
             }
         }
-        
-        currentServer = 'uqload';
-        const btnRegarder = document.getElementById('btn-server-regarder');
-        if (btnRegarder) {
-            btnRegarder.style.display = linkU ? 'inline-block' : 'none';
-            btnRegarder.classList.add('active');
-        }
-        setVideoContent(linkU);
-
-    } else {
-        // Mode Classique (Films / Séries FilmoFlix) : Affiche PREMIUM et UQLOAD
-        if (classicServers) classicServers.style.display = 'flex';
-        if (animeServers) animeServers.style.display = 'none';
-
-        if (currentMovie.type === 'film') {
-            linkP = currentLanguage === 'vf' ? currentMovie.iframe_premium : (currentMovie.iframe_premium_vostfr || currentMovie.iframe_premium);
-            linkU = currentLanguage === 'vf' ? currentMovie.iframe_uqload : (currentMovie.iframe_uqload_vostfr || currentMovie.iframe_uqload);
-        } else {
-            renderEpisodeList();
-            const ep = currentMovie.episodes?.[currentEpisodeIndex];
-            if (ep) {
-                linkP = currentLanguage === 'vf' ? ep.iframe_premium : (ep.iframe_premium_vostfr || ep.iframe_premium);
-                linkU = currentLanguage === 'vf' ? ep.iframe_uqload : (ep.iframe_uqload_vostfr || ep.iframe_uqload);
-                highlightActiveEpisode();
-            }
-        }
-
-        const btnP = document.getElementById('btn-server-prem');
-        const btnU = document.getElementById('btn-server-uql');
-
-        if (btnP) btnP.style.display = (linkP && isVipUser) ? 'inline-block' : 'none';
-        if (btnU) btnU.style.display = linkU ? 'inline-block' : 'none';
-
+        const btnP = document.getElementById('btn-server-prem'), btnU = document.getElementById('btn-server-uql');
+        btnP.style.display = (linkP && isVipUser) ? 'inline-block' : 'none';
+        btnU.style.display = linkU ? 'inline-block' : 'none';
         if (!isVipUser) currentServer = 'uqload';
-        
-        if (btnP) btnP.classList.toggle('active', currentServer === 'premium');
-        if (btnU) btnU.classList.toggle('active', currentServer === 'uqload');
-
-        if (currentServer === 'premium' && btnP && btnP.style.display !== 'none') {
-            setVideoContent(linkP);
-        } else if (linkU) {
-            setVideoContent(linkU);
-            currentServer = 'uqload';
-        } else {
-            setVideoContent(isVipUser ? "" : (linkP ? "VIP_LOCK" : ""));
-        }
+        btnP.classList.toggle('active', currentServer === 'premium');
+        btnU.classList.toggle('active', currentServer === 'uqload');
+        if (currentServer === 'premium' && btnP.style.display !== 'none') setVideoContent(linkP);
+        else if (currentServer === 'uqload' && btnU.style.display !== 'none') setVideoContent(linkU);
+        else setVideoContent(isVipUser ? "" : (linkP ? "VIP_LOCK" : ""));
     }
-}
 
     function setVideoContent(c) {
         const box = document.getElementById('video-container');
@@ -3216,60 +3134,20 @@ function showCatalogue() {
         }
     }
 
- function renderEpisodeList() {
-    const container = document.getElementById('ep-list-container'); 
-    container.innerHTML = '';
-    
-    const episodes = currentMovie.episodes || [];
-
-    // Si la série/anime a plus de 15 épisodes, on ajoute une barre de recherche dédiée
-    if (episodes.length > 10) {
-        const searchBoxHTML = `
-            <div style="padding: 10px; background: #151515; border-bottom: 1px solid #333;">
-                <input type="text" id="ep-search-input" placeholder="Rechercher un épisode (ex: 80)..." 
-                style="width: 100%; padding: 8px; background: #222; border: 1px solid #444; color: white; border-radius: 4px; outline: none;"
-                oninput="filterEpisodeList()">
-            </div>
-        `;
-        container.innerHTML += searchBoxHTML;
+    function renderEpisodeList() {
+        const container = document.getElementById('ep-list-container'); container.innerHTML = '';
+        (currentMovie.episodes || []).forEach((ep, i) => {
+            const div = document.createElement('div'); div.className = 'ep-item'; div.innerHTML = `<span><i class="fas fa-play" style="font-size:10px; margin-right:8px;"></i> ${ep.title}</span>`;
+            div.onclick = () => { 
+                currentEpisodeIndex = i; 
+                updatePlayerInterface(); 
+                document.getElementById('ep-list-container').style.display = 'none';
+                document.querySelector('.episodes-toggle-btn').classList.remove('active-dropdown');
+            }; 
+            container.appendChild(div);
+        });
+        highlightActiveEpisode();
     }
-
-    // Conteneur des éléments de la liste
-    const listWrapper = document.createElement('div');
-    listWrapper.id = 'ep-items-wrapper';
-    
-    episodes.forEach((ep, i) => {
-        const div = document.createElement('div'); 
-        div.className = 'ep-item'; 
-        div.setAttribute('data-ep-title', ep.title.toLowerCase());
-        div.innerHTML = `<span><i class="fas fa-play" style="font-size:10px; margin-right:8px;"></i> ${ep.title}</span>`;
-        div.onclick = () => { 
-            currentEpisodeIndex = i; 
-            updatePlayerInterface(); 
-            document.getElementById('ep-list-container').style.display = 'none';
-            document.querySelector('.episodes-toggle-btn').classList.remove('active-dropdown');
-        }; 
-        listWrapper.appendChild(div);
-    });
-    
-    container.appendChild(listWrapper);
-    highlightActiveEpisode();
-}
-
-// Fonction de filtrage instantané des épisodes
-function filterEpisodeList() {
-    const query = document.getElementById('ep-search-input').value.toLowerCase().trim();
-    const items = document.querySelectorAll('#ep-items-wrapper .ep-item');
-    
-    items.forEach(item => {
-        const title = item.getAttribute('data-ep-title');
-        if (title.includes(query)) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-}
 
     function highlightActiveEpisode() { 
         document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex)); 
@@ -3379,7 +3257,8 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
 
     function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
     
- 
+    function openAdmin() { isEditing = false; editingId = null; document.getElementById('admin-title-text').innerText = "Création"; document.getElementById('btn-save-movie').innerText = "Envoyer"; document.getElementById('btn-delete-movie').style.display = 'none'; clearForm(); toggleTypeUI(); document.getElementById('admin-overlay').style.display = 'flex'; }
+    
    function openEditMode() { 
         if(!currentMovie) return; 
         isEditing = true; 
@@ -3723,7 +3602,7 @@ async function saveMovie() {
     // ==========================================
     // LOGIQUE DU TABLEAU DE BORD (CHARTS & REPORTS)
     // ==========================================
-function editReportedMovie(movieId) {
+    function editReportedMovie(movieId) {
         closeAnalytics(); 
         const m = moviesDB.find(x => x.id === movieId); 
         if (m) {
@@ -3736,103 +3615,85 @@ function editReportedMovie(movieId) {
 
     async function openAnalytics() {
         document.body.classList.add('no-scroll');
-        const overlay = document.getElementById('analytics-overlay');
-        if (overlay) overlay.style.display = 'flex';
+        document.getElementById('analytics-overlay').style.display = 'flex';
 
-        const statTotal = document.getElementById('stat-total-users');
-        if (statTotal) statTotal.innerText = "...";
+        const token = localStorage.getItem('monBadgeCineLK10');
+        if (typeof loadWishes === 'function') await loadWishes(); 
         
-        const uList = document.getElementById('analytics-users-list');
-        if (uList) uList.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
-        
-        const wList = document.getElementById('analytics-wishes-list');
-        if (wList) wList.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
-        
-        const rList = document.getElementById('analytics-reports-list');
-        if (rList) rList.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
-
-        setTimeout(async () => {
-            const token = localStorage.getItem('monBadgeCineLK10');
-            if (typeof loadWishes === 'function') {
-                try { await loadWishes(); } catch(e) {}
-            }
+        try {
+            const res = await fetch(`${API_URL}/api/admin/analytics`, { headers: { 'authorization': token } });
+            const data = await res.json();
             
-            try {
-                const res = await fetch(`${API_URL}/api/admin/analytics`, { headers: { 'authorization': token } });
-                const data = await res.json();
+            if(data.success) {
+                document.getElementById('stat-total-users').innerText = data.totalUsers;
                 
-                if(data.success) {
-                    if (statTotal) statTotal.innerText = data.totalUsers;
-                    
-                    if (uList && data.usersList) {
-                        uList.innerHTML = data.usersList.length === 0 ? '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun membre.</div>' : '';
-                        data.usersList.forEach(u => {
-                            uList.innerHTML += `<div class="user-list-item"><span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span><span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span></div>`;
+                const usersContainer = document.getElementById('analytics-users-list');
+                if (usersContainer && data.usersList) {
+                    usersContainer.innerHTML = '';
+                    data.usersList.forEach(u => {
+                        usersContainer.innerHTML += `<div class="user-list-item"><span style="color: var(--primary); font-weight:bold;"><i class="fas fa-user"></i> ${u.username}</span><span style="color: #aaa;"><i class="fas fa-envelope"></i> ${u.email || "Aucun email"}</span></div>`;
+                    });
+                }
+
+                const wishesContainer = document.getElementById('analytics-wishes-list');
+                if (wishesContainer && typeof wishesList !== 'undefined') {
+                    wishesContainer.innerHTML = '';
+                    if (wishesList.length === 0) {
+                        wishesContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande pour le moment.</div>';
+                    } else {
+                        wishesList.forEach(w => {
+                            let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
+                            wishesContainer.innerHTML += `
+                            <div class="user-list-item" style="cursor: pointer; transition: 0.3s; display: flex; flex-direction: column;" onmouseover="this.style.background='#222'" onmouseout="this.style.background='transparent'" onclick="closeAnalytics(); openWishDetails('${w._id}')">
+                                <span style="color: white; font-weight:bold;">
+                                    <i class="fas fa-film"></i> ${w.title} 
+                                    <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span>
+                                </span>
+                                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 4px;">
+                                    <span style="color: #888; font-size: 10px;"><i class="fas fa-user"></i> ${w.requestedBy || "Inconnu"}</span>
+                                    <span style="color: ${statusColor}; font-size: 9px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
+                                </div>
+                            </div>`;
                         });
                     }
+                }
 
-                    if (wList && typeof wishesList !== 'undefined') {
-                        wList.innerHTML = '';
-                        if (wishesList.length === 0) {
-                            wList.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucune demande.</div>';
-                        } else {
-                            wishesList.forEach(w => {
-                                let statusColor = w.status === 'En attente' ? '#aaa' : (w.status === 'En cours' ? '#f39c12' : '#2ecc71');
-                                wList.innerHTML += `
-                                <div class="user-list-item" style="cursor: pointer; display: flex; flex-direction: column;" onclick="closeAnalytics(); openWishDetails('${w._id}')">
-                                    <span style="color: white; font-weight:bold;"><i class="fas fa-film"></i> ${w.title} <span style="color:var(--primary); font-size:11px;">(${w.votes} votes)</span></span>
-                                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 4px;">
-                                        <span style="color: #888; font-size: 10px;"><i class="fas fa-user"></i> ${w.requestedBy || "Inconnu"}</span>
-                                        <span style="color: ${statusColor}; font-size: 9px; font-weight: bold; border: 1px solid ${statusColor}; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">${w.status}</span>
-                                    </div>
-                                </div>`;
-                            });
-                        }
-                    }
-
-                    if (rList && data.reportsList) {
-                        rList.innerHTML = '';
-                        if (data.reportsList.length === 0) {
-                            rList.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun problème signalé.</div>';
-                        } else {
-                            data.reportsList.forEach(r => {
-                                let problemsStr = r.types.join(', ');
-                                rList.innerHTML += `
-                                <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
-                                    <span style="color: white; font-weight:bold; cursor:pointer;" onclick="editReportedMovie('${r.movieId}')"><i class="fas fa-pen" style="font-size: 10px; margin-right: 5px;"></i>${r.movieTitle}</span>
-                                    <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
-                                    <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
-                                    <button onclick="resolveReport('${r._id}')" style="margin-top: 8px; width: 100%; background: #2ecc71; color: black; border: none; padding: 6px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;"><i class="fas fa-check"></i> Résolu</button>
-                                </div>`;
-                            });
-                        }
-                    }
-
-                    if (typeof renderChart === 'function') {
-                        if(data.topHistory && data.topHistory.length > 0) renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
-                        if(data.topFavorites && data.topFavorites.length > 0) renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
-                        if(data.topWatchlater && data.topWatchlater.length > 0) renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
+                const reportsContainer = document.getElementById('analytics-reports-list');
+                if (reportsContainer && data.reportsList) {
+                    reportsContainer.innerHTML = '';
+                    if (data.reportsList.length === 0) {
+                        reportsContainer.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun problème signalé. Tout va bien !</div>';
+                    } else {
+                        data.reportsList.forEach(r => {
+                            let problemsStr = r.types.join(', ');
+                            reportsContainer.innerHTML += `
+                            <div class="user-list-item" style="border-left: 3px solid var(--danger); padding-left: 8px; margin-bottom: 10px; background: rgba(231, 76, 60, 0.1);">
+                                <span style="color: white; font-weight:bold; cursor:pointer; transition:0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='white'" onclick="editReportedMovie('${r.movieId}')"><i class="fas fa-pen" style="font-size: 10px; margin-right: 5px;"></i>${r.movieTitle}</span>
+                                <span style="color: #aaa; font-size: 10px;"><i class="fas fa-user"></i> Signalé par ${r.username}</span>
+                                <span style="color: var(--danger); font-size: 11px; font-weight: bold; margin-top: 4px;">${problemsStr}</span>
+                                ${r.message ? `<span style="color: #ccc; font-style: italic; font-size: 11px; display: block; margin-top: 4px;">"${r.message}"</span>` : ''}
+                                <button onclick="resolveReport('${r._id}')" style="margin-top: 8px; width: 100%; background: #2ecc71; color: black; border: none; padding: 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold;"><i class="fas fa-check"></i> Marquer comme résolu</button>
+                            </div>`;
+                        });
                     }
                 }
-            } catch (e) { console.error("Erreur stats", e); }
-        }, 50);
+
+                if (typeof renderChart === 'function') {
+                    renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
+                    renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
+                    renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
+                }
+            }
+        } catch (e) { console.error("Erreur stats", e); }
     }
 
-    function closeAnalytics() { 
-        const overlay = document.getElementById('analytics-overlay');
-        if (overlay) overlay.style.display = 'none'; 
-        document.body.classList.remove('no-scroll'); 
-    }
-
+    function closeAnalytics() { document.getElementById('analytics-overlay').style.display = 'none'; document.body.classList.remove('no-scroll'); }
+    
     function renderChart(canvasId, label, dataArray, color) {
-        const canvas = document.getElementById(canvasId);
-        if(!canvas) return; 
-        const ctx = canvas.getContext('2d');
+        const ctx = document.getElementById(canvasId).getContext('2d');
         if(chartsInstance[canvasId]) { chartsInstance[canvasId].destroy(); }
-        
         const labels = dataArray.map(d => d.title.length > 20 ? d.title.substring(0, 20) + '...' : d.title);
         const values = dataArray.map(d => d.count);
-        
         chartsInstance[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: { labels: labels, datasets: [{ label: label, data: values, backgroundColor: color + '80', borderColor: color, borderWidth: 2, borderRadius: 4 }] },
@@ -3840,31 +3701,104 @@ function editReportedMovie(movieId) {
         });
     }
 
-    function openAdmin() { 
-        isEditing = false; 
-        editingId = null; 
-        const titleEl = document.getElementById('admin-title-text');
-        if(titleEl) titleEl.innerText = "Création"; 
-        
-        const btnSave = document.getElementById('btn-save-movie');
-        if(btnSave) btnSave.innerText = "Envoyer"; 
-        
-        const btnDel = document.getElementById('btn-delete-movie');
-        if(btnDel) btnDel.style.display = 'none'; 
-        
-        if(typeof clearForm === 'function') clearForm(); 
-        if(typeof toggleTypeUI === 'function') toggleTypeUI(); 
-        
-        requestAnimationFrame(() => {
-            const overlay = document.getElementById('admin-overlay');
-            if(overlay) overlay.style.display = 'flex';
-        });
+    // ==========================================
+    // SYSTEME DE SIGNALEMENT (FRONT-END)
+    // ==========================================
+    function openReportModal() {
+        if(!currentUser) { alert("Tu dois être connecté pour signaler un problème."); return; }
+        let mTitle = "ce contenu";
+        if (document.getElementById('dp-title')) { mTitle = document.getElementById('dp-title').innerText; }
+        document.getElementById('report-movie-title').innerText = mTitle;
+        document.querySelectorAll('input[name="reportType"]').forEach(cb => cb.checked = false);
+        document.getElementById('report-other-text').style.display = 'none';
+        document.getElementById('report-other-text').value = '';
+        document.getElementById('report-overlay').style.display = 'flex';
     }
 
-  function startRandomPicker() {
+    function closeReportModal() { document.getElementById('report-overlay').style.display = 'none'; }
+    function toggleReportOther(checkbox) { document.getElementById('report-other-text').style.display = checkbox.checked ? 'block' : 'none'; }
+
+    async function submitReport() {
+        const types = Array.from(document.querySelectorAll('input[name="reportType"]:checked')).map(cb => cb.value);
+        if(types.length === 0) { alert("Veuillez cocher au moins un problème."); return; }
+        let message = "";
+        if(types.includes("Autre")) {
+            message = document.getElementById('report-other-text').value;
+            if(!message.trim()) { alert("Veuillez décrire le problème dans le champ texte."); return; }
+        }
+
+        let mTitle = document.getElementById('report-movie-title').innerText;
+        let mId = "Inconnu";
+        if (typeof currentMovie !== 'undefined' && currentMovie) mId = currentMovie.id;
+
+        const payload = { movieId: mId, movieTitle: mTitle, types: types, message: message };
+        const token = localStorage.getItem('monBadgeCineLK10');
+        
+        try {
+            const res = await fetch(`${API_URL}/api/reports`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(data.success) { alert("Merci ! Le problème a bien été signalé à l'administrateur."); closeReportModal(); } 
+            else { alert("Erreur lors de l'envoi."); }
+        } catch(e) { alert("Erreur de connexion au serveur."); }
+    }
+
+    async function resolveReport(reportId) {
+        if(!confirm("As-tu corrigé ce problème ? Le marquer comme résolu le retirera de cette liste.")) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/reports/${reportId}/resolve`, { method: 'POST', headers: { 'authorization': token } });
+            if((await res.json()).success) { openAnalytics(); }
+        } catch(e) { alert("Erreur serveur."); }
+    }
+
+    async function openConfirmTrailer() {
+        if (!selectedTmdbItem) return;
+        let tmdbType = selectedTmdbItem.type === 'movie' ? 'movie' : 'tv'; 
+        let tmdbId = selectedTmdbItem.tmdbId;
+        try {
+            const resFr = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=fr-FR`); 
+            let data = await resFr.json();
+            
+            if (!data.results || data.results.length === 0) { 
+                const resEn = await fetch(`https://api.themoviedb.org/3/${tmdbType}/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`); 
+                data = await resEn.json(); 
+            }
+            
+            if (data.results && data.results.length > 0) {
+                let video = data.results.find(v => v.type === 'Trailer' && v.site === 'YouTube'); 
+                if (!video) { video = data.results.find(v => v.site === 'YouTube'); }
+                if (video) {
+                    const finalHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${video.key}?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    document.getElementById('trailer-video-container').innerHTML = finalHTML; 
+                    document.getElementById('trailer-overlay').style.display = 'flex'; 
+                    return;
+                }
+            }
+            alert("Aucune bande-annonce n'a été trouvée sur TMDB pour ce contenu.");
+        } catch (e) { alert("Erreur lors de la recherche de la bande-annonce."); }
+    }
+
+    function exportAllMovies() { 
+        const b = document.getElementById('dev-export-area'); 
+        b.style.display = b.style.display === 'block' ? 'none' : 'block'; 
+        document.getElementById('export-code').value = JSON.stringify(moviesDB, null, 2); 
+    }
+    
+    function copyCode() {
+        const copyText = document.getElementById("export-code");
+        copyText.select();
+        document.execCommand("copy");
+        alert("Code copié !");
+    }
+
+    // ==========================================
+    // MOTEUR ALÉATOIRE FUTURISTE
+    // ==========================================
+    function startRandomPicker() {
         if (!moviesDB || moviesDB.length === 0) {
-            alert("Le catalogue est en cours de chargement, réessayez dans un instant.");
-            loadSecureMovies(); 
+            alert("Le catalogue est encore vide ou en cours de chargement.");
             return;
         }
         
@@ -3879,37 +3813,36 @@ function editReportedMovie(movieId) {
         titleDisplay.classList.remove('found');
         titleDisplay.style.color = "white";
         scannerText.innerText = "RECHERCHE DANS LA MATRICE...";
+        
         diceIcon.style.animationDuration = "0.15s";
         
         let counter = 0;
-        const maxTicks = 25; 
-        
-        // CORRECTION : On exclut les sagas du tirage au sort !
-        const validMovies = moviesDB.filter(m => m.type !== 'saga');
+        const maxTicks = 30; 
+        const intervalTime = 80; 
         
         const shuffleInterval = setInterval(() => {
-            const randomTemp = validMovies[Math.floor(Math.random() * validMovies.length)];
+            const randomTemp = moviesDB[Math.floor(Math.random() * moviesDB.length)];
             titleDisplay.innerText = randomTemp.title;
             counter++;
             
             if (counter >= maxTicks) {
                 clearInterval(shuffleInterval);
-                finalizeRandomPick(diceIcon, validMovies); // On passe la liste filtrée
+                finalizeRandomPick(diceIcon);
             }
-        }, 70);
+        }, intervalTime);
     }
 
-    function finalizeRandomPick(diceIcon, validMovies) {
-        // CORRECTION : On utilise la liste filtrée
-        const finalMovie = validMovies[Math.floor(Math.random() * validMovies.length)];
+    function finalizeRandomPick(diceIcon) {
+        const finalMovie = moviesDB[Math.floor(Math.random() * moviesDB.length)];
         const titleDisplay = document.getElementById('random-title-display');
         const scannerText = document.querySelector('.scanning-text');
         
         titleDisplay.innerText = finalMovie.title;
         titleDisplay.classList.add('found');
-        scannerText.innerText = "CIBLE VERROUILLÉE !";
+        scannerText.innerText = "CIBLE VÉROUILLÉE !";
         scannerText.style.color = "var(--primary)";
         scannerText.style.textShadow = "0 0 10px var(--primary)";
+        
         diceIcon.style.animationDuration = "1s";
         
         setTimeout(() => {
@@ -3922,8 +3855,9 @@ function editReportedMovie(movieId) {
             document.querySelector('.main-container').style.display = 'flex';
             
             openP(finalMovie.id);
-        }, 1500);
+        }, 2500);
     }
+
     // ==========================================
     // MOTEUR DES SAGAS INCONTOURNABLES
     // ==========================================
@@ -4445,49 +4379,6 @@ document.getElementById('add-backdrop').value = data.backdrop_path ? `https://im
             if(res) res.style.display = 'none';
         }
     });
-    // ==========================================
-// FONCTION MANQUANTE POUR LES GRAPHIQUES
-// ==========================================
-function renderChart(canvasId, label, dataArray, color) {
-    const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
-
-    // Détruit le graphique précédent s'il existe (évite les glitchs au survol)
-    if (chartsInstance[canvasId]) {
-        chartsInstance[canvasId].destroy();
-    }
-
-    // Préparation des données
-    const labels = dataArray.map(item => item.title);
-    const data = dataArray.map(item => item.count);
-
-    // Création du nouveau graphique avec Chart.js
-    chartsInstance[canvasId] = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                backgroundColor: color,
-                borderColor: color,
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: false },
-                title: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { color: '#aaa', precision: 0 }, grid: { color: '#333' } },
-                x: { ticks: { color: '#ccc', autoSkip: false, maxRotation: 45, minRotation: 45 }, grid: { display: false } }
-            }
-        }
-    });
-}
 </script>
 </body>
 </html>
