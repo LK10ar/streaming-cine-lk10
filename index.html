@@ -1870,11 +1870,18 @@ function closeCover() {
                 <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                     <select id="language-select" class="lang-select" onchange="changeLanguage()"></select>
                     
-                    <div style="display: flex; gap: 10px;">
-                        <button class="server-btn" id="btn-server-prem" onclick="changeServer('premium')">PREMIUM</button>
-                        <button class="server-btn" id="btn-server-uql" onclick="changeServer('uqload')">UQLOAD</button>
-                    </div>
-                </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <!-- Boutons pour Films / Séries classiques (FilmoFlix) -->
+    <div id="classic-servers" style="display: flex; gap: 10px;">
+        <button class="server-btn" id="btn-server-prem" onclick="changeServer('premium')">PREMIUM</button>
+        <button class="server-btn" id="btn-server-uql" onclick="changeServer('uqload')">UQLOAD</button>
+    </div>
+
+    <!-- Bouton unique pour les Animés (Voiranime) -->
+    <div id="anime-servers" style="display: none; gap: 10px;">
+        <button class="server-btn" id="btn-server-regarder" onclick="changeServer('uqload')">REGARDER</button>
+    </div>
+</div>
 
             </div>
             <div id="serie-layout" style="display: none;">
