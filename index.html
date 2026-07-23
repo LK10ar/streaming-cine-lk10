@@ -1211,11 +1211,16 @@ function closeCover() {
                     <i class="fas fa-book"></i> CATALOGUE
                 </a>
             </li>
-           <li class="nav-item">
-            <a id="nav-wishboard" class="nav-link" onclick="closeProfilePage(); showWishboard(); toggleMobileMenu()">
-                <i class="fas fa-star"></i> WISHBOARD
-            </a>
-        </li>
+            <li class="nav-item">
+                <a id="nav-wishboard" class="nav-link" onclick="closeProfilePage(); showWishboard(); toggleMobileMenu()">
+                    <i class="fas fa-star"></i> WISHBOARD
+                </a>
+            </li>
+            <li class="nav-item">
+                <a id="nav-anime" class="nav-link" onclick="closeProfilePage(); filterContent('anime'); toggleMobileMenu()">
+                    <i class="fas fa-compact-disc"></i> ANIMÉS
+                </a>
+            </li>
             <li class="nav-item" onclick="toggleSubMenu(this)">
                 <a id="nav-film" class="nav-link"><span><i class="fas fa-film"></i> FILMS</span><i class="fas fa-chevron-down" style="font-size:10px;"></i></a>
                 <div class="dropdown-content">
