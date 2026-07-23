@@ -2881,7 +2881,35 @@ function performSearch(forcedQuery = null) {
 
         updateGrid(true); 
     }
-    
+    function filterContent(category) {
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
+        document.getElementById('wishboard-page').style.display = 'none';
+        if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        
+        document.getElementById('grid').style.display = 'grid';
+        document.querySelector('.section-title').style.display = 'flex';
+        document.getElementById('pag-bar').style.display = 'flex';
+
+        if (category === 'anime') {
+            document.getElementById('cat-title').innerText = `Rubrique : Animés`;
+            currentCategory = 'all'; currentGenreFilter = 'Animation'; currentYearFilter = 'all'; currentPage = 1;
+            
+            // Filtre tous les contenus qui contiennent le genre 'Animation' ou qui proviennent de Voiranime
+            filteredList = moviesDB.filter(m => m.type !== 'saga' && (
+                (m.genre && m.genre.toLowerCase().includes('animation')) || 
+                (m.dir && m.dir.toLowerCase().includes('voiranime')) ||
+                (m.id && m.id.startsWith('voir_anime'))
+            ));
+        }
+
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        const navAnime = document.getElementById('nav-anime');
+        if(navAnime) navAnime.classList.add('active');
+
+        updateGrid(true);
+    }
 function showCatalogue() {
         if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; 
         document.querySelector('.main-container').style.display = 'flex'; 
