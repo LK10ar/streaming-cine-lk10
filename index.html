@@ -3743,18 +3743,20 @@ async function saveMovie() {
     }
 
 async function openAnalytics() {
+        // Empêche le fond de défiler
         document.body.classList.add('no-scroll');
-        // Ouverture immédiate de l'overlay pour un retour visuel instantané
+        
+        // Affiche l'overlay instantanément
         const overlay = document.getElementById('analytics-overlay');
         overlay.style.display = 'flex';
 
-        // Affichage des états de chargement
+        // Message de chargement propre
         document.getElementById('stat-total-users').innerText = "...";
         document.getElementById('analytics-users-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-wishes-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-reports-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
 
-        // Exécution en arrière-plan pour ne pas figer l'interface
+        // Exécution non bloquante pour libérer les clics de la souris
         setTimeout(async () => {
             const token = localStorage.getItem('monBadgeCineLK10');
             if (typeof loadWishes === 'function') {
@@ -3823,6 +3825,12 @@ async function openAnalytics() {
                 }
             } catch (e) { console.error("Erreur stats", e); }
         }, 10);
+    }
+
+    function closeAnalytics() { 
+        // CORRECTION : Masque bien l'overlay et redonne le scroll à la page
+        document.getElementById('analytics-overlay').style.display = 'none'; 
+        document.body.classList.remove('no-scroll'); 
     }
 
     // ==========================================
