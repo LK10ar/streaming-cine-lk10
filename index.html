@@ -2837,18 +2837,14 @@ function performSearch(forcedQuery = null) {
                     if (fullText.includes(term)) return true;
 
                     // 2. Recherche tolérante aux fautes (UNIQUEMENT SUR LE TITRE)
-                    // On découpe la recherche en ignorant les mots de 1 ou 2 lettres
                     const queryWords = term.split(' ').filter(w => w.length > 2);
-                    
-                    // On découpe le titre en enlevant la ponctuation et les mots de 1 ou 2 lettres (ex: "le", "la", "de")
                     const titleWords = (m.title || "").toLowerCase().replace(/[^\w\sàâäéèêëîïôöùûüç]/g, ' ').split(/\s+/).filter(w => w.length > 2);
 
                     if (queryWords.length > 0 && titleWords.length > 0) {
                         return queryWords.every(qWord => {
                             return titleWords.some(tWord => {
-                                if (tWord.includes(qWord)) return true; // "runnin" correspond à "running"
+                                if (tWord.includes(qWord)) return true; 
                                 const dist = levenshtein(qWord, tWord);
-                                // Tolère 1 faute de frappe, ou 2 fautes si le mot est très long
                                 return dist <= 1 || (qWord.length > 4 && dist <= 2);
                             });
                         });
@@ -2857,6 +2853,24 @@ function performSearch(forcedQuery = null) {
                 }
             });
         });
+
+        // --- FILTRE SUPPLÉMENTAIRE POUR LES ÉPISODES (Correspondance exacte si on tape un nombre) ---
+        if (/^\d+$/.test(rawQuery)) {
+            const episodeItems = document.querySelectorAll('.episode-item');
+            if (episodeItems.length > 0) {
+                episodeItems.forEach(item => {
+                    const text = item.textContent.toLowerCase();
+                    const match = text.match(/(?:épisode| - )\s*0*(\d+)/i);
+                    const episodeNum = match ? match[1] : "";
+
+                    if (episodeNum === rawQuery) {
+                        item.style.display = "";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            }
+        }
 
         updateGrid(true); 
     }
