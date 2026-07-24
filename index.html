@@ -1895,13 +1895,14 @@ function closeCover() {
             </div>
             <div id="serie-layout" style="display: none;">
                 <div class="episode-section">
-                    <button class="episodes-toggle-btn" onclick="toggleEpisodes()">
-                        <span>
-                            <i class="fas fa-list-ul"></i> SÉLECTIONNER UN ÉPISODE 
-                            <span id="current-ep-badge"></span>
-                        </span>
-                        <i class="fas fa-chevron-down" id="ep-chevron"></i>
-                    </button>
+                 <button class="episodes-toggle-btn" onclick="toggleEpisodes()">
+    <span>
+        <i class="fas fa-list-ul"></i> SÉLECTIONNER UN ÉPISODE 
+        <span id="current-ep-badge"></span>
+        <span style="font-size: 11px; color: #aaa; font-weight: normal; margin-left: 8px;">(💡 Pour filtrer un épisode, tapez ex: 001)</span>
+    </span>
+    <i class="fas fa-chevron-down" id="ep-chevron"></i>
+</button>
                     <div class="ep-list" id="ep-list-container" style="display: none;"></div>
                 </div>
             </div>
