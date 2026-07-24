@@ -3259,11 +3259,11 @@ function filterEpisodeList() {
     });
 }
 
- function highlightActiveEpisode() {    
+function highlightActiveEpisode() {    
     document.querySelectorAll('.ep-item').forEach((it, i) => it.classList.toggle('active', i === currentEpisodeIndex));    
     const badge = document.getElementById('current-ep-badge');
     if (badge && currentMovie && currentMovie.episodes && currentMovie.episodes[currentEpisodeIndex]) {
-        badge.innerHTML = `▶ ${currentMovie.episodes[currentEpisodeIndex].title} <span style="font-size: 11px; color: #aaa; font-weight: normal; margin-left: 6px;">(💡 Pour filtrer un épisode, tapez ex: 001)</span>`;
+        badge.innerText = "▶ " + currentMovie.episodes[currentEpisodeIndex].title;
     }
 }
 
