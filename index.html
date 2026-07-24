@@ -93,12 +93,22 @@
     
     #serie-layout { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
     .episode-section { display: flex; gap: 0; padding: 20px; background: #0a0a0a; flex-direction: column; width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
-    .episodes-toggle-btn { background: #111; color: var(--primary); border: 1px solid #333; padding: 15px 20px; width: 100% !important; max-width: 100% !important; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 13px; cursor: pointer; transition: 0.3s; border-radius: 4px; outline: none; box-sizing: border-box; }
+    
+    /* Bouton toggle responsive pour les épisodes */
+    .episodes-toggle-btn { background: #111; color: var(--primary); border: 1px solid #333; padding: 15px 20px; width: 100% !important; max-width: 100% !important; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.3s; border-radius: 4px; outline: none; box-sizing: border-box; }
     .episodes-toggle-btn:hover { background: #1a1a1a; border-color: var(--primary); }
     .episodes-toggle-btn.active-dropdown { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-color: var(--primary); }
     .episodes-toggle-btn.active-dropdown #ep-chevron { transform: rotate(180deg); }
-    #ep-chevron { transition: transform 0.3s; }
-    #current-ep-badge { color: black; font-size: 11px; margin-left: 10px; background: var(--primary); padding: 3px 8px; border-radius: 12px; font-weight: bold; }
+    
+    .episodes-btn-content { display: flex; flex-direction: column; gap: 6px; text-align: left; overflow: hidden; flex-grow: 1; margin-right: 10px; }
+    .episodes-btn-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ep-main-title { font-weight: bold; font-size: 13px; white-space: nowrap; }
+    
+    #current-ep-badge { color: black; font-size: 11px; background: var(--primary); padding: 3px 8px; border-radius: 12px; font-weight: bold; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ep-help-text { font-size: 11px; color: #888; font-style: italic; font-weight: normal; }
+    
+    #ep-chevron { transition: transform 0.3s; flex-shrink: 0; }
+    
     .ep-list { max-height: 350px; overflow-y: auto; border: 1px solid var(--primary); background: #111; width: 100% !important; max-width: 100% !important; border-top: none; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; box-sizing: border-box; }
     .ep-item { display: flex; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #222; cursor: pointer; font-size: 13px; transition: 0.2s; }
     .ep-item:hover { background: #161616; color: var(--primary); } 
