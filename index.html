@@ -1714,6 +1714,9 @@ function closeCover() {
                     <option value="note_desc">⭐ Mieux notés</option>
                     <option value="alpha_asc">🔤 De A à Z</option>
                 </select>
+                <button id="hide-anime-toggle" onclick="toggleHideAnime()" style="background: #111; color: #888; border: 1px solid #333; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 6px;" title="N'afficher que les séries live-action, sans les animes">
+                    <i class="fas fa-ban"></i> Masquer les Animes
+                </button>
                 <div style="display: flex; background: #111; border: 1px solid #333; border-radius: 4px; overflow: hidden; height: 32px;">
                     <input type="number" id="year-filter-input" placeholder="Année (ex: 2002)" style="background: transparent; border: none; color: white; padding: 0 10px; outline: none; width: 140px; font-size: 13px;" onkeypress="if(event.key === 'Enter') applyGlobalYear()">
                     <button onclick="applyGlobalYear()" style="background: #333; border: none; cursor: pointer; padding: 0 12px; color: white; transition: 0.3s;" onmouseover="this.style.background='var(--primary)'; this.style.color='black';" onmouseout="this.style.background='#333'; this.style.color='white';" title="Rechercher l'année"><i class="fas fa-search"></i></button>
@@ -2191,7 +2194,8 @@ const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Cr
     let currentLanguage = 'vf'; 
     let currentServer = 'premium'; 
     let currentEpisodeIndex = 0; 
-    let currentSort = 'date_desc'; 
+    let currentSort = 'date_desc';
+    let hideAnimeFilter = false; // Filtre "Masquer les Animes" pour la vue "Toutes les Séries" 
     
     let currentProfTab = 'favorites';
     let currentProfType = 'all';
@@ -2663,7 +2667,8 @@ async function loadSecureMovies() {
                 const typeMatch = (currentCategory === 'all') || (m.type === currentCategory);
                 const genreMatch = (currentGenreFilter === 'all') || (m.genre && m.genre.includes(currentGenreFilter));
                 const yearMatch = (currentYearFilter === 'all') || (String(m.year) === String(currentYearFilter));
-                return typeMatch && genreMatch && yearMatch;
+                const animeMatch = !hideAnimeFilter || !(m.genre && m.genre.toLowerCase().includes('anime'));
+                return typeMatch && genreMatch && yearMatch && animeMatch;
             });
         }
 
@@ -2768,6 +2773,7 @@ function initMegaMenu() {
         document.querySelector('.main-container').style.display = 'flex'; 
         document.getElementById('pag-bar').style.display = 'flex'; 
         currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = 'all'; currentPage = 1; 
+        hideAnimeFilter = false; resetHideAnimeButton();
         document.getElementById('searchInput').value = ''; 
         const globalInput = document.getElementById('year-filter-input'); 
         if(globalInput) globalInput.value = ''; 
@@ -2781,12 +2787,27 @@ function initMegaMenu() {
         document.querySelector('.main-container').style.display = 'flex'; 
         document.getElementById('pag-bar').style.display = 'flex'; 
         currentCategory = cat; currentGenreFilter = genre; currentYearFilter = 'all'; currentPage = 1; 
+        hideAnimeFilter = false; resetHideAnimeButton();
         const globalInput = document.getElementById('year-filter-input'); 
         if(globalInput) globalInput.value = ''; 
         updateNavActive(cat); 
         updateGrid(); 
     }  function updateNavActive(cat) { document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active')); let navBtn = document.getElementById('nav-' + cat); if(navBtn) navBtn.classList.add('active'); }
     function changeSort() { currentSort = document.getElementById('sort-select').value; currentPage = 1; updateGrid(); }
+    function resetHideAnimeButton() {
+        const btn = document.getElementById('hide-anime-toggle');
+        if (btn) {
+            btn.style.color = hideAnimeFilter ? 'black' : '#888';
+            btn.style.background = hideAnimeFilter ? 'var(--primary)' : '#111';
+            btn.style.borderColor = hideAnimeFilter ? 'var(--primary)' : '#333';
+        }
+    }
+    function toggleHideAnime() {
+        hideAnimeFilter = !hideAnimeFilter;
+        currentPage = 1;
+        resetHideAnimeButton();
+        updateGrid();
+    }
     function applyGlobalYear() { const inputVal = document.getElementById('year-filter-input').value.trim(); if (inputVal && inputVal.length === 4) { currentYearFilter = inputVal; currentPage = 1; updateGrid(); } }
     function clearGlobalYear() { document.getElementById('year-filter-input').value = ''; currentYearFilter = 'all'; currentPage = 1; updateGrid(); }
     function setYearFilter(cat, year) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = year; currentPage = 1; const globalYearInput = document.getElementById('year-filter-input'); if(globalYearInput) globalYearInput.value = year; updateNavActive(cat); updateGrid(); }
