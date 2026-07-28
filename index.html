@@ -221,7 +221,7 @@
         .btn-copy { width: 100%; background: #333; color: white; border: none; padding: 5px; cursor: pointer; margin-top: 5px; } .btn-copy:hover { background: #444; }
         
         #cover-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease-out; cursor: pointer;}
-        #cover-page p { font-size: 2em; font-weight: bold; text-transform: uppercase; color: #ffde00; padding: 20px 40px; border: 4px solid #ffde00; border-radius: 10px; pointer-events: none; box-shadow: 0 0 15px #ffde00, inset 0 0 15px #ffde00; text-shadow: 0 0 10px #ffde00; animation: neon-pulse 1.5s infinite alternate; }
+        #cover-page img { max-width: 90%; max-height: 90%; width: auto; height: auto; object-fit: contain; pointer-events: none; filter: drop-shadow(0 0 15px rgba(255,222,0,0.5)); }
         @keyframes neon-pulse { from { box-shadow: 0 0 10px #ffde00, inset 0 0 10px #ffde00; opacity: 1; } to { box-shadow: 0 0 25px #ffde00, inset 0 0 25px #ffde00; opacity: 0.6; } }
 
         #discord-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 9998; justify-content: center; align-items: center; animation: fadeIn 0.5s ease; }
@@ -481,7 +481,7 @@
         @media (max-width: 768px) {
             .movie-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .poster { height: 200px; } .movie-title { font-size: 12px; }
-            #cover-page p { font-size: 1.2em; padding: 15px 25px; border-width: 3px; max-width: 85%; text-align: center; }
+            #cover-page img { max-width: 95%; max-height: 70%; }
             .ublock-box { height: auto !important; padding: 10px !important; flex-direction: row; flex-wrap: wrap; line-height: 1.4; }
             .ublock-text { font-size: 11px; flex: 1; text-align: center; }
             
@@ -1166,7 +1166,7 @@ function closeCover() {
 </script>
 
     <div id="cover-page" onclick="closeCover()">
-        <p>clique pour entrée...</p>
+        <img src="asset/press-start.gif" alt="Clique pour entrer">
     </div>
 
     <div id="discord-overlay">
