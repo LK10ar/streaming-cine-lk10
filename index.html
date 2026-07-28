@@ -2049,7 +2049,7 @@ function finishCover() {
             <div class="form-group"><label><i class="fas fa-desktop"></i> Image de fond (Bannière HD TMDB)</label><input type="text" id="add-backdrop" class="form-input" placeholder="Lien généré par TMDB"></div> 
             <div class="form-group">
                 <label><i class="fas fa-mobile"></i> Catégorie *</label>
-                <select id="add-type" class="form-select" onchange="toggleTypeUI()">
+                <select id="add-type" class="form-select" onchange="onTypeSelectChange()">
                     <option value="film">Film</option>
                     <option value="serie">Série</option>
                     <option value="saga">Saga / Collection</option>
@@ -2241,6 +2241,8 @@ const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Cr
     let currentOpenedWish = null;
     let wbSearchTimeout = null;
     let linkedWishId = null;
+    let isLinkedExisting = false;
+    let linkedExistingId = null;
 
     let chartsInstance = {};
     let adTimer = null; 
@@ -3405,6 +3407,14 @@ function highlightActiveEpisode() {
     // --- 8. MODE ADMIN (CATALOGUE & WISHBOARD) ---
     function toggleAdminAuth(f = false) { if(isAdminUnlocked) { isAdminUnlocked = false; document.body.classList.remove('admin-active'); document.getElementById('dev-export-area').style.display = 'none'; alert("Mode Admin désactivé."); } else if (f) { isAdminUnlocked = true; document.body.classList.add('admin-active'); alert("Mode Admin activé !"); } }
     
+    function onTypeSelectChange() {
+        isLinkedExisting = false;
+        linkedExistingId = null;
+        const sel = document.getElementById('link-existing-selected');
+        if (sel) sel.innerHTML = '';
+        toggleTypeUI();
+    }
+
     function toggleTypeUI() { 
         const ty = document.getElementById('add-type').value; 
         const isSaga = ty === 'saga';
@@ -3440,6 +3450,8 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
         document.getElementById('add-trailer').value = ""; 
         document.getElementById('add-saga-bg').value = "";
         document.getElementById('add-saga-movies').value = "";
+        isLinkedExisting = false;
+        linkedExistingId = null;
         const linkSel = document.getElementById('link-existing-selected');
         if (linkSel) linkSel.innerHTML = "";
         const linkSearch = document.getElementById('link-existing-search');
@@ -3504,9 +3516,23 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
     function closeAdmin() { 
         document.getElementById('admin-overlay').style.display = 'none'; 
         linkedWishId = null; 
+        isLinkedExisting = false;
+        linkedExistingId = null;
     }
 
 async function saveMovie() {
+        // --- MODE "LIEN VERS UN TITRE EXISTANT" : on ne crée AUCUNE nouvelle fiche ---
+        // On se contente de marquer la demande Wishboard comme satisfaite,
+        // le titre existant reste la seule et unique fiche en base.
+        if (isLinkedExisting && linkedExistingId) {
+            if (linkedWishId) {
+                await adminSetWishStatusSilently(linkedWishId, 'Ajouté');
+            }
+            closeAdmin();
+            alert("Demande liée avec succès au titre déjà présent dans le catalogue (aucun doublon créé) !");
+            return;
+        }
+
         const t = document.getElementById('add-title').value;
         const p = document.getElementById('add-poster').value;
         const b = document.getElementById('add-backdrop').value; // La bannière HD
@@ -4638,6 +4664,8 @@ function buildNetflixHome() {
         }
 
         // Affiche un badge de confirmation avec possibilité d'annuler la sélection
+        isLinkedExisting = true;
+        linkedExistingId = id;
         const sel = document.getElementById('link-existing-selected');
         if (sel) {
             sel.innerHTML = `<div class="saga-chip"><img src="${m.poster || ''}" alt=""><span>Lié à : ${m.title}</span><i class="fas fa-times" onclick="clearLinkExisting()"></i></div>`;
@@ -4649,6 +4677,8 @@ function buildNetflixHome() {
 
     function clearLinkExisting() {
         clearForm();
+        isLinkedExisting = false;
+        linkedExistingId = null;
         document.getElementById('add-type').value = 'link_existing';
         toggleTypeUI();
         const sel = document.getElementById('link-existing-selected');
