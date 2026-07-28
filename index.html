@@ -2205,7 +2205,7 @@ function finishCover() {
     let hasAccess = false; 
     let moviesDB = [];
     const ITEMS_PER_PAGE = 30;
-const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire","Epouvante-horreur", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney", "Pixar", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all'; 
+const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire","Epouvante-horreur", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney", "Pixar", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all'; let lastGridWasSpecial = false; 
     let filteredList = []; 
     let currentMovie = null;
     let isEditing = false; 
@@ -2672,6 +2672,7 @@ async function loadSecureMovies() {
     }
 
     function updateGrid(isSpecialMode = false) {
+        lastGridWasSpecial = isSpecialMode;
         const grid = document.getElementById('grid'); 
         grid.innerHTML = '';
         
@@ -2762,7 +2763,7 @@ const isHome = document.getElementById('nav-all') && document.getElementById('na
         addB(tP, tP, currentPage === tP);
     }
     
-    function goToPage(p) { currentPage = p; updateGrid(); window.scrollTo({top:0, behavior:'smooth'}); }
+    function goToPage(p) { currentPage = p; updateGrid(lastGridWasSpecial); window.scrollTo({top:0, behavior:'smooth'}); }
     
     function toggleMobileMenu() { const nav = document.getElementById('main-nav'); nav.classList.toggle('active'); }
     function closeMobileMenu() { const nav = document.getElementById('main-nav'); if (nav.classList.contains('active')) nav.classList.remove('active'); }
