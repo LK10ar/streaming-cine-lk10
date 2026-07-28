@@ -4435,71 +4435,86 @@ function buildNetflixHome() {
     // --- IMPORTATION AUTOMATIQUE TMDB ---
     // --- IMPORTATION AUTOMATIQUE TMDB ---
  async function importFromTMDB(forcedQuery = null) {
-        const query = forcedQuery || document.getElementById('tmdb-import-input').value.trim();
-        if (!query) return alert("Veuillez entrer un Titre ou un ID TMDB.");
+    const query = forcedQuery || document.getElementById('tmdb-import-input').value.trim();
+    if (!query) return alert("Veuillez entrer un Titre ou un ID TMDB.");
+    
+    const type = document.getElementById('add-type').value || 'film';
+    const endpointType = type === 'serie' ? 'tv' : 'movie';
+    let idToFetch = query;
+    
+    if (isNaN(query)) {
+        try {
+            const searchRes = await fetch(`https://api.themoviedb.org/3/search/${endpointType}?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}`);
+            const searchData = await searchRes.json();
+            if (!searchData.results || searchData.results.length === 0) return alert("Aucun résultat trouvé sur TMDB pour ce titre.");
+            idToFetch = searchData.results[0].id;
+        } catch (e) { return alert("Erreur lors de la recherche TMDB."); }
+    }
+    
+    try {
+        const res = await fetch(`https://api.themoviedb.org/3/${endpointType}/${idToFetch}?api_key=${TMDB_API_KEY}&language=fr-FR&append_to_response=credits,videos`);
+        const data = await res.json();
         
-        const type = document.getElementById('add-type').value || 'film';
-        const endpointType = type === 'serie' ? 'tv' : 'movie';
-        let idToFetch = query;
+        if (data.status_code === 34) return alert("ID TMDB introuvable.");
         
-        if (isNaN(query)) {
-            try {
-                const searchRes = await fetch(`https://api.themoviedb.org/3/search/${endpointType}?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}`);
-                const searchData = await searchRes.json();
-                if (!searchData.results || searchData.results.length === 0) return alert("Aucun résultat trouvé sur TMDB pour ce titre.");
-                idToFetch = searchData.results[0].id;
-            } catch (e) { return alert("Erreur lors de la recherche TMDB."); }
+        document.getElementById('add-title').value = data.title || data.name || "";
+        document.getElementById('add-desc').value = data.overview || "";
+        document.getElementById('add-poster').value = data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : "";
+        document.getElementById('add-backdrop').value = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : "";
+        document.getElementById('add-year').value = data.release_date ? data.release_date.substring(0, 4) : (data.first_air_date ? data.first_air_date.substring(0, 4) : "");
+        document.getElementById('add-rating').value = data.vote_average ? data.vote_average.toFixed(1) : "";
+        
+        if (data.credits && data.credits.crew) {
+            const dirs = data.credits.crew.filter(c => c.job === 'Director').map(d => d.name);
+            if (dirs.length > 0) document.getElementById('add-dir').value = dirs.join(', ');
+            else if (data.created_by) document.getElementById('add-dir').value = data.created_by.map(c => c.name).join(', ');
+        }
+        if (data.credits && data.credits.cast) { document.getElementById('add-cast').value = data.credits.cast.slice(0, 6).map(c => c.name).join(', '); }
+        
+        // --- BANDE-ANNONCE AVEC FALLBACK VOSTFR/EN ---
+        if (data.videos && data.videos.results) {
+            let trailer = data.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube')
+                       || data.videos.results.find(v => v.site === 'YouTube');
+
+            // Aucun trailer trouvé en FR -> on retente en anglais (VO/VOSTFR)
+            if (!trailer) {
+                try {
+                    const fallbackRes = await fetch(`https://api.themoviedb.org/3/${endpointType}/${idToFetch}/videos?api_key=${TMDB_API_KEY}&language=en-US`);
+                    const fallbackData = await fallbackRes.json();
+                    if (fallbackData.results) {
+                        trailer = fallbackData.results.find(v => v.type === 'Trailer' && v.site === 'YouTube')
+                               || fallbackData.results.find(v => v.site === 'YouTube');
+                    }
+                } catch (e) {
+                    console.log("Erreur lors de la récupération du trailer de secours");
+                }
+            }
+
+            if (trailer) document.getElementById('add-trailer').value = trailer.key;
         }
         
-        try {
-            const res = await fetch(`https://api.themoviedb.org/3/${endpointType}/${idToFetch}?api_key=${TMDB_API_KEY}&language=fr-FR&append_to_response=credits,videos`);
-            const data = await res.json();
-            
-            if (data.status_code === 34) return alert("ID TMDB introuvable.");
-            
-            document.getElementById('add-title').value = data.title || data.name || "";
-            document.getElementById('add-desc').value = data.overview || "";
-            document.getElementById('add-poster').value = data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : "";
-            
-            // IMPORTATION HD DE LA BANNIÈRE (BACKDROP ORIGINAL)
-// IMPORTATION HD DE LA BANNIÈRE (BACKDROP ORIGINAL)
-document.getElementById('add-backdrop').value = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : "";            
-            document.getElementById('add-year').value = data.release_date ? data.release_date.substring(0, 4) : (data.first_air_date ? data.first_air_date.substring(0, 4) : "");
-            document.getElementById('add-rating').value = data.vote_average ? data.vote_average.toFixed(1) : "";
-            
-            if (data.credits && data.credits.crew) {
-                const dirs = data.credits.crew.filter(c => c.job === 'Director').map(d => d.name);
-                if (dirs.length > 0) document.getElementById('add-dir').value = dirs.join(', ');
-                else if (data.created_by) document.getElementById('add-dir').value = data.created_by.map(c => c.name).join(', ');
+        let detectedTags = data.genres ? data.genres.map(g => g.name) : [];
+        let studios = [];
+        if (data.production_companies) data.production_companies.forEach(c => studios.push(c.name.toLowerCase()));
+        if (data.networks) data.networks.forEach(n => studios.push(n.name.toLowerCase()));
+        
+        const platformMapping = { 'netflix': 'Netflix', 'amazon': 'Prime', 'prime': 'Prime', 'disney': 'Disney', 'pixar': 'Pixar', 'lucasfilm': 'Star Wars', 'marvel': 'Marvel', 'dc ': 'DC', 'dc comics': 'DC', 'dc entertainment': 'DC', 'dc films': 'DC', 'warner': 'Warner', 'hbo': 'HBO', 'max': 'HBO', 'apple': 'Apple TV', 'paramount': 'Paramount', '20th century': '20th Century Fox', 'fox': '20th Century Fox' };
+        
+        studios.forEach(studio => {
+            for (const [key, value] of Object.entries(platformMapping)) {
+                if (studio === 'dc' && key === 'dc ') { if (!detectedTags.includes(value)) detectedTags.push(value); }
+                else if (studio.includes(key)) { if (!detectedTags.includes(value)) detectedTags.push(value); }
             }
-            if (data.credits && data.credits.cast) { document.getElementById('add-cast').value = data.credits.cast.slice(0, 6).map(c => c.name).join(', '); }
+        });
+        
+        document.querySelectorAll('.admin-genre-checkbox').forEach(cb => { detectedTags.forEach(tag => { if (tag.toLowerCase().replace('-', ' ') === cb.value.toLowerCase().replace('-', ' ')) { cb.checked = true; } }); });
+        
+        document.getElementById('tmdb-import-input').value = '';
+        alert(`Succès ! Les infos pour "${data.title || data.name}" ont été remplies.`);
+        
+    } catch (e) { console.error(e); alert("Erreur d'importation TMDB."); }
+}
             
-            if (data.videos && data.videos.results) {
-                const trailer = data.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube') || data.videos.results.find(v => v.site === 'YouTube');
-                if (trailer) document.getElementById('add-trailer').value = trailer.key;
-            }
-            
-            let detectedTags = data.genres ? data.genres.map(g => g.name) : [];
-            let studios = [];
-            if (data.production_companies) data.production_companies.forEach(c => studios.push(c.name.toLowerCase()));
-            if (data.networks) data.networks.forEach(n => studios.push(n.name.toLowerCase()));
-            
-            const platformMapping = { 'netflix': 'Netflix', 'amazon': 'Prime', 'prime': 'Prime', 'disney': 'Disney', 'pixar': 'Pixar', 'lucasfilm': 'Star Wars', 'marvel': 'Marvel', 'dc ': 'DC', 'dc comics': 'DC', 'dc entertainment': 'DC', 'dc films': 'DC', 'warner': 'Warner', 'hbo': 'HBO', 'max': 'HBO', 'apple': 'Apple TV', 'paramount': 'Paramount', '20th century': '20th Century Fox', 'fox': '20th Century Fox' };
-            
-            studios.forEach(studio => {
-                for (const [key, value] of Object.entries(platformMapping)) {
-                    if (studio === 'dc' && key === 'dc ') { if (!detectedTags.includes(value)) detectedTags.push(value); }
-                    else if (studio.includes(key)) { if (!detectedTags.includes(value)) detectedTags.push(value); }
-                }
-            });
-            
-            document.querySelectorAll('.admin-genre-checkbox').forEach(cb => { detectedTags.forEach(tag => { if (tag.toLowerCase().replace('-', ' ') === cb.value.toLowerCase().replace('-', ' ')) { cb.checked = true; } }); });
-            
-            document.getElementById('tmdb-import-input').value = '';
-            alert(`Succès ! Les infos pour "${data.title || data.name}" ont été remplies.`);
-            
-        } catch (e) { console.error(e); alert("Erreur d'importation TMDB."); }
-    }
 
     // --- On modifie aussi "Accepter (Créer)" du Wishboard pour qu'il utilise l'Auto-remplissage !
     function adminAcceptWish(wishId) {
