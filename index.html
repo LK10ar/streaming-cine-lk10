@@ -2053,6 +2053,7 @@ function finishCover() {
                     <option value="film">Film</option>
                     <option value="serie">Série</option>
                     <option value="saga">Saga / Collection</option>
+                    <option value="link_existing">🔗 Lier un titre déjà présent au catalogue</option>
                 </select>
             </div>
             
@@ -2089,6 +2090,18 @@ function finishCover() {
                         <div id="saga-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; background:#222; border:1px solid #444; max-height:250px; overflow-y:auto; z-index:100; border-radius:0 0 5px 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.8);"></div>
                     </div>
                     <div id="saga-selected-movies" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px;"></div>
+                </div>
+            </div>
+
+          <div id="link-existing-fields" style="display:none; margin-top:15px; padding:15px; background:rgba(255,255,255,0.05); border-radius:5px;">
+                <div class="form-group">
+                    <label><i class="fas fa-link"></i> Rechercher le film / la série déjà scrapé(e) dans le catalogue</label>
+                    <div style="position:relative;">
+                        <input type="text" id="link-existing-search" class="form-input" placeholder="Rechercher dans le catalogue (ex: Vikings)..." oninput="searchLinkExisting()">
+                        <div id="link-existing-results" style="display:none; position:absolute; top:100%; left:0; right:0; background:#222; border:1px solid #444; max-height:250px; overflow-y:auto; z-index:100; border-radius:0 0 5px 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.8);"></div>
+                    </div>
+                    <div id="link-existing-selected" style="margin-top:15px;"></div>
+                    <p style="color:#888; font-size:12px; margin-top:10px;">Choisis le titre déjà présent dans ton catalogue : tous les champs (image, synopsis, liens de lecture...) seront remplis automatiquement, il ne te reste plus qu'à cliquer sur "Envoyer".</p>
                 </div>
             </div>
             
@@ -3395,15 +3408,17 @@ function highlightActiveEpisode() {
     function toggleTypeUI() { 
         const ty = document.getElementById('add-type').value; 
         const isSaga = ty === 'saga';
+        const isLink = ty === 'link_existing';
         
         document.getElementById('film-inputs').style.display = ty === 'film' ? 'block' : 'none'; 
         document.getElementById('serie-inputs').style.display = ty === 'serie' ? 'block' : 'none'; 
 document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none';        
-        document.getElementById('admin-row-year-rating').style.display = isSaga ? 'none' : 'flex';
-        document.getElementById('admin-row-genre').style.display = isSaga ? 'none' : 'block';
-        document.getElementById('admin-row-dir').style.display = isSaga ? 'none' : 'block';
-        document.getElementById('admin-row-cast').style.display = isSaga ? 'none' : 'block';
-        document.getElementById('admin-row-trailer').style.display = isSaga ? 'none' : 'block';
+        document.getElementById('link-existing-fields').style.display = isLink ? 'block' : 'none';
+        document.getElementById('admin-row-year-rating').style.display = (isSaga || isLink) ? 'none' : 'flex';
+        document.getElementById('admin-row-genre').style.display = (isSaga || isLink) ? 'none' : 'block';
+        document.getElementById('admin-row-dir').style.display = (isSaga || isLink) ? 'none' : 'block';
+        document.getElementById('admin-row-cast').style.display = (isSaga || isLink) ? 'none' : 'block';
+        document.getElementById('admin-row-trailer').style.display = (isSaga || isLink) ? 'none' : 'block';
     } 
 
    function clearForm() { 
@@ -3425,6 +3440,10 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
         document.getElementById('add-trailer').value = ""; 
         document.getElementById('add-saga-bg').value = "";
         document.getElementById('add-saga-movies').value = "";
+        const linkSel = document.getElementById('link-existing-selected');
+        if (linkSel) linkSel.innerHTML = "";
+        const linkSearch = document.getElementById('link-existing-search');
+        if (linkSearch) linkSearch.value = "";
     if(typeof selectedSagaMovies !== 'undefined') {
             selectedSagaMovies = [];
             updateSagaUI();
@@ -4553,6 +4572,90 @@ function buildNetflixHome() {
         importFromTMDB(wish.tmdbId);
     }
     // ==========================================
+    // RECHERCHE INTELLIGENTE POUR LIER UN TITRE DÉJÀ SCRAPÉ
+    // ==========================================
+    function searchLinkExisting() {
+        const query = document.getElementById('link-existing-search').value.toLowerCase().trim();
+        const resultsContainer = document.getElementById('link-existing-results');
+
+        if (query.length < 2) { resultsContainer.style.display = 'none'; return; }
+
+        const matches = moviesDB.filter(m => m.type !== 'saga' && m.title && m.title.toLowerCase().includes(query));
+
+        if (matches.length === 0) {
+            resultsContainer.innerHTML = '<div style="padding:10px; color:#888;">Aucun titre trouvé dans le catalogue...</div>';
+            resultsContainer.style.display = 'block';
+            return;
+        }
+
+        resultsContainer.innerHTML = matches.slice(0, 30).map(m => {
+            return `
+            <div class="saga-search-item" onclick="selectLinkExisting('${m.id}')">
+                <img src="${m.poster || ''}" alt="">
+                <span>${m.title} <small style="color:#888;">(${m.type === 'serie' ? 'Série' : 'Film'} - ${m.year || '?'})</small></span>
+            </div>
+            `;
+        }).join('');
+        resultsContainer.style.display = 'block';
+    }
+
+    function selectLinkExisting(id) {
+        const m = moviesDB.find(movie => movie.id === id);
+        if (!m) return;
+
+        // On bascule sur le vrai type du titre choisi (film ou série) pour afficher les bons champs
+        document.getElementById('add-type').value = (m.type === 'serie') ? 'serie' : 'film';
+        toggleTypeUI();
+
+        document.getElementById('add-title').value = m.title || "";
+        document.getElementById('add-year').value = m.year || "";
+        document.getElementById('add-rating').value = m.rating || "";
+        document.querySelectorAll('.admin-genre-checkbox').forEach(cb => cb.checked = !!(m.genre && m.genre.includes(cb.value)));
+        document.getElementById('add-dir').value = m.dir || "";
+        document.getElementById('add-cast').value = m.cast || "";
+        document.getElementById('add-desc').value = m.desc || "";
+        document.getElementById('add-poster').value = m.poster || "";
+        document.getElementById('add-backdrop').value = m.backdrop || "";
+        document.getElementById('add-trailer').value = m.trailer_iframe || m.trailer || "";
+
+        if (m.type === 'serie') {
+            const eps = m.episodes || [];
+            document.getElementById('add-ep-count').value = eps.length;
+            renderEpisodeInputs();
+            document.querySelectorAll('.episode-block').forEach((b, i) => {
+                if (eps[i]) {
+                    b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || "";
+                    b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || "";
+                    b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || "";
+                    b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || "";
+                }
+            });
+        } else {
+            document.getElementById('add-iframe').value = m.iframe_premium || "";
+            document.getElementById('add-iframe-uqload').value = m.iframe_uqload || "";
+            document.getElementById('add-iframe-vostfr').value = m.iframe_premium_vostfr || "";
+            document.getElementById('add-iframe-uqload-vostfr').value = m.iframe_uqload_vostfr || "";
+        }
+
+        // Affiche un badge de confirmation avec possibilité d'annuler la sélection
+        const sel = document.getElementById('link-existing-selected');
+        if (sel) {
+            sel.innerHTML = `<div class="saga-chip"><img src="${m.poster || ''}" alt=""><span>Lié à : ${m.title}</span><i class="fas fa-times" onclick="clearLinkExisting()"></i></div>`;
+        }
+
+        document.getElementById('link-existing-search').value = '';
+        document.getElementById('link-existing-results').style.display = 'none';
+    }
+
+    function clearLinkExisting() {
+        clearForm();
+        document.getElementById('add-type').value = 'link_existing';
+        toggleTypeUI();
+        const sel = document.getElementById('link-existing-selected');
+        if (sel) sel.innerHTML = '';
+    }
+
+    // ==========================================
     // RECHERCHE INTELLIGENTE POUR LES SAGAS
     // ==========================================
     let selectedSagaMovies = []; 
@@ -4617,6 +4720,10 @@ function buildNetflixHome() {
         if(e.target.id !== 'saga-movie-search') {
             const res = document.getElementById('saga-search-results');
             if(res) res.style.display = 'none';
+        }
+        if(e.target.id !== 'link-existing-search') {
+            const res2 = document.getElementById('link-existing-results');
+            if(res2) res2.style.display = 'none';
         }
     });
 </script>
