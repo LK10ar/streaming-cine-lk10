@@ -3717,7 +3717,16 @@ async function saveMovie() {
 
             div.onclick = () => {
                 if (w.status === 'Ajouté') {
-                    const movieInCatalog = moviesDB.find(m => m.title.toLowerCase() === w.title.toLowerCase());
+                    const wTitle = w.title.toLowerCase().trim();
+                    // 1. On cherche d'abord une correspondance exacte
+                    let movieInCatalog = moviesDB.find(m => m.title.toLowerCase().trim() === wTitle);
+                    // 2. Sinon, une correspondance approchante (ex: demande "Vikings" -> fiche "Vikings - Saison 1")
+                    if (!movieInCatalog) {
+                        movieInCatalog = moviesDB.find(m => {
+                            const mTitle = m.title.toLowerCase().trim();
+                            return mTitle.includes(wTitle) || wTitle.includes(mTitle);
+                        });
+                    }
                     if (movieInCatalog) {
                         document.getElementById('wishboard-page').style.display = 'none';
                         document.querySelector('.main-container').style.display = 'flex';
