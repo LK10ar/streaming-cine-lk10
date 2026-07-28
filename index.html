@@ -221,7 +221,7 @@
         .btn-copy { width: 100%; background: #333; color: white; border: none; padding: 5px; cursor: pointer; margin-top: 5px; } .btn-copy:hover { background: #444; }
         
         #cover-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: black; z-index: 10000; display: flex; justify-content: center; align-items: center; transition: opacity 0.5s ease-out; cursor: pointer;}
-        #cover-page img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        #cover-page video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         @keyframes neon-pulse { from { box-shadow: 0 0 10px #ffde00, inset 0 0 10px #ffde00; opacity: 1; } to { box-shadow: 0 0 25px #ffde00, inset 0 0 25px #ffde00; opacity: 0.6; } }
 
         #discord-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 9998; justify-content: center; align-items: center; animation: fadeIn 0.5s ease; }
@@ -481,7 +481,7 @@
         @media (max-width: 768px) {
             .movie-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
             .poster { height: 200px; } .movie-title { font-size: 12px; }
-            #cover-page img { width: 100%; height: 100%; object-fit: cover; }
+            #cover-page video { width: 100%; height: 100%; object-fit: cover; }
             .ublock-box { height: auto !important; padding: 10px !important; flex-direction: row; flex-wrap: wrap; line-height: 1.4; }
             .ublock-text { font-size: 11px; flex: 1; text-align: center; }
             
@@ -1152,8 +1152,28 @@ function resetSite() {
 
 function closeCover() {
     const cover = document.getElementById('cover-page');
+    const video = document.getElementById('cover-video');
+    if (!cover || cover.classList.contains('is-loading')) return;
+
+    cover.classList.add('is-loading');
+
+    if (video) {
+        video.loop = false;
+        video.src = 'asset/loading.mp4';
+        video.load();
+        video.play();
+        video.addEventListener('ended', finishCover, { once: true });
+        // Sécurité au cas où la vidéo ne se lance pas
+        setTimeout(finishCover, 5000);
+    } else {
+        finishCover();
+    }
+}
+
+function finishCover() {
+    const cover = document.getElementById('cover-page');
     const discordOverlay = document.getElementById('discord-overlay');
-    if(cover) {
+    if(cover && cover.style.opacity !== '0') {
         cover.style.opacity = '0';
         setTimeout(function() {
             cover.style.display = 'none';
@@ -1166,7 +1186,7 @@ function closeCover() {
 </script>
 
     <div id="cover-page" onclick="closeCover()">
-        <img src="asset/press-start.gif" alt="Clique pour entrer">
+        <video id="cover-video" src="asset/press-start.mp4" autoplay muted loop playsinline></video>
     </div>
 
     <div id="discord-overlay">
