@@ -3193,12 +3193,16 @@ function showCatalogue() {
         if (animeServers) animeServers.style.display = 'flex';
 
         if (currentMovie.type === 'film') {
-            linkU = currentMovie.iframe_uqload;
+            linkU = currentLanguage === 'vf'
+                ? (currentMovie.iframe_uqload || currentMovie.iframe_premium)
+                : (currentMovie.iframe_uqload_vostfr || currentMovie.iframe_uqload || currentMovie.iframe_premium_vostfr || currentMovie.iframe_premium);
         } else {
             renderEpisodeList();
             const ep = currentMovie.episodes?.[currentEpisodeIndex];
             if (ep) {
-                linkU = currentLanguage === 'vf' ? ep.iframe_uqload : (ep.iframe_uqload_vostfr || ep.iframe_uqload);
+                linkU = currentLanguage === 'vf'
+                    ? (ep.iframe_uqload || ep.iframe_premium)
+                    : (ep.iframe_uqload_vostfr || ep.iframe_uqload || ep.iframe_premium_vostfr || ep.iframe_premium);
                 highlightActiveEpisode();
             }
         }
@@ -3232,21 +3236,27 @@ function showCatalogue() {
         const btnP = document.getElementById('btn-server-prem');
         const btnU = document.getElementById('btn-server-uql');
 
-        if (btnP) btnP.style.display = (linkP && isVipUser) ? 'inline-block' : 'none';
+        const hasPremiumAccess = isVipUser || isAdminUnlocked;
+
+        if (btnP) btnP.style.display = (linkP && hasPremiumAccess) ? 'inline-block' : 'none';
         if (btnU) btnU.style.display = linkU ? 'inline-block' : 'none';
 
-        if (!isVipUser) currentServer = 'uqload';
-        
+        if (!hasPremiumAccess) currentServer = 'uqload';
+        // Si le serveur choisi n'a pas de lien dispo, on retombe automatiquement sur l'autre
+        if (currentServer === 'uqload' && !linkU && linkP) currentServer = 'premium';
+        if (currentServer === 'premium' && (!linkP || !hasPremiumAccess) && linkU) currentServer = 'uqload';
+
         if (btnP) btnP.classList.toggle('active', currentServer === 'premium');
         if (btnU) btnU.classList.toggle('active', currentServer === 'uqload');
 
-        if (currentServer === 'premium' && btnP && btnP.style.display !== 'none') {
+        if (currentServer === 'premium' && linkP && hasPremiumAccess) {
             setVideoContent(linkP);
-        } else if (linkU) {
+        } else if (currentServer === 'uqload' && linkU) {
             setVideoContent(linkU);
-            currentServer = 'uqload';
+        } else if (linkP) {
+            setVideoContent(hasPremiumAccess ? linkP : "VIP_LOCK");
         } else {
-            setVideoContent(isVipUser ? "" : (linkP ? "VIP_LOCK" : ""));
+            setVideoContent("");
         }
     }
 }
