@@ -1441,6 +1441,13 @@ function finishCover() {
                     <source src="https://media.tenor.com/7xmvr-fKGLMAAAPo/hbo-max-warner-bros-pictures.mp4" type="video/mp4">
                 </video>
             </div>
+
+            <div class="platform-card" onclick="performSearch('Starz')">
+                <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Starz_2022.svg" alt="Starz" class="plat-logo" style="filter: brightness(0) invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/DhufKhrjhg4AAAPo/power-handshake.mp4" type="video/mp4">
+                </video>
+            </div>
             
 <div class="platform-card" onclick="performSearch('Dreamworks')">
                 <img src="https://upload.wikimedia.org/wikipedia/fr/5/55/1024px-DreamWorks_Animation_SKG_logo_with_fishing_boy.png" alt="Dreamworks" class="plat-logo" style="filter: invert(1);">
@@ -2161,6 +2168,26 @@ function finishCover() {
                     <div class="stat-val" id="stat-total-users">0</div>
                     <div class="stat-label">Utilisateurs inscrits</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-total-films" style="color:#3498db;">0</div>
+                    <div class="stat-label">Films au catalogue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-total-series" style="color:#e74c3c;">0</div>
+                    <div class="stat-label">Séries au catalogue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-total-animes" style="color:#9b59b6;">0</div>
+                    <div class="stat-label">Animés au catalogue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-total-sagas" style="color:#f1c40f;">0</div>
+                    <div class="stat-label">Sagas <span id="stat-sagas-avg" style="font-size:11px; color:#888;"></span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="stat-avg-rating" style="color:#2ecc71;">-</div>
+                    <div class="stat-label">Note moyenne du catalogue</div>
+                </div>
             </div>
 
             <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 25px;">
@@ -2204,6 +2231,26 @@ function finishCover() {
                     <h3><i class="fas fa-clock" style="color: #f1c40f;"></i> Top "À voir plus tard"</h3>
                     <input type="text" id="chart-watchlater-search" class="analytics-search-input" placeholder="Filtrer par titre..." oninput="filterChartData('chart-watchlater')">
                     <div class="chart-scroll-wrap"><canvas id="chart-watchlater"></canvas></div>
+                </div>
+            </div>
+
+            <h3 style="color: var(--primary); margin: 30px 0 15px; text-transform: uppercase; font-size: 15px; border-bottom: 1px solid #2a2b36; padding-bottom: 10px;"><i class="fas fa-database"></i> Statistiques du catalogue</h3>
+            <div class="charts-grid">
+                <div class="chart-box">
+                    <h3><i class="fas fa-chart-pie" style="color: #9b59b6;"></i> Films / Séries / Animés</h3>
+                    <div class="chart-scroll-wrap" style="display:flex; justify-content:center;"><canvas id="chart-catalog-type" width="260" height="260" style="max-width:260px; max-height:260px;"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h3><i class="fas fa-star" style="color: #f1c40f;"></i> Top 10 des mieux notés</h3>
+                    <div class="chart-scroll-wrap"><canvas id="chart-catalog-toprated"></canvas></div>
+                </div>
+                <div class="chart-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-tags" style="color: #2ecc71;"></i> Répartition par genre</h3>
+                    <div class="chart-scroll-wrap"><canvas id="chart-catalog-genre"></canvas></div>
+                </div>
+                <div class="chart-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-calendar-alt" style="color: #e67e22;"></i> Répartition par année de sortie</h3>
+                    <div class="chart-scroll-wrap"><canvas id="chart-catalog-year"></canvas></div>
                 </div>
             </div>
         </div>
@@ -2938,7 +2985,8 @@ function performSearch(forcedQuery = null) {
             '20th': ['20th', '20th century', 'fox', 'alien', 'predator', 'planète des singes', 'die hard', 'kingsman', 'avatar', 'x-men', 'wolverine', 'logan', 'fight club', 'free guy', 'nouveaux mutants', 'toys'],
             'paramount': ['paramount', 'top gun', 'mission impossible', 'halo', 'yellowstone', 'transformers', 'sonic', 'south park', 'star trek', 'gladiator', 'scream', 'forrest gump'],
             'dreamworks': ['dreamworks', 'dragons', 'shrek', 'kung fu panda', 'madagascar'],
-            'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from']
+            'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from'],
+            'starz': ['starz', 'power', 'outlander', 'spartacus', 'p-valley', 'the girlfriend experience', 'heels', 'hightown']
         };
 
         const safeQuery = rawQuery.toLowerCase().trim();
@@ -4025,7 +4073,11 @@ async function saveMovie() {
             if (typeof loadWishes === 'function') {
                 try { await loadWishes(); } catch(e) {}
             }
-            
+
+            if (typeof renderCatalogStats === 'function') {
+                try { renderCatalogStats(); } catch(e) { console.error("Erreur stats catalogue", e); }
+            }
+
             try {
                 const res = await fetch(`${API_URL}/api/admin/analytics`, { headers: { 'authorization': token } });
                 const data = await res.json();
@@ -4217,6 +4269,84 @@ async function saveMovie() {
         const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const filtered = query ? stored.dataArray.filter(d => d.title.toLowerCase().includes(query)) : stored.dataArray;
         drawChart(canvasId, stored.label, filtered, stored.color);
+    }
+
+    // --- STATISTIQUES DU CATALOGUE (CALCULÉES DEPUIS moviesDB, PAS BESOIN DU SERVEUR) ---
+    function drawDoughnutChart(canvasId, labels, values, colors) {
+        const canvasEl = document.getElementById(canvasId);
+        if (!canvasEl) return;
+        const ctx = canvasEl.getContext('2d');
+        if (chartsInstance[canvasId]) { chartsInstance[canvasId].destroy(); chartsInstance[canvasId] = null; }
+        chartsInstance[canvasId] = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#13141c', borderWidth: 3 }] },
+            options: { responsive: false, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 12 } } }, tooltip: { backgroundColor: 'rgba(0,0,0,0.9)', bodyFont: { size: 13 } } } }
+        });
+    }
+
+    function renderCatalogStats() {
+        if (!moviesDB || moviesDB.length === 0) return;
+
+        const contentOnly = moviesDB.filter(m => m.type !== 'saga');
+        const isAnime = m => !!(m.genre && m.genre.toLowerCase().includes('anime'));
+        const films = contentOnly.filter(m => m.type === 'film' && !isAnime(m));
+        const series = contentOnly.filter(m => m.type === 'serie' && !isAnime(m));
+        const animes = contentOnly.filter(isAnime);
+        const sagas = moviesDB.filter(m => m.type === 'saga');
+
+        document.getElementById('stat-total-films').innerText = films.length;
+        document.getElementById('stat-total-series').innerText = series.length;
+        document.getElementById('stat-total-animes').innerText = animes.length;
+        document.getElementById('stat-total-sagas').innerText = sagas.length;
+
+        // Taille moyenne d'une saga (nombre de films liés à chaque saga)
+        if (sagas.length > 0) {
+            const tailles = sagas.map(s => (s.cast ? s.cast.split(',').filter(id => id.trim() !== '').length : 0));
+            const totalTaille = tailles.reduce((a, b) => a + b, 0);
+            const avgTaille = totalTaille > 0 ? (totalTaille / sagas.length).toFixed(1) : null;
+            document.getElementById('stat-sagas-avg').innerText = avgTaille ? `(≈ ${avgTaille} films/saga)` : '';
+        } else {
+            document.getElementById('stat-sagas-avg').innerText = '';
+        }
+
+        const notes = contentOnly.map(m => parseFloat(m.rating)).filter(n => !isNaN(n));
+        document.getElementById('stat-avg-rating').innerText = notes.length ? (notes.reduce((a, b) => a + b, 0) / notes.length).toFixed(1) + '/10' : '-';
+
+        // Répartition Films / Séries / Animés
+        drawDoughnutChart('chart-catalog-type', ['Films', 'Séries', 'Animés'], [films.length, series.length, animes.length], ['#3498db', '#e74c3c', '#9b59b6']);
+
+        // Top 10 des mieux notés
+        const ratedArr = contentOnly
+            .filter(m => !isNaN(parseFloat(m.rating)))
+            .map(m => ({ title: m.title, count: parseFloat(m.rating) }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+        renderChart('chart-catalog-toprated', 'Note / 10', ratedArr, '#f1c40f');
+
+        // Répartition par genre
+        const genreCounts = {};
+        contentOnly.forEach(m => {
+            (m.genre || 'Non classé').split(',').forEach(g => {
+                g = g.trim();
+                if (!g) return;
+                genreCounts[g] = (genreCounts[g] || 0) + 1;
+            });
+        });
+        const genreArr = Object.entries(genreCounts)
+            .map(([title, count]) => ({ title, count }))
+            .sort((a, b) => b.count - a.count);
+        renderChart('chart-catalog-genre', 'Titres', genreArr, '#2ecc71');
+
+        // Répartition par année de sortie
+        const yearCounts = {};
+        contentOnly.forEach(m => {
+            const y = m.year || 'Inconnue';
+            yearCounts[y] = (yearCounts[y] || 0) + 1;
+        });
+        const yearArr = Object.entries(yearCounts)
+            .map(([title, count]) => ({ title, count }))
+            .sort((a, b) => String(a.title).localeCompare(String(b.title)));
+        renderChart('chart-catalog-year', 'Titres', yearArr, '#e67e22');
     }
 
     // --- ADMIN (OUVERTURE CRÉATION) ---
