@@ -66,6 +66,38 @@
         .badge { position: absolute; padding: 2px 4px; font-size: 10px; font-weight: bold; border-radius: 2px; z-index: 2; }
         .b-hd { top: 5px; left: 5px; background: black; border: 1px solid #555; color: white; } 
         .b-type { top: 25px; left: 5px; background: var(--primary); color: black; right: auto; }
+        .b-new { top: 45px; left: 5px; background: #2ecc71; color: black; right: auto; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
+        .badge-card-new { position: absolute; top: 8px; right: 8px; background: #2ecc71; color: black; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 3px; z-index: 5; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
+        .continue-watching-progress-track { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.2); z-index: 5; }
+        .continue-watching-progress-fill { height: 100%; background: var(--danger); }
+        .continue-watching-ep-label { position: absolute; bottom: 8px; left: 8px; right: 8px; color: white; font-size: 10px; font-weight: bold; text-shadow: 0 1px 3px black; z-index: 4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .continue-watching-play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; color: white; opacity: 0; transition: 0.25s; z-index: 4; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+        .netflix-card:hover .continue-watching-play-overlay { opacity: 1; }
+        .notif-item { display:flex; gap:10px; align-items:flex-start; padding:12px 5px; border-bottom:1px solid #262626; cursor:pointer; transition:0.2s; }
+        .notif-item:hover { background:#222; }
+        .notif-item:last-child { border-bottom:none; }
+        .notif-item.unread { background: rgba(255,222,0,0.06); border-left: 3px solid var(--primary); padding-left: 8px; }
+        .notif-item i.notif-icon { color: var(--primary); font-size: 16px; margin-top: 2px; flex-shrink:0; }
+        .notif-item-text { font-size: 12px; color: #ddd; line-height:1.4; }
+        .notif-item-date { font-size: 10px; color: #777; margin-top: 4px; }
+        .comments-section { padding: 25px; background: #0d0d0d; border-top: 1px solid #222; }
+        .comments-title { color: white; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .comments-title i { color: var(--primary); }
+        .comment-textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 6px; font-size: 13px; resize: vertical; min-height: 70px; outline: none; font-family: 'Arial', sans-serif; }
+        .comment-textarea:focus { border-color: var(--primary); }
+        .comment-submit-btn { background: var(--primary); color: black; border: none; padding: 8px 18px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; float: right; transition: 0.2s; }
+        .comment-submit-btn:hover { background: #e6c800; }
+        .comments-list { clear: both; margin-top: 15px; display: flex; flex-direction: column; gap: 14px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .comment-item { display: flex; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #1f1f1f; }
+        .comment-item:last-child { border-bottom: none; }
+        .comment-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #333; flex-shrink: 0; }
+        .comment-body { flex: 1; }
+        .comment-header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+        .comment-username { color: var(--primary); font-weight: bold; font-size: 13px; }
+        .comment-date { color: #666; font-size: 10px; }
+        .comment-text { color: #ddd; font-size: 13px; line-height: 1.5; word-break: break-word; }
+        .comment-delete-btn { background: none; border: none; color: #666; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .comment-delete-btn:hover { color: var(--danger); }
         .grid-rating { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: white; font-size: 11px; font-weight: bold; padding: 2px 5px; border-radius: 3px; border: 1px solid #fff; z-index: 2; }
         .movie-info { padding: 8px; text-align: center; } 
         .movie-title { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1264,6 +1296,18 @@ function finishCover() {
         </div>
     </div>
 
+    <div id="notifications-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:13000; justify-content:center; align-items:center;">
+        <div style="background:#1a1a1a; width:420px; max-width:92%; max-height:80vh; border-radius:10px; border:1px solid var(--primary); box-shadow:0 0 30px rgba(0,0,0,0.8); display:flex; flex-direction:column; overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:18px 20px; border-bottom:1px solid #333;">
+                <h2 style="color:var(--primary); font-size:16px; display:flex; align-items:center; gap:8px;"><i class="fas fa-bell"></i> Notifications</h2>
+                <button onclick="closeNotifications()" style="background:none; border:none; color:#aaa; font-size:20px; cursor:pointer;">×</button>
+            </div>
+            <div id="notifications-list" style="overflow-y:auto; flex:1; padding:10px 15px;">
+                <div style="color:#aaa; text-align:center; padding:20px;">Chargement...</div>
+            </div>
+        </div>
+    </div>
+
     <div id="vip-diamond" title="Membre VIP - Accès Premium">
         <i class="fas fa-gem"></i>
     </div>
@@ -1315,6 +1359,11 @@ function finishCover() {
 
     <div class="header-right">
         
+        <div id="notif-bell-wrap" style="display:none; position:relative; cursor:pointer; margin-right:5px;" onclick="openNotifications()" title="Notifications">
+            <i class="fas fa-bell" style="color:white; font-size:18px;"></i>
+            <span id="notif-badge" style="display:none; position:absolute; top:-6px; right:-8px; background:var(--danger); color:white; font-size:10px; font-weight:bold; min-width:16px; height:16px; border-radius:50%; align-items:center; justify-content:center; padding:0 3px; box-shadow:0 0 6px rgba(231,76,60,0.8);">0</span>
+        </div>
+
         <div id="user-profile-nav" style="display:none; align-items:center; gap:10px; cursor:pointer; margin-right:15px;" onclick="openProfilePage()">
             <img id="nav-avatar" src="" style="width:35px; height:35px; border-radius:50%; border:2px solid var(--primary); object-fit:cover;">
         </div>
@@ -1348,6 +1397,13 @@ function finishCover() {
                 <div id="hero-dots" style="display: flex; gap: 8px; align-items: center;"></div>
                 <i class="fas fa-pause hero-pause-play" id="hero-pause-btn" onclick="toggleHeroPlay()"></i>
             </div>
+        </div>
+
+        <div class="slider-section" id="continue-watching-section" style="display:none;">
+            <h2 class="slider-title"><i class="fas fa-history"></i> CONTINUER À REGARDER</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('continue-watching-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="continue-watching-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('continue-watching-slider', 1)"><i class="fas fa-chevron-right"></i></button>
         </div>
 
 <div class="slider-section">
@@ -2004,6 +2060,7 @@ function finishCover() {
     <button class="detail-action-btn detail-fav-btn" id="dp-fav-btn" onclick="toggleFavorite()" title="Ajouter aux favoris"><i class="fas fa-heart"></i></button>
     <button class="detail-action-btn detail-wl-btn" id="dp-wl-btn" onclick="toggleWatchlater()" title="À voir plus tard"><i class="fas fa-clock"></i></button>
     <button class="detail-action-btn detail-top-btn" id="dp-top-btn" onclick="toggleTop()" title="Ajouter au Top"><i class="fas fa-trophy"></i></button>
+    <button class="detail-action-btn" onclick="shareMovie()" title="Partager le lien" style="color:#3498db; border-color:#3498db;"><i class="fas fa-share-alt"></i></button>
     <button class="detail-action-btn" onclick="openReportModal()" title="Signaler un problème" style="color:var(--danger); border-color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></button>
 </div>
 
@@ -2024,6 +2081,18 @@ function finishCover() {
                         <div class="score-circle" id="dp-score-detail">8.1</div>
                     </div>
                  
+                </div>
+            </div>
+
+            <div class="comments-section">
+                <h3 class="comments-title"><i class="fas fa-comments"></i> Avis des membres (<span id="comments-count">0</span>)</h3>
+                <div id="comment-form-wrap" style="display:none;">
+                    <textarea id="comment-input" class="comment-textarea" placeholder="Donne ton avis sur ce film/cette série..." maxlength="500"></textarea>
+                    <button class="comment-submit-btn" onclick="submitComment()"><i class="fas fa-paper-plane"></i> Publier</button>
+                </div>
+                <div id="comment-login-hint" style="display:none; color:#888; font-size:13px; text-align:center; padding:10px;">Connecte-toi pour laisser un avis.</div>
+                <div id="comments-list" class="comments-list">
+                    <div style="color:#aaa; text-align:center; padding:15px;">Chargement des avis...</div>
                 </div>
             </div>
         </div>
@@ -2290,6 +2359,13 @@ function finishCover() {
     // --- 0. CONFIGURATION & UTILITAIRES ---
     const API_URL = 'https://backend-cin-lk10.onrender.com';
     const TMDB_API_KEY = atob('YzFhYTY3NWVjYWIyZDA2YzJlYjUxMDEzNDU5NTFiNmQ=');
+
+    // Badge "Nouveau" : vrai si le titre a été ajouté au catalogue il y a moins de 7 jours
+    function isNewMovie(m) {
+        if (!m || !m.createdAt) return false;
+        const ageMs = Date.now() - new Date(m.createdAt).getTime();
+        return ageMs >= 0 && ageMs <= 7 * 24 * 60 * 60 * 1000;
+    }
 
     // Anti-curieux
     document.addEventListener('contextmenu', event => event.preventDefault());
@@ -2601,8 +2677,84 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         
         document.getElementById('user-profile-nav').style.display = 'flex';
         document.getElementById('nav-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
+
+        const bellWrap = document.getElementById('notif-bell-wrap');
+        if (bellWrap) bellWrap.style.display = 'flex';
+        fetchNotifications();
         
         loadSecureMovies();
+    }
+
+    // ==========================================
+    // NOTIFICATIONS (badge rouge : demande Wishboard ajoutée, etc.)
+    // ==========================================
+    let notificationsCache = [];
+
+    async function fetchNotifications() {
+        if (!currentUser) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/notifications`, { headers: { 'authorization': token } });
+            const data = await res.json();
+            if (data.success) {
+                notificationsCache = data.notifications || [];
+                const badge = document.getElementById('notif-badge');
+                if (badge) {
+                    if (data.unreadCount > 0) {
+                        badge.style.display = 'flex';
+                        badge.innerText = data.unreadCount > 9 ? '9+' : data.unreadCount;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+        } catch (e) { console.error("Erreur notifications", e); }
+    }
+
+    function openNotifications() {
+        if (!currentUser) return;
+        document.getElementById('notifications-overlay').style.display = 'flex';
+        renderNotifications();
+        markNotificationsRead();
+    }
+
+    function closeNotifications() {
+        document.getElementById('notifications-overlay').style.display = 'none';
+    }
+
+    function renderNotifications() {
+        const list = document.getElementById('notifications-list');
+        if (!list) return;
+        if (notificationsCache.length === 0) {
+            list.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px;">Aucune notification pour le moment.</div>';
+            return;
+        }
+        list.innerHTML = notificationsCache.map(n => {
+            const dateStr = n.date ? new Date(n.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            return `
+            <div class="notif-item ${n.read ? '' : 'unread'}" onclick="handleNotificationClick('${n.linkedMovieId || ''}')">
+                <i class="fas fa-star notif-icon"></i>
+                <div>
+                    <div class="notif-item-text">${n.message}</div>
+                    <div class="notif-item-date">${dateStr}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function handleNotificationClick(movieId) {
+        if (!movieId) return;
+        closeNotifications();
+        const target = moviesDB.find(m => m.id === movieId);
+        if (target) { if (target.type === 'saga') { openSaga(target.id); } else { openP(target.id); } }
+    }
+
+    async function markNotificationsRead() {
+        notificationsCache.forEach(n => n.read = true);
+        const badge = document.getElementById('notif-badge');
+        if (badge) badge.style.display = 'none';
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try { await fetch(`${API_URL}/api/notifications/mark-read`, { method: 'POST', headers: { 'authorization': token } }); } catch (e) {}
     }
 
     // --- 4. PROFIL & PARAMETRES ---
@@ -2716,6 +2868,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
+                    ${isNewMovie(m) ? '<span class="badge b-new"><i class="fas fa-bolt"></i> NOUVEAU</span>' : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
                 <div class="movie-info"><div class="movie-title">${m.title}</div></div>
@@ -2779,6 +2932,7 @@ async function loadSecureMovies() {
             console.error("Erreur serveur", error); 
        } finally {
             showHome(); // <-- Lance le mode Netflix par défaut !
+            openMovieFromUrlIfNeeded(); // Si le lien contient ?watch=ID, ouvre directement le film/la série partagé(e)
         }
     }
 
@@ -2848,6 +3002,7 @@ async function loadSecureMovies() {
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
+                    ${isNewMovie(m) ? '<span class="badge b-new"><i class="fas fa-bolt"></i> NOUVEAU</span>' : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
                 <div class="movie-info"><div class="movie-title">${m.title}</div></div>
@@ -2898,11 +3053,11 @@ function initMegaMenu() {
         // LA LIGNE MANQUANTE QUI FAISAIT TOUT PLANTER EST CELLE-CI :
         const filmNav = document.getElementById('nav-film').nextElementSibling;
         
-        let filmHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('film', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); setFilter('film', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Tous les Films</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('film', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('film', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('film', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('film', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-film-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('film')"><button onclick="event.stopPropagation(); applyMenuYear('film')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
+        let filmHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('film', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); goToSagasFromMenu(); closeMobileMenu()"><i class="fas fa-layer-group"></i> Sagas</a><a onclick="event.stopPropagation(); setFilter('film', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Tous les Films</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('film', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('film', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('film', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('film', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-film-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('film')"><button onclick="event.stopPropagation(); applyMenuYear('film')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
         filmNav.innerHTML = filmHTML;
 
         const serieNav = document.getElementById('nav-serie').nextElementSibling;
-        let serieHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('serie', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); setFilter('serie', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Toutes les Séries</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('serie', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('serie', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-serie-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('serie')"><button onclick="event.stopPropagation(); applyMenuYear('serie')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
+        let serieHTML = `<div style="display:flex; gap: 40px; width: 100%; flex-wrap: wrap;"><div class="drop-column"><div style="margin-bottom:15px;"><h3><i class="fas fa-star"></i> STUDIOS</h3>${studios.map(s => `<a onclick="event.stopPropagation(); setFilter('serie', '${s}'); closeMobileMenu()"><i class="fas fa-magic"></i> ${s}</a>`).join('')}</div><h3><i class="fas fa-tags"></i> PAR GENRE</h3><a onclick="event.stopPropagation(); goToSagasFromMenu(); closeMobileMenu()"><i class="fas fa-layer-group"></i> Sagas</a><a onclick="event.stopPropagation(); setFilter('serie', 'all'); closeMobileMenu()"><i class="fas fa-layer-group"></i> Toutes les Séries</a>${GENRES_LIST.filter(g => !studios.includes(g)).map(g => `<a onclick="event.stopPropagation(); setFilter('serie', '${g}'); closeMobileMenu()"><i class="fas fa-caret-right"></i> ${g}</a>`).join('')}</div><div class="drop-column"><h3><i class="fas fa-calendar-alt"></i> PAR ANNÉE</h3><a onclick="event.stopPropagation(); setYearFilter('serie', '2025'); closeMobileMenu()"><i class="fas fa-clock"></i> 2025</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2024'); closeMobileMenu()"><i class="fas fa-clock"></i> 2024</a><a onclick="event.stopPropagation(); setYearFilter('serie', '2023'); closeMobileMenu()"><i class="fas fa-clock"></i> 2023</a><div style="margin-top:15px;"><span style="color:#888; font-size:11px; margin-bottom:5px; display:block;">Rechercher une autre année :</span><div style="display:flex; gap:5px;"><input type="number" id="menu-serie-year" placeholder="Ex: 2002" style="width:80px; background:#222; border:1px solid #444; color:white; padding:5px; border-radius:3px; outline:none;" onkeypress="if(event.key === 'Enter') applyMenuYear('serie')"><button onclick="event.stopPropagation(); applyMenuYear('serie')" style="background:var(--primary); border:none; cursor:pointer; font-weight:bold; padding:0 10px; border-radius:3px; color:black;"><i class="fas fa-search"></i></button></div></div></div></div>`;
         serieNav.innerHTML = serieHTML;
     }
    function setCategory(cat) { 
@@ -3185,10 +3340,10 @@ function showCatalogue() {
         }
     }
 
-    function openP(id) {
+    function openP(id, resumeEpisodeIndex = null) {
         document.body.classList.add('no-scroll'); 
         const m = moviesDB.find(x => x.id === id); if(!m) return;
-        currentMovie = m; currentEpisodeIndex = 0; 
+        currentMovie = m; currentEpisodeIndex = (typeof resumeEpisodeIndex === 'number') ? resumeEpisodeIndex : 0; 
         document.getElementById('dp-img').style.backgroundImage = `url('${m.poster}')`;
         document.getElementById('dp-title').innerText = m.title; 
         document.getElementById('dp-year').innerText = " - " + m.year;
@@ -3266,13 +3421,26 @@ function showCatalogue() {
 
         updatePlayerInterface(); document.getElementById('player-overlay').style.display = 'block';
         if(currentUser) {
-            const historyData = { id: m.id, title: m.title, type: m.type, watchedAt: new Date().toISOString() };
-            const token = localStorage.getItem('monBadgeCineLK10');
-            fetch(`${API_URL}/api/user/add-history`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ historyItem: historyData }) }).catch(err => err);
-            if(!currentUser.history) currentUser.history = [];
-            const isAlreadyInHistory = currentUser.history.some(item => (typeof item === 'string' ? item === m.id : item.id === m.id));
-            if(!isAlreadyInHistory) currentUser.history.push(historyData);
+            logHistoryEntry(m, m.type === 'serie' ? currentEpisodeIndex : null);
         }
+        loadComments(m.id);
+    }
+
+    // Historique centralisé : garde le film/l'épisode le plus récent en tête (utilisé par "Continuer à regarder")
+    function logHistoryEntry(m, episodeIndex = null) {
+        if (!currentUser) return;
+        const historyData = { id: m.id, title: m.title, type: m.type, poster: m.poster, watchedAt: new Date().toISOString() };
+        if (m.type === 'serie' && episodeIndex !== null && m.episodes && m.episodes.length > 0) {
+            historyData.episodeIndex = episodeIndex;
+            historyData.totalEpisodes = m.episodes.length;
+            historyData.episodeTitle = m.episodes[episodeIndex] ? m.episodes[episodeIndex].title : null;
+        }
+        const token = localStorage.getItem('monBadgeCineLK10');
+        fetch(`${API_URL}/api/user/add-history`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'authorization': token }, body: JSON.stringify({ historyItem: historyData }) }).catch(err => err);
+
+        if (!currentUser.history) currentUser.history = [];
+        currentUser.history = currentUser.history.filter(item => (typeof item === 'string' ? item : item.id) !== m.id);
+        currentUser.history.unshift(historyData);
     }
 
     function toggleDesc() { const descEl = document.getElementById('dp-desc'); const btn = document.getElementById('btn-read-more'); descEl.classList.toggle('clamped'); btn.innerText = descEl.classList.contains('clamped') ? "Lire la suite" : "Réduire"; }
@@ -3428,6 +3596,7 @@ function showCatalogue() {
         div.onclick = () => { 
             currentEpisodeIndex = i; 
             updatePlayerInterface(); 
+            if (currentUser && currentMovie) logHistoryEntry(currentMovie, i);
             document.getElementById('ep-list-container').style.display = 'none';
             document.querySelector('.episodes-toggle-btn').classList.remove('active-dropdown');
         }; 
@@ -3953,6 +4122,157 @@ async function saveMovie() {
         }
     }
 
+
+    // ==========================================
+    // SYSTEME DE TOAST (petite notif discrète en bas de l'écran)
+    // ==========================================
+    function showToast(message, icon = 'fa-check-circle', color = '#2ecc71') {
+        let toast = document.getElementById('lk10-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'lk10-toast';
+            toast.style.cssText = 'position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(20px); background:#1a1a1a; color:white; padding:12px 20px; border-radius:30px; font-size:13px; font-weight:bold; z-index:99999; box-shadow:0 5px 20px rgba(0,0,0,0.6); display:flex; align-items:center; gap:8px; opacity:0; transition:0.3s; pointer-events:none; max-width:90%; text-align:center;';
+            document.body.appendChild(toast);
+        }
+        toast.style.borderLeft = `4px solid ${color}`;
+        toast.innerHTML = `<i class="fas ${icon}" style="color:${color};"></i> <span>${message}</span>`;
+        clearTimeout(toast._hideTimer);
+        requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(-50%) translateY(0)'; });
+        toast._hideTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2800);
+    }
+
+    // ==========================================
+    // BOUTON PARTAGER + OUVERTURE AUTOMATIQUE VIA LIEN (?watch=ID)
+    // ==========================================
+    function shareMovie() {
+        if (!currentMovie) return;
+        const shareUrl = `${location.origin}${location.pathname}?watch=${encodeURIComponent(currentMovie.id)}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareUrl)
+                .then(() => showToast('Lien copié dans le presse-papiers !', 'fa-link', '#3498db'))
+                .catch(() => showToast("Impossible de copier le lien.", 'fa-times-circle', '#e74c3c'));
+        } else {
+            showToast('Copie non supportée sur ce navigateur.', 'fa-times-circle', '#e74c3c');
+        }
+    }
+
+    function openMovieFromUrlIfNeeded() {
+        try {
+            const params = new URLSearchParams(location.search);
+            const watchId = params.get('watch');
+            if (!watchId || !moviesDB || moviesDB.length === 0) return;
+            const target = moviesDB.find(m => m.id === watchId);
+            if (target) {
+                if (target.type === 'saga') { openSaga(target.id); } else { openP(target.id); }
+            }
+        } catch (e) {}
+    }
+
+    // ==========================================
+    // COMMENTAIRES / AVIS SOUS CHAQUE FICHE
+    // ==========================================
+    let currentCommentsMovieId = null;
+
+    async function loadComments(movieId) {
+        currentCommentsMovieId = movieId;
+
+        const formWrap = document.getElementById('comment-form-wrap');
+        const loginHint = document.getElementById('comment-login-hint');
+        if (currentUser) {
+            formWrap.style.display = 'block';
+            loginHint.style.display = 'none';
+            const textarea = document.getElementById('comment-input');
+            if (textarea) textarea.value = '';
+        } else {
+            formWrap.style.display = 'none';
+            loginHint.style.display = 'block';
+        }
+
+        const listEl = document.getElementById('comments-list');
+        listEl.innerHTML = '<div style="color:#aaa; text-align:center; padding:15px;">Chargement des avis...</div>';
+
+        try {
+            const res = await fetch(`${API_URL}/api/comments/${encodeURIComponent(movieId)}`);
+            const data = await res.json();
+            if (data.success) {
+                renderComments(data.comments || []);
+            } else {
+                listEl.innerHTML = '<div style="color:#aaa; text-align:center; padding:15px;">Impossible de charger les avis.</div>';
+            }
+        } catch (e) {
+            listEl.innerHTML = '<div style="color:#aaa; text-align:center; padding:15px;">Impossible de charger les avis.</div>';
+        }
+    }
+
+    function renderComments(comments) {
+        document.getElementById('comments-count').innerText = comments.length;
+        const listEl = document.getElementById('comments-list');
+
+        if (comments.length === 0) {
+            listEl.innerHTML = '<div style="color:#666; text-align:center; padding:15px; font-size:13px;">Sois le premier à donner ton avis !</div>';
+            return;
+        }
+
+        listEl.innerHTML = comments.map(c => {
+            const dateStr = c.date ? new Date(c.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+            const avatar = c.profilePic || 'https://i.imgur.com/6VBx3io.png';
+            const canDelete = typeof isAdminUnlocked !== 'undefined' && isAdminUnlocked;
+            return `
+            <div class="comment-item">
+                <img src="${avatar}" class="comment-avatar" alt="">
+                <div class="comment-body">
+                    <div class="comment-header-row">
+                        <div>
+                            <span class="comment-username">${c.username}</span>
+                            <span class="comment-date"> · ${dateStr}</span>
+                        </div>
+                        ${canDelete ? `<button class="comment-delete-btn" onclick="deleteComment('${c._id}')" title="Supprimer (admin)"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+                    <div class="comment-text">${c.text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function submitComment() {
+        if (!currentUser) { showToast("Connecte-toi pour laisser un avis.", 'fa-lock', '#e74c3c'); return; }
+        const textarea = document.getElementById('comment-input');
+        const text = textarea.value.trim();
+        if (!text) { showToast("Écris quelque chose avant de publier.", 'fa-exclamation-circle', '#f1c40f'); return; }
+        if (!currentCommentsMovieId) return;
+
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/comments/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'authorization': token },
+                body: JSON.stringify({ movieId: currentCommentsMovieId, text })
+            });
+            const data = await res.json();
+            if (data.success) {
+                textarea.value = '';
+                showToast("Avis publié !", 'fa-check-circle', '#2ecc71');
+                loadComments(currentCommentsMovieId);
+            } else {
+                showToast(data.message || "Erreur lors de la publication.", 'fa-times-circle', '#e74c3c');
+            }
+        } catch (e) {
+            showToast("Erreur de connexion au serveur.", 'fa-times-circle', '#e74c3c');
+        }
+    }
+
+    async function deleteComment(commentId) {
+        if (!confirm("Supprimer cet avis ?")) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/comments/${commentId}`, { method: 'DELETE', headers: { 'authorization': token } });
+            const data = await res.json();
+            if (data.success && currentCommentsMovieId) loadComments(currentCommentsMovieId);
+        } catch (e) {}
+    }
 
     // ==========================================
     // SYSTEME DE SIGNALEMENT (FRONT-END)
@@ -4617,8 +4937,20 @@ async function saveMovie() {
         buildNetflixHome();
     }
 
+    // Lien "Sagas" du menu Films/Séries : ramène à l'accueil et scrolle jusqu'au carrousel des sagas
+    function goToSagasFromMenu() {
+        closeProfilePage();
+        showHome();
+        setTimeout(() => {
+            const target = document.getElementById('home-sagas-container');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+    }
+
 function buildNetflixHome() {
         if (!moviesDB || moviesDB.length === 0) return;
+
+        buildContinueWatchingRow();
 
         // --- FILTRES POUR ÉVITER L'INVASION DES SAGAS ---
         const allItems = moviesDB.filter(m => m.type !== 'saga');
@@ -4784,6 +5116,63 @@ function buildNetflixHome() {
     }
 
     // --- GÉNÉRATEURS DE CARROUSELS ---
+    // --- LIGNE "CONTINUER À REGARDER" (basée sur l'historique, avec barre de progression pour les séries) ---
+    function buildContinueWatchingRow() {
+        const section = document.getElementById('continue-watching-section');
+        const container = document.getElementById('continue-watching-slider');
+        if (!section || !container) return;
+
+        if (!currentUser || !currentUser.history || currentUser.history.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+
+        // On ne garde que les entrées valides (toujours dans moviesDB) et on en garde 20 max
+        const items = currentUser.history
+            .map(h => (typeof h === 'string' ? { id: h } : h))
+            .map(h => {
+                const m = moviesDB.find(x => x.id === h.id);
+                if (!m) return null;
+                return { history: h, movie: m };
+            })
+            .filter(Boolean)
+            .slice(0, 20);
+
+        if (items.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = 'block';
+        container.innerHTML = '';
+
+        items.forEach(({ history, movie }) => {
+            const card = document.createElement('div');
+            card.className = 'netflix-card';
+
+            let progressHTML = '';
+            let labelText = '';
+            let resumeEpisode = null;
+
+            if (movie.type === 'serie' && typeof history.episodeIndex === 'number' && history.totalEpisodes) {
+                resumeEpisode = history.episodeIndex;
+                const pct = Math.min(100, Math.round(((history.episodeIndex + 1) / history.totalEpisodes) * 100));
+                progressHTML = `<div class="continue-watching-progress-track"><div class="continue-watching-progress-fill" style="width:${pct}%;"></div></div>`;
+                labelText = history.episodeTitle || `Épisode ${history.episodeIndex + 1}`;
+            }
+
+            card.onclick = () => openP(movie.id, resumeEpisode);
+            card.innerHTML = `
+                <div class="badge-card">${movie.type.toUpperCase()}</div>
+                <i class="fas fa-play continue-watching-play-overlay"></i>
+                <div class="netflix-poster" style="background-image: url('${movie.poster}')"></div>
+                ${labelText ? `<div class="continue-watching-ep-label">${labelText}</div>` : ''}
+                ${progressHTML}
+            `;
+            container.appendChild(card);
+        });
+    }
+
     function buildStandardSlider(containerId, moviesList) {
         const container = document.getElementById(containerId);
         container.innerHTML = '';
@@ -4793,6 +5182,7 @@ function buildNetflixHome() {
             card.onclick = () => openP(m.id);
             card.innerHTML = `
                 <div class="badge-card">${m.type.toUpperCase()}</div>
+                ${isNewMovie(m) ? '<div class="badge-card-new"><i class="fas fa-bolt"></i> NOUVEAU</div>' : ''}
                 <div class="netflix-poster" style="background-image: url('${m.poster}')"></div>
             `;
             container.appendChild(card);
@@ -4810,6 +5200,7 @@ function buildNetflixHome() {
                 <div class="top-10-number">${index + 1}</div>
                 <div class="top-10-poster-wrap">
                     <div class="badge-card">${m.type.toUpperCase()}</div>
+                    ${isNewMovie(m) ? '<div class="badge-card-new"><i class="fas fa-bolt"></i> NOUVEAU</div>' : ''}
                     <div class="top-10-poster" style="background-image: url('${m.poster}')"></div>
                 </div>
             `;
