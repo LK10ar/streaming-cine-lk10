@@ -80,14 +80,15 @@
         .notif-item i.notif-icon { color: var(--primary); font-size: 16px; margin-top: 2px; flex-shrink:0; }
         .notif-item-text { font-size: 12px; color: #ddd; line-height:1.4; }
         .notif-item-date { font-size: 10px; color: #777; margin-top: 4px; }
-        .comments-section { padding: 25px; background: #0d0d0d; border-top: 1px solid #222; }
+        .comments-section { padding: 25px; background: #0d0d0d; border-top: 1px solid #222; width: 100%; box-sizing: border-box; }
+        .comments-inner { width: 100%; }
         .comments-title { color: white; font-size: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
         .comments-title i { color: var(--primary); }
         .comment-textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 6px; font-size: 13px; resize: vertical; min-height: 70px; outline: none; font-family: 'Arial', sans-serif; }
         .comment-textarea:focus { border-color: var(--primary); }
         .comment-submit-btn { background: var(--primary); color: black; border: none; padding: 8px 18px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; float: right; transition: 0.2s; }
         .comment-submit-btn:hover { background: #e6c800; }
-        .comments-list { clear: both; margin-top: 15px; display: flex; flex-direction: column; gap: 14px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
+        .comments-list { clear: both; margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px 24px; max-height: 560px; overflow-y: auto; padding-right: 8px; align-content: start; }
         .comment-item { display: flex; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #1f1f1f; }
         .comment-item:last-child { border-bottom: none; }
         .comment-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #333; flex-shrink: 0; }
@@ -536,6 +537,7 @@
             .ublock-text { font-size: 11px; flex: 1; text-align: center; }
             
             .player-content { margin: 0; width: 100%; height: 100%; border-radius: 0; }
+            .comments-list { grid-template-columns: 1fr; max-height: 480px; }
             .video-box { margin-top: 40px; } 
             .close-corner { position: fixed; top: 10px; right: 10px; left: auto; z-index: 3000; border: 2px solid transparent; }
             .edit-btn-player { top: 10px; left: 10px; right: auto; z-index: 50; position: fixed; }
@@ -794,6 +796,18 @@
         .saga-card:hover { transform: scale(1.05) translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 25px rgba(255, 222, 0, 0.3); z-index: 2; }
         .saga-card-title { position: absolute; bottom: 15px; left: 10px; right: 10px; z-index: 2; color: white; font-weight: bold; font-size: 13px; text-align: center; text-transform: uppercase; text-shadow: 0 2px 4px black; }
         .saga-badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.8); border: 1px solid var(--primary); color: var(--primary); font-size: 9px; font-weight: bold; padding: 3px 6px; border-radius: 4px; z-index: 2; letter-spacing: 1px; }
+
+        /* --- PAGE DÉDIÉE : TOUTES LES SAGAS --- */
+        .sagas-page-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; }
+        @media (max-width: 1200px) { .sagas-page-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 800px) { .sagas-page-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 500px) { .sagas-page-grid { grid-template-columns: repeat(2, 1fr); } }
+        .sagas-page-card { position: relative; border-radius: 4px; overflow: hidden; cursor: pointer; transition: transform 0.2s; aspect-ratio: 2 / 3; background-size: cover; background-position: center; background-color: #222; border: 1px solid #333; }
+        .sagas-page-card:hover { transform: scale(1.05); z-index: 10; border-color: var(--primary); box-shadow: 0 0 15px rgba(255, 222, 0, 0.3); }
+        .sagas-page-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 55%; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent); }
+        .sagas-page-count { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.8); border: 1px solid var(--primary); color: var(--primary); font-size: 10px; font-weight: bold; padding: 3px 6px; border-radius: 4px; z-index: 2; }
+        .sagas-page-card-title { position: absolute; bottom: 10px; left: 8px; right: 8px; z-index: 2; color: white; font-weight: bold; font-size: 13px; text-align: center; text-transform: uppercase; text-shadow: 0 2px 4px black; }
+        .sagas-page-header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 
         /* --- PAGE DÉTAIL DE LA SAGA --- */
         #saga-details-page { animation: fadeIn 0.4s ease; padding-bottom: 40px; width: 100%; }
@@ -1372,8 +1386,9 @@ function finishCover() {
             <i class="fas fa-power-off"></i>
         </button>
 
-        <button class="analytics-btn-header admin-btn" onclick="openAnalytics(event)" title="Statistiques">
+        <button class="analytics-btn-header admin-btn" onclick="openAnalytics(event)" title="Statistiques" style="position:relative;">
             <i class="fas fa-chart-pie"></i>
+            <span id="analytics-comments-badge" style="display:none; position:absolute; top:-6px; right:-8px; background:var(--danger); color:white; font-size:10px; font-weight:bold; min-width:16px; height:16px; border-radius:50%; align-items:center; justify-content:center; padding:0 3px; box-shadow:0 0 6px rgba(231,76,60,0.8);">0</span>
         </button>
 
         <button class="add-btn-header admin-btn" onclick="openAdmin(event)">
@@ -1533,7 +1548,10 @@ function finishCover() {
         </div>
 
         <div class="slider-section" id="home-sagas-container">
-            <h2 class="slider-title">LES SAGAS INCONTOURNABLES</h2>
+            <h2 class="slider-title" style="display:flex; align-items:center; justify-content:space-between; gap:15px;">
+                <span><i class="fas fa-fire fire-icon"></i> LES SAGAS INCONTOURNABLES</span>
+                <span onclick="showSagasPage()" style="cursor:pointer; font-size:12px; color:var(--primary); letter-spacing:0.5px; white-space:nowrap;">Voir toutes les sagas <i class="fas fa-arrow-right"></i></span>
+            </h2>
             <div class="netflix-slider" id="home-sagas-slider"></div>
         </div>
 
@@ -1824,6 +1842,16 @@ function finishCover() {
             </div>
         </div>
 
+        <div id="sagas-page" style="display: none; width:100%;">
+            <div class="sagas-page-header">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <button class="wb-btn-cancel" style="border:none; padding:8px 15px; font-size: 14px; color: #aaa; background: rgba(255,255,255,0.05); border-radius:4px; cursor:pointer;" onclick="showHome()" onmouseover="this.style.color='white'; this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.color='#aaa'; this.style.background='rgba(255,255,255,0.05)'"><i class="fas fa-arrow-left"></i> Retour</button>
+                    <button class="tab-btn" style="border-top-color: var(--danger);"><i class="fas fa-fire"></i> Toutes les Sagas <span id="sagas-page-count" style="color:#888; font-size:13px; font-weight:normal;"></span></button>
+                </div>
+            </div>
+            <div class="sagas-page-grid" id="sagas-page-grid"></div>
+        </div>
+
         <div class="section-title">
             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                 <button class="tab-btn" id="cat-title">Nouveautés</button>
@@ -2085,14 +2113,16 @@ function finishCover() {
             </div>
 
             <div class="comments-section">
-                <h3 class="comments-title"><i class="fas fa-comments"></i> Avis des membres (<span id="comments-count">0</span>)</h3>
-                <div id="comment-form-wrap" style="display:none;">
-                    <textarea id="comment-input" class="comment-textarea" placeholder="Donne ton avis sur ce film/cette série..." maxlength="500"></textarea>
-                    <button class="comment-submit-btn" onclick="submitComment()"><i class="fas fa-paper-plane"></i> Publier</button>
-                </div>
-                <div id="comment-login-hint" style="display:none; color:#888; font-size:13px; text-align:center; padding:10px;">Connecte-toi pour laisser un avis.</div>
-                <div id="comments-list" class="comments-list">
-                    <div style="color:#aaa; text-align:center; padding:15px;">Chargement des avis...</div>
+                <div class="comments-inner">
+                    <h3 class="comments-title"><i class="fas fa-comments"></i> Avis des membres (<span id="comments-count">0</span>)</h3>
+                    <div id="comment-form-wrap" style="display:none;">
+                        <textarea id="comment-input" class="comment-textarea" placeholder="Donne ton avis sur ce film/cette série..." maxlength="500"></textarea>
+                        <button class="comment-submit-btn" onclick="submitComment()"><i class="fas fa-paper-plane"></i> Publier</button>
+                    </div>
+                    <div id="comment-login-hint" style="display:none; color:#888; font-size:13px; text-align:center; padding:10px;">Connecte-toi pour laisser un avis.</div>
+                    <div id="comments-list" class="comments-list">
+                        <div style="color:#aaa; text-align:center; padding:15px;">Chargement des avis...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2283,6 +2313,15 @@ function finishCover() {
                         <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
                     </div>
                 </div>
+
+                <div class="users-list-container" style="flex: 1; min-width: 300px; margin-bottom: 0;">
+                    <h3><i class="fas fa-comments" style="color: var(--primary);"></i> Avis des membres</h3>
+                    <input type="text" id="analytics-comments-search" class="analytics-search-input" placeholder="Rechercher (film, membre, texte)..." oninput="filterAnalyticsComments()">
+                    <div class="users-list-box" id="analytics-comments-list">
+                        <div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>
+                    </div>
+                    <div class="analytics-pagination" id="analytics-comments-pagination"></div>
+                </div>
             </div>
             
             <div class="charts-grid">
@@ -2425,8 +2464,14 @@ const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Cr
     let analyticsWishesPage = 1;
     const ANALYTICS_WISHES_PER_PAGE = 10;
 
+    let analyticsCommentsAll = [];
+    let analyticsCommentsFiltered = [];
+    let analyticsCommentsPage = 1;
+    const ANALYTICS_COMMENTS_PER_PAGE = 8;
+
     // --- BASE DE DONNÉES DES SAGAS (Maintenant Dynamique) ---
     let SAGAS_DB = [];
+    let lastSagaOrigin = null;
 
     // --- 2. INITIALISATION ---
     window.onload = () => {
@@ -2681,6 +2726,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         const bellWrap = document.getElementById('notif-bell-wrap');
         if (bellWrap) bellWrap.style.display = 'flex';
         fetchNotifications();
+        if (isAdminUnlocked) fetchAdminCommentsBadge();
         
         loadSecureMovies();
     }
@@ -2757,6 +2803,117 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         try { await fetch(`${API_URL}/api/notifications/mark-read`, { method: 'POST', headers: { 'authorization': token } }); } catch (e) {}
     }
 
+    // ==========================================
+    // AVIS DES MEMBRES CÔTÉ ADMIN (Tableau d'analyse)
+    // ==========================================
+
+    // Petit badge rouge sur le bouton "Statistiques" du header : nombre d'avis jamais consultés
+    async function fetchAdminCommentsBadge() {
+        if (!isAdminUnlocked) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/comments/recent`, { headers: { 'authorization': token } });
+            const data = await res.json();
+            const badge = document.getElementById('analytics-comments-badge');
+            if (badge) {
+                if (data.success && data.unseenCount > 0) {
+                    badge.style.display = 'flex';
+                    badge.innerText = data.unseenCount > 9 ? '9+' : data.unseenCount;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        } catch (e) {}
+    }
+
+    // Charge tous les avis (tous films confondus) dans le tableau d'analyse et marque comme vus
+    async function loadAdminComments() {
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/comments/recent`, { headers: { 'authorization': token } });
+            const data = await res.json();
+            if (data.success) {
+                analyticsCommentsAll = data.comments || [];
+                analyticsCommentsFiltered = analyticsCommentsAll;
+                analyticsCommentsPage = 1;
+                renderAnalyticsCommentsPage();
+
+                // On marque tout comme vu et on masque le badge de notification
+                fetch(`${API_URL}/api/admin/comments/mark-seen`, { method: 'POST', headers: { 'authorization': token } }).catch(() => {});
+                const badge = document.getElementById('analytics-comments-badge');
+                if (badge) badge.style.display = 'none';
+            } else {
+                const listEl = document.getElementById('analytics-comments-list');
+                if (listEl) listEl.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Impossible de charger les avis.</div>';
+            }
+        } catch (e) {
+            const listEl = document.getElementById('analytics-comments-list');
+            if (listEl) listEl.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Impossible de charger les avis.</div>';
+        }
+    }
+
+    function renderAnalyticsCommentsPage() {
+        const container = document.getElementById('analytics-comments-list');
+        const pagBar = document.getElementById('analytics-comments-pagination');
+        if (!container) return;
+        const list = analyticsCommentsFiltered;
+        if (!list || list.length === 0) {
+            container.innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Aucun avis pour le moment.</div>';
+            if (pagBar) pagBar.innerHTML = '';
+            return;
+        }
+        const totalPages = Math.ceil(list.length / ANALYTICS_COMMENTS_PER_PAGE);
+        if (analyticsCommentsPage > totalPages) analyticsCommentsPage = totalPages;
+        if (analyticsCommentsPage < 1) analyticsCommentsPage = 1;
+        const start = (analyticsCommentsPage - 1) * ANALYTICS_COMMENTS_PER_PAGE;
+        const pageItems = list.slice(start, start + ANALYTICS_COMMENTS_PER_PAGE);
+
+        container.innerHTML = pageItems.map(c => {
+            const dateStr = c.date ? new Date(c.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            const safeText = (c.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return `
+            <div class="user-list-item" style="border-left: 3px solid var(--primary); padding-left: 8px; margin-bottom: 10px; display:block;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                    <span style="color:white; font-weight:bold; cursor:pointer;" onclick="handleAdminCommentMovieClick('${c.movieId}')"><i class="fas fa-film" style="font-size:10px; margin-right:5px;"></i>${c.movieTitle || 'Titre inconnu'}</span>
+                    <button onclick="deleteAdminComment('${c._id}')" title="Supprimer cet avis" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px;"><i class="fas fa-trash"></i></button>
+                </div>
+                <div style="color:#aaa; font-size:11px; margin-top:2px;"><i class="fas fa-user"></i> ${c.username} <span style="color:#555;"> · ${dateStr}</span></div>
+                <div style="color:#ddd; font-size:12px; margin-top:4px; line-height:1.4;">${safeText}</div>
+            </div>`;
+        }).join('');
+
+        renderAnalyticsPagination(pagBar, totalPages, analyticsCommentsPage, (p) => { analyticsCommentsPage = p; renderAnalyticsCommentsPage(); });
+    }
+
+    function filterAnalyticsComments() {
+        const query = document.getElementById('analytics-comments-search').value.toLowerCase().trim();
+        analyticsCommentsFiltered = query
+            ? analyticsCommentsAll.filter(c => (c.movieTitle || '').toLowerCase().includes(query) || (c.username || '').toLowerCase().includes(query) || (c.text || '').toLowerCase().includes(query))
+            : analyticsCommentsAll;
+        analyticsCommentsPage = 1;
+        renderAnalyticsCommentsPage();
+    }
+
+    function handleAdminCommentMovieClick(movieId) {
+        const target = moviesDB.find(m => m.id === movieId);
+        if (target) { closeAnalytics(); if (target.type === 'saga') { openSaga(target.id); } else { openP(target.id); } }
+    }
+
+    async function deleteAdminComment(commentId) {
+        if (!confirm("Supprimer définitivement cet avis ?")) return;
+        const token = localStorage.getItem('monBadgeCineLK10');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/comments/${commentId}`, { method: 'DELETE', headers: { 'authorization': token } });
+            const data = await res.json();
+            if (data.success) {
+                analyticsCommentsAll = analyticsCommentsAll.filter(c => c._id !== commentId);
+                analyticsCommentsFiltered = analyticsCommentsFiltered.filter(c => c._id !== commentId);
+                renderAnalyticsCommentsPage();
+                if (typeof currentCommentsMovieId !== 'undefined' && currentCommentsMovieId) loadComments(currentCommentsMovieId);
+            }
+        } catch (e) {}
+    }
+
     // --- 4. PROFIL & PARAMETRES ---
    function openProfilePage() {
         if(!currentUser) return;
@@ -2765,7 +2922,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         document.getElementById('wishboard-page').style.display = 'none';
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('profile-page').style.display = 'block';
-        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none'; const sagasPageEl = document.getElementById('sagas-page'); if(sagasPageEl) sagasPageEl.style.display = 'none';
 
         document.getElementById('prof-page-avatar').src = currentUser.profilePic || 'https://i.imgur.com/6VBx3io.png';
         document.getElementById('prof-page-name').innerText = currentUser.username;
@@ -3115,7 +3272,7 @@ function performSearch(forcedQuery = null) {
         document.querySelector('.main-container').style.display = 'flex';
         document.getElementById('pag-bar').style.display = 'flex'; 
         
-        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none'; const sagasPageEl = document.getElementById('sagas-page'); if(sagasPageEl) sagasPageEl.style.display = 'none';
         document.getElementById('grid').style.display = 'grid'; document.querySelector('.section-title').style.display = 'flex';
         
         const rawQuery = forcedQuery ? forcedQuery.toLowerCase().trim() : document.getElementById('searchInput').value.toLowerCase().trim();
@@ -3219,7 +3376,7 @@ function filterContent(category) {
     document.querySelector('.main-container').style.display = 'flex';
     document.getElementById('wishboard-page').style.display = 'none';
     if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
-    const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+    const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none'; const sagasPageEl = document.getElementById('sagas-page'); if(sagasPageEl) sagasPageEl.style.display = 'none';
     
     document.getElementById('grid').style.display = 'grid';
     document.querySelector('.section-title').style.display = 'flex';
@@ -3245,7 +3402,7 @@ function showCatalogue() {
         document.querySelector('.main-container').style.display = 'flex'; 
         document.getElementById('wishboard-page').style.display = 'none';
         if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
-        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none'; const sagasPageEl = document.getElementById('sagas-page'); if(sagasPageEl) sagasPageEl.style.display = 'none';
         
         document.getElementById('grid').style.display = 'grid';
         document.querySelector('.section-title').style.display = 'flex';
@@ -3884,7 +4041,7 @@ async function saveMovie() {
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('profile-page').style.display = 'none';
         document.getElementById('wishboard-page').style.display = 'block';
-        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none'; const sagasPageEl = document.getElementById('sagas-page'); if(sagasPageEl) sagasPageEl.style.display = 'none';
         
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
         if(document.getElementById('nav-wishboard')) document.getElementById('nav-wishboard').classList.add('active');
@@ -4249,7 +4406,7 @@ async function saveMovie() {
             const res = await fetch(`${API_URL}/api/comments/add`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'authorization': token },
-                body: JSON.stringify({ movieId: currentCommentsMovieId, text })
+                body: JSON.stringify({ movieId: currentCommentsMovieId, text, movieTitle: (currentMovie && currentMovie.title) || '' })
             });
             const data = await res.json();
             if (data.success) {
@@ -4381,12 +4538,18 @@ async function saveMovie() {
         document.getElementById('analytics-users-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-wishes-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-reports-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
+        document.getElementById('analytics-comments-list').innerHTML = '<div style="color:#aaa; text-align:center; padding: 10px;">Chargement...</div>';
         document.getElementById('analytics-users-pagination').innerHTML = '';
         document.getElementById('analytics-wishes-pagination').innerHTML = '';
+        document.getElementById('analytics-comments-pagination').innerHTML = '';
         document.getElementById('analytics-users-search').value = '';
         document.getElementById('analytics-wishes-search').value = '';
+        document.getElementById('analytics-comments-search').value = '';
         analyticsUsersPage = 1;
         analyticsWishesPage = 1;
+        analyticsCommentsPage = 1;
+
+        if (typeof loadAdminComments === 'function') { try { loadAdminComments(); } catch(e) {} }
 
         setTimeout(async () => {
             const token = localStorage.getItem('monBadgeCineLK10');
@@ -4800,9 +4963,10 @@ async function saveMovie() {
 // ==========================================
     // OUVERTURE ET AFFICHAGE DES SAGAS (DESIGN PRO + FOND TRANSPARENT)
     // ==========================================
-    function openSaga(sagaId) {
+    function openSaga(sagaId, origin = null) {
         // On récupère la saga dans ta base de données
         const saga = SAGAS_DB.find(s => s.id === sagaId); if(!saga) return;
+        lastSagaOrigin = origin;
         
         // --- 1. Gestion de l'affichage (Masquer le reste) ---
         if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
@@ -4813,6 +4977,7 @@ async function saveMovie() {
         document.getElementById('grid').style.display = 'none'; 
         document.getElementById('pag-bar').style.display = 'none'; 
         if(document.getElementById('sagas-section')) document.getElementById('sagas-section').style.display = 'none'; 
+        if(document.getElementById('sagas-page')) document.getElementById('sagas-page').style.display = 'none'; 
         document.querySelector('.section-title').style.display = 'none';
         
         // Afficher la page Saga
@@ -4904,7 +5069,9 @@ async function saveMovie() {
     function closeSaga() {
         document.getElementById('saga-details-page').style.display = 'none';
         
-        if(document.getElementById('nav-catalogue') && document.getElementById('nav-catalogue').classList.contains('active')) {
+        if(lastSagaOrigin === 'sagas-page') {
+            showSagasPage();
+        } else if(document.getElementById('nav-catalogue') && document.getElementById('nav-catalogue').classList.contains('active')) {
             document.querySelector('.main-container').style.display = 'flex';
             document.getElementById('grid').style.display = 'grid'; 
             document.getElementById('pag-bar').style.display = 'flex';
@@ -4913,6 +5080,54 @@ async function saveMovie() {
         } else {
             showHome();
         }
+    }
+
+    // ==========================================
+    // PAGE DÉDIÉE : TOUTES LES SAGAS
+    // ==========================================
+    function showSagasPage() {
+        if(typeof closeProfilePage === 'function') closeProfilePage();
+        if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
+        if(document.getElementById('profile-page')) document.getElementById('profile-page').style.display = 'none';
+        if(document.getElementById('wishboard-page')) document.getElementById('wishboard-page').style.display = 'none';
+        const sagaDetails = document.getElementById('saga-details-page'); if(sagaDetails) sagaDetails.style.display = 'none';
+
+        document.querySelector('.main-container').style.display = 'flex';
+        document.getElementById('grid').style.display = 'none';
+        document.getElementById('pag-bar').style.display = 'none';
+        if(document.getElementById('sagas-section')) document.getElementById('sagas-section').style.display = 'none';
+        document.querySelector('.section-title').style.display = 'none';
+
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+
+        // Recalcule la liste complète des sagas à partir de moviesDB
+        SAGAS_DB = moviesDB.filter(m => m.type === 'saga').map(m => ({
+            id: m.id, title: m.title, poster: m.poster,
+            bg: m.iframe_premium || m.poster,
+            desc: m.desc,
+            movies: m.cast ? m.cast.split(',').map(id => id.trim()) : []
+        }));
+
+        const grid = document.getElementById('sagas-page-grid');
+        grid.innerHTML = '';
+        const countLabel = document.getElementById('sagas-page-count');
+        if(countLabel) countLabel.innerText = `(${SAGAS_DB.length})`;
+
+        if(SAGAS_DB.length === 0) {
+            grid.innerHTML = `<p style="color:#888; grid-column: 1 / -1;">Aucune saga disponible pour le moment.</p>`;
+        } else {
+            SAGAS_DB.forEach(saga => {
+                const card = document.createElement('div');
+                card.className = 'sagas-page-card';
+                card.style.backgroundImage = `url('${saga.poster}')`;
+                card.onclick = () => openSaga(saga.id, 'sagas-page');
+                card.innerHTML = `<div class="sagas-page-count">${saga.movies.length} FILM${saga.movies.length > 1 ? 'S' : ''}</div><div class="sagas-page-card-title">${saga.title}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('sagas-page').style.display = 'block';
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
     // ==========================================
     // MOTEUR PAGE D'ACCUEIL NETFLIX
@@ -4928,7 +5143,7 @@ async function saveMovie() {
         document.querySelector('.main-container').style.display = 'none';
         document.getElementById('wishboard-page').style.display = 'none';
         document.getElementById('profile-page').style.display = 'none';
-        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if(sagaPage) sagaPage.style.display = 'none'; const sagasPageEl = document.getElementById('sagas-page'); if(sagasPageEl) sagasPageEl.style.display = 'none';
         
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
         const navHome = document.getElementById('nav-all');
@@ -4937,14 +5152,10 @@ async function saveMovie() {
         buildNetflixHome();
     }
 
-    // Lien "Sagas" du menu Films/Séries : ramène à l'accueil et scrolle jusqu'au carrousel des sagas
+    // Lien "Sagas" du menu Films/Séries : ouvre la page dédiée listant toutes les sagas
     function goToSagasFromMenu() {
         closeProfilePage();
-        showHome();
-        setTimeout(() => {
-            const target = document.getElementById('home-sagas-container');
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
+        showSagasPage();
     }
 
 function buildNetflixHome() {
