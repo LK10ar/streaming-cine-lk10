@@ -1222,6 +1222,13 @@
         .saga-chip i { cursor: pointer; color: #ff4c4c; font-size: 15px; margin-left: 5px; transition: 0.2s; }
         .saga-chip i:hover { color: #ff0000; transform: scale(1.2); }
 
+        /* --- BOUTON RETOUR EN HAUT (TOP) --- */
+        .back-to-top-btn { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: black; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; visibility: hidden; transform: translateY(20px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s, background 0.2s, box-shadow 0.2s; }
+        .back-to-top-btn.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .back-to-top-btn:hover { background: #fff; transform: translateY(-4px); box-shadow: 0 6px 20px rgba(255, 222, 0, 0.5); }
+        @media (max-width: 768px) {
+            .back-to-top-btn { bottom: 18px; right: 16px; width: 44px; height: 44px; font-size: 17px; }
+        }
 
         </style>
 </head>
@@ -1582,6 +1589,27 @@ function finishCover() {
         </div>
 
         <div class="slider-section">
+            <h2 class="slider-title"><i class="fas fa-fire fire-icon"></i> FILMS TENDANCE</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('films-tendance-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="films-tendance-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('films-tendance-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">FILMS ANIMÉS RÉCENTS</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('films-animes-recents-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="films-animes-recents-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('films-animes-recents-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title"><i class="fas fa-fire fire-icon"></i> FILMS ANIMÉS TENDANCE</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('films-animes-tendance-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="films-animes-tendance-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('films-animes-tendance-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
             <h2 class="slider-title">AVENTURE</h2>
             <button class="slider-arrow left" onclick="scrollSlider('aventure-slider', -1)"><i class="fas fa-chevron-left"></i></button>
             <div class="netflix-slider" id="aventure-slider"></div>
@@ -1897,6 +1925,10 @@ function finishCover() {
             <img src="asset/logolk10.png" alt="Logo Ciné LK10">
         </a>
     </footer>
+
+    <button id="back-to-top-btn" class="back-to-top-btn" onclick="scrollToTopPage()" title="Retour en haut">
+        <i class="fas fa-arrow-up"></i>
+    </button>
     
 <!-- ========================================== -->
     <!-- ========== PAGE WISHBOARD ================ -->
@@ -2442,6 +2474,14 @@ function finishCover() {
     }
 
     // Clic sur le badge "Nouveau" : ouvre la page des nouveautés filtrée sur le bon type
+    // --- BOUTON RETOUR EN HAUT (desktop + mobile) ---
+    function scrollToTopPage() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('back-to-top-btn');
+        if (!btn) return;
+        if (window.scrollY > 400) btn.classList.add('show'); else btn.classList.remove('show');
+    });
+
     function goToNewPage(type) {
         closeProfilePage();
         if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
@@ -5312,7 +5352,19 @@ function buildNetflixHome() {
         // 7. FILMS RÉCENTS : Les 30 derniers films
         const filmsRecents = [...itemsWithoutHP].filter(m => m.type === 'film').reverse().slice(0, 30);
         buildStandardSlider('films-recents-slider', filmsRecents);
-        
+
+        // 7bis. FILMS TENDANCE : Mélange des 50 derniers films ajoutés
+        const filmsSource = itemsWithoutHP.filter(m => m.type === 'film');
+        const filmsTendance = [...filmsSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
+        buildStandardSlider('films-tendance-slider', filmsTendance);
+
+        // 7ter. FILMS ANIMÉS RÉCENTS / FILMS ANIMÉS TENDANCE : uniquement les FILMS au genre "Animation"
+        const filmsAnimesSource = allItems.filter(m => m.type === 'film' && m.genre && m.genre.includes('Animation'));
+        const filmsAnimesRecents = [...filmsAnimesSource].reverse().slice(0, 30);
+        buildStandardSlider('films-animes-recents-slider', filmsAnimesRecents);
+        const filmsAnimesTendance = [...filmsAnimesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
+        buildStandardSlider('films-animes-tendance-slider', filmsAnimesTendance);
+
         // 8. AVENTURE : Les 30 derniers films d'Aventure
         const aventures = [...moviesDB].filter(m => m.genre && m.genre.includes('Aventure')).reverse().slice(0, 30);
         buildStandardSlider('aventure-slider', aventures);
