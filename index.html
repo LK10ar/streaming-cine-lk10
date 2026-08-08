@@ -3090,11 +3090,13 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
-                    ${getNewBadgeType(m) ? `<span class="badge b-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
+                    ${getNewBadgeType(m) ? `<span class="badge b-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
                 <div class="movie-info"><div class="movie-title">${m.title}</div></div>
             `;
+            const newBadgeEl = div.querySelector('.b-new');
+            if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             grid.appendChild(div);
         });
     }
@@ -3225,11 +3227,13 @@ async function loadSecureMovies() {
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
-                    ${getNewBadgeType(m) ? `<span class="badge b-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
+                    ${getNewBadgeType(m) ? `<span class="badge b-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
                 <div class="movie-info"><div class="movie-title">${m.title}</div></div>
             `;
+            const newBadgeEl = div.querySelector('.b-new');
+            if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             grid.appendChild(div);
         });
         renderPagination();
@@ -5459,9 +5463,11 @@ function buildNetflixHome() {
             card.onclick = () => openP(m.id);
             card.innerHTML = `
                 <div class="badge-card">${m.type.toUpperCase()}</div>
-                ${getNewBadgeType(m) ? `<div class="badge-card-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
+                ${getNewBadgeType(m) ? `<div class="badge-card-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
                 <div class="netflix-poster" style="background-image: url('${m.poster}')"></div>
             `;
+            const newBadgeEl = card.querySelector('.badge-card-new');
+            if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             container.appendChild(card);
         });
     }
@@ -5477,10 +5483,12 @@ function buildNetflixHome() {
                 <div class="top-10-number">${index + 1}</div>
                 <div class="top-10-poster-wrap">
                     <div class="badge-card">${m.type.toUpperCase()}</div>
-                    ${getNewBadgeType(m) ? `<div class="badge-card-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
+                    ${getNewBadgeType(m) ? `<div class="badge-card-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
                     <div class="top-10-poster" style="background-image: url('${m.poster}')"></div>
                 </div>
             `;
+            const newBadgeEl = card.querySelector('.badge-card-new');
+            if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             container.appendChild(card);
         });
     }
