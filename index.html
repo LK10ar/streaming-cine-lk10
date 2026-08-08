@@ -65,7 +65,8 @@
         .poster { width: 100%; height: 260px; background-size: cover; background-position: center; position: relative; background-color: #333; }
         .badge { position: absolute; padding: 2px 4px; font-size: 10px; font-weight: bold; border-radius: 2px; z-index: 2; }
         .b-hd { top: 5px; left: 5px; background: black; border: 1px solid #555; color: white; } 
-        .b-type { top: 25px; left: 5px; background: var(--primary); color: black; right: auto; }
+        .b-type { top: 25px; left: 5px; background: var(--primary); color: black; right: auto; cursor: pointer; z-index: 6; transition: 0.2s; }
+        .b-type:hover { transform: scale(1.08); box-shadow: 0 0 10px rgba(255, 222, 0, 0.8); }
         .b-new { top: 45px; left: 5px; background: #2ecc71; color: black; right: auto; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); cursor: pointer; z-index: 6; transition: 0.2s; }
         .b-new:hover { transform: scale(1.08); box-shadow: 0 0 14px rgba(46, 204, 113, 0.9); }
         .badge-card-new { position: absolute; top: 8px; right: 8px; background: #2ecc71; color: black; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 3px; z-index: 5; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); cursor: pointer; transition: 0.2s; }
@@ -2403,7 +2404,7 @@ function finishCover() {
     const API_URL = 'https://backend-cin-lk10.onrender.com';
     const TMDB_API_KEY = atob('YzFhYTY3NWVjYWIyZDA2YzJlYjUxMDEzNDU5NTFiNmQ=');
 
-    // Badge "Nouveau" : uniquement sur les 15 titres les plus récents de chaque catégorie (Films / Séries / Animés)
+    // Badge "Nouveau" : uniquement sur les 18 titres les plus récents de chaque catégorie (Films / Séries / Animés)
     let newBadgeIds = { film: new Set(), serie: new Set(), anime: new Set() };
 
     function isAnimeMovie(m) {
@@ -2421,9 +2422,9 @@ function finishCover() {
         const series = byRecent(moviesDB.filter(m => m.type === 'serie' && !isAnimeMovie(m)));
         const animes = byRecent(moviesDB.filter(m => m.type === 'serie' && isAnimeMovie(m)));
         newBadgeIds = {
-            film: new Set(films.slice(0, 15).map(m => m.id)),
-            serie: new Set(series.slice(0, 15).map(m => m.id)),
-            anime: new Set(animes.slice(0, 15).map(m => m.id))
+            film: new Set(films.slice(0, 18).map(m => m.id)),
+            serie: new Set(series.slice(0, 18).map(m => m.id)),
+            anime: new Set(animes.slice(0, 18).map(m => m.id))
         };
     }
 
@@ -3089,7 +3090,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
                 </div>
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
-                    <span class="badge b-type">${m.type.toUpperCase()}</span>
+                    <span class="badge b-type" data-cattype="${m.type}" data-isanime="${isAnimeMovie(m)}" title="Voir tous les ${m.type === 'film' ? 'films' : 'séries'}">${m.type.toUpperCase()}</span>
                     ${getNewBadgeType(m) ? `<span class="badge b-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
@@ -3097,6 +3098,8 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
             `;
             const newBadgeEl = div.querySelector('.b-new');
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
+            const typeBadgeEl = div.querySelector('.b-type');
+            if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); closeProfilePage(); if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
             grid.appendChild(div);
         });
     }
@@ -3226,7 +3229,7 @@ async function loadSecureMovies() {
                 </div>
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
-                    <span class="badge b-type">${m.type.toUpperCase()}</span>
+                    <span class="badge b-type" data-cattype="${m.type}" data-isanime="${isAnimeMovie(m)}" title="Voir tous les ${m.type === 'film' ? 'films' : 'séries'}">${m.type.toUpperCase()}</span>
                     ${getNewBadgeType(m) ? `<span class="badge b-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
@@ -3234,6 +3237,8 @@ async function loadSecureMovies() {
             `;
             const newBadgeEl = div.querySelector('.b-new');
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
+            const typeBadgeEl = div.querySelector('.b-type');
+            if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
             grid.appendChild(div);
         });
         renderPagination();
