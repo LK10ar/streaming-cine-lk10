@@ -66,8 +66,10 @@
         .badge { position: absolute; padding: 2px 4px; font-size: 10px; font-weight: bold; border-radius: 2px; z-index: 2; }
         .b-hd { top: 5px; left: 5px; background: black; border: 1px solid #555; color: white; } 
         .b-type { top: 25px; left: 5px; background: var(--primary); color: black; right: auto; }
-        .b-new { top: 45px; left: 5px; background: #2ecc71; color: black; right: auto; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
-        .badge-card-new { position: absolute; top: 8px; right: 8px; background: #2ecc71; color: black; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 3px; z-index: 5; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); }
+        .b-new { top: 45px; left: 5px; background: #2ecc71; color: black; right: auto; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); cursor: pointer; z-index: 6; transition: 0.2s; }
+        .b-new:hover { transform: scale(1.08); box-shadow: 0 0 14px rgba(46, 204, 113, 0.9); }
+        .badge-card-new { position: absolute; top: 8px; right: 8px; background: #2ecc71; color: black; font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 3px; z-index: 5; box-shadow: 0 0 8px rgba(46, 204, 113, 0.6); cursor: pointer; transition: 0.2s; }
+        .badge-card-new:hover { transform: scale(1.08); box-shadow: 0 0 14px rgba(46, 204, 113, 0.9); }
         .continue-watching-progress-track { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.2); z-index: 5; }
         .continue-watching-progress-fill { height: 100%; background: var(--danger); }
         .continue-watching-ep-label { position: absolute; bottom: 8px; left: 8px; right: 8px; color: white; font-size: 10px; font-weight: bold; text-shadow: 0 1px 3px black; z-index: 4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2401,11 +2403,72 @@ function finishCover() {
     const API_URL = 'https://backend-cin-lk10.onrender.com';
     const TMDB_API_KEY = atob('YzFhYTY3NWVjYWIyZDA2YzJlYjUxMDEzNDU5NTFiNmQ=');
 
-    // Badge "Nouveau" : vrai si le titre a été ajouté au catalogue il y a moins de 7 jours
+    // Badge "Nouveau" : uniquement sur les 15 titres les plus récents de chaque catégorie (Films / Séries / Animés)
+    let newBadgeIds = { film: new Set(), serie: new Set(), anime: new Set() };
+
+    function isAnimeMovie(m) {
+        return !!(m && m.genre && m.genre.toLowerCase().includes('anime'));
+    }
+
+    function computeNewBadges() {
+        if (!moviesDB || moviesDB.length === 0) return;
+        const byRecent = arr => [...arr].sort((a, b) => {
+            const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return tb - ta;
+        });
+        const films = byRecent(moviesDB.filter(m => m.type === 'film'));
+        const series = byRecent(moviesDB.filter(m => m.type === 'serie' && !isAnimeMovie(m)));
+        const animes = byRecent(moviesDB.filter(m => m.type === 'serie' && isAnimeMovie(m)));
+        newBadgeIds = {
+            film: new Set(films.slice(0, 15).map(m => m.id)),
+            serie: new Set(series.slice(0, 15).map(m => m.id)),
+            anime: new Set(animes.slice(0, 15).map(m => m.id))
+        };
+    }
+
+    // Renvoie 'film' / 'serie' / 'anime' si le titre doit porter le badge "Nouveau", sinon null
+    function getNewBadgeType(m) {
+        if (!m || !m.createdAt) return null;
+        if (m.type === 'film' && newBadgeIds.film.has(m.id)) return 'film';
+        if (m.type === 'serie' && isAnimeMovie(m) && newBadgeIds.anime.has(m.id)) return 'anime';
+        if (m.type === 'serie' && !isAnimeMovie(m) && newBadgeIds.serie.has(m.id)) return 'serie';
+        return null;
+    }
+
     function isNewMovie(m) {
-        if (!m || !m.createdAt) return false;
-        const ageMs = Date.now() - new Date(m.createdAt).getTime();
-        return ageMs >= 0 && ageMs <= 7 * 24 * 60 * 60 * 1000;
+        return !!getNewBadgeType(m);
+    }
+
+    // Clic sur le badge "Nouveau" : ouvre la page des nouveautés filtrée sur le bon type
+    function goToNewPage(type) {
+        closeProfilePage();
+        if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
+        document.getElementById('wishboard-page').style.display = 'none';
+        if (document.getElementById('sagas-page')) document.getElementById('sagas-page').style.display = 'none';
+        const sagaPage = document.getElementById('saga-details-page'); if (sagaPage) sagaPage.style.display = 'none';
+
+        document.querySelector('.main-container').style.display = 'flex';
+        document.getElementById('grid').style.display = 'grid';
+        document.querySelector('.section-title').style.display = 'flex';
+        document.getElementById('pag-bar').style.display = 'flex';
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+
+        const labels = { film: 'Nouveaux Films', serie: 'Nouvelles Séries', anime: 'Nouveaux Animés' };
+        document.getElementById('cat-title').innerText = labels[type] || 'Nouveautés';
+
+        const idsSet = newBadgeIds[type] || new Set();
+        filteredList = moviesDB.filter(m => idsSet.has(m.id)).sort((a, b) => {
+            const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return tb - ta;
+        });
+
+        currentSort = 'new_badge_order'; // valeur volontairement inconnue du tri standard : la liste garde l'ordre déjà trié par date d'ajout
+
+        currentPage = 1;
+        updateGrid(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Anti-curieux
@@ -3027,7 +3090,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
-                    ${isNewMovie(m) ? '<span class="badge b-new"><i class="fas fa-bolt"></i> NOUVEAU</span>' : ''}
+                    ${getNewBadgeType(m) ? `<span class="badge b-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
                 <div class="movie-info"><div class="movie-title">${m.title}</div></div>
@@ -3090,6 +3153,7 @@ async function loadSecureMovies() {
         } catch (error) { 
             console.error("Erreur serveur", error); 
        } finally {
+            computeNewBadges(); // Calcule les 15 titres les plus récents par catégorie pour le badge "Nouveau"
             showHome(); // <-- Lance le mode Netflix par défaut !
             openMovieFromUrlIfNeeded(); // Si le lien contient ?watch=ID, ouvre directement le film/la série partagé(e)
         }
@@ -3161,7 +3225,7 @@ async function loadSecureMovies() {
                 <div class="poster" style="background-image: url('${m.poster}')">
                     <span class="badge b-hd">HD</span>
                     <span class="badge b-type">${m.type.toUpperCase()}</span>
-                    ${isNewMovie(m) ? '<span class="badge b-new"><i class="fas fa-bolt"></i> NOUVEAU</span>' : ''}
+                    ${getNewBadgeType(m) ? `<span class="badge b-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</span>` : ''}
                     <div class="grid-rating">${m.rating || "-"}</div>
                 </div>
                 <div class="movie-info"><div class="movie-title">${m.title}</div></div>
@@ -5395,7 +5459,7 @@ function buildNetflixHome() {
             card.onclick = () => openP(m.id);
             card.innerHTML = `
                 <div class="badge-card">${m.type.toUpperCase()}</div>
-                ${isNewMovie(m) ? '<div class="badge-card-new"><i class="fas fa-bolt"></i> NOUVEAU</div>' : ''}
+                ${getNewBadgeType(m) ? `<div class="badge-card-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
                 <div class="netflix-poster" style="background-image: url('${m.poster}')"></div>
             `;
             container.appendChild(card);
@@ -5413,7 +5477,7 @@ function buildNetflixHome() {
                 <div class="top-10-number">${index + 1}</div>
                 <div class="top-10-poster-wrap">
                     <div class="badge-card">${m.type.toUpperCase()}</div>
-                    ${isNewMovie(m) ? '<div class="badge-card-new"><i class="fas fa-bolt"></i> NOUVEAU</div>' : ''}
+                    ${getNewBadgeType(m) ? `<div class="badge-card-new" onclick="event.stopPropagation(); goToNewPage('${getNewBadgeType(m)}')" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
                     <div class="top-10-poster" style="background-image: url('${m.poster}')"></div>
                 </div>
             `;
