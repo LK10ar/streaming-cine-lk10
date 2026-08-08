@@ -997,7 +997,8 @@
         .netflix-card { flex: 0 0 200px; height: 290px; scroll-snap-align: start; border-radius: 6px; overflow: hidden; position: relative; cursor: pointer; transition: 0.3s; background: #1a1a1a; border: 1px solid #252525; }
         .netflix-card:hover { transform: scale(1.08) translateY(-5px); z-index: 10; border-color: var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
         .netflix-poster { width: 100%; height: 100%; background-size: cover; background-position: center; }
-        .badge-card { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.8); color: white; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; border: 1px solid #444; z-index: 5; }
+        .badge-card { position: absolute; top: 8px; left: 8px; background: var(--primary); color: black; font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: bold; z-index: 5; cursor: pointer; transition: 0.2s; }
+        .badge-card:hover { transform: scale(1.08); box-shadow: 0 0 10px rgba(255, 222, 0, 0.8); }
 
         /* FLÈCHES CARROUSEL */
         .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 4%; height: 85%; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 30px; cursor: pointer; z-index: 99; opacity: 0; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
@@ -1582,6 +1583,20 @@ function finishCover() {
         </div>
 
         <div class="slider-section">
+            <h2 class="slider-title"><i class="fas fa-fire fire-icon"></i> SÉRIES TENDANCE</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('series-tendance-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="series-tendance-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('series-tendance-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title"><i class="fas fa-fire fire-icon"></i> SÉRIES TENDANCE</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('series-tendance-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="series-tendance-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('series-tendance-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
             <h2 class="slider-title">FILMS RÉCENTS</h2>
             <button class="slider-arrow left" onclick="scrollSlider('films-recents-slider', -1)"><i class="fas fa-chevron-left"></i></button>
             <div class="netflix-slider" id="films-recents-slider"></div>
@@ -1607,6 +1622,20 @@ function finishCover() {
             <button class="slider-arrow left" onclick="scrollSlider('films-animes-tendance-slider', -1)"><i class="fas fa-chevron-left"></i></button>
             <div class="netflix-slider" id="films-animes-tendance-slider"></div>
             <button class="slider-arrow right" onclick="scrollSlider('films-animes-tendance-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title">SÉRIES ANIMÉS RÉCENTS</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('series-animes-recents-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="series-animes-recents-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('series-animes-recents-slider', 1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div class="slider-section">
+            <h2 class="slider-title"><i class="fas fa-fire fire-icon"></i> SÉRIES ANIMÉS TENDANCE</h2>
+            <button class="slider-arrow left" onclick="scrollSlider('series-animes-tendance-slider', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="netflix-slider" id="series-animes-tendance-slider"></div>
+            <button class="slider-arrow right" onclick="scrollSlider('series-animes-tendance-slider', 1)"><i class="fas fa-chevron-right"></i></button>
         </div>
 
         <div class="slider-section">
@@ -5348,6 +5377,11 @@ function buildNetflixHome() {
         // 6. SÉRIES RÉCENTES : Les 30 dernières séries ajoutées
         const seriesRecentes = [...moviesDB].filter(m => m.type === 'serie').reverse().slice(0, 30);
         buildStandardSlider('series-recentes-slider', seriesRecentes);
+
+        // 6bis. SÉRIES TENDANCE : Mélange des 50 dernières séries ajoutées
+        const seriesSource = moviesDB.filter(m => m.type === 'serie');
+        const seriesTendance = [...seriesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
+        buildStandardSlider('series-tendance-slider', seriesTendance);
         
         // 7. FILMS RÉCENTS : Les 30 derniers films
         const filmsRecents = [...itemsWithoutHP].filter(m => m.type === 'film').reverse().slice(0, 30);
@@ -5358,12 +5392,19 @@ function buildNetflixHome() {
         const filmsTendance = [...filmsSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('films-tendance-slider', filmsTendance);
 
-        // 7ter. FILMS ANIMÉS RÉCENTS / FILMS ANIMÉS TENDANCE : uniquement les FILMS au genre "Animation"
-        const filmsAnimesSource = allItems.filter(m => m.type === 'film' && m.genre && m.genre.includes('Animation'));
+        // 7ter. FILMS ANIMÉS RÉCENTS / FILMS ANIMÉS TENDANCE : uniquement les FILMS au genre "Anime" (animation japonaise)
+        const filmsAnimesSource = allItems.filter(m => m.type === 'film' && m.genre && m.genre.includes('Anime'));
         const filmsAnimesRecents = [...filmsAnimesSource].reverse().slice(0, 30);
         buildStandardSlider('films-animes-recents-slider', filmsAnimesRecents);
         const filmsAnimesTendance = [...filmsAnimesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('films-animes-tendance-slider', filmsAnimesTendance);
+
+        // 7quater. SÉRIES ANIMÉS RÉCENTS / SÉRIES ANIMÉS TENDANCE : uniquement les SÉRIES au genre "Anime"
+        const seriesAnimesSource = allItems.filter(m => m.type === 'serie' && m.genre && m.genre.includes('Anime'));
+        const seriesAnimesRecents = [...seriesAnimesSource].reverse().slice(0, 30);
+        buildStandardSlider('series-animes-recents-slider', seriesAnimesRecents);
+        const seriesAnimesTendance = [...seriesAnimesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
+        buildStandardSlider('series-animes-tendance-slider', seriesAnimesTendance);
 
         // 8. AVENTURE : Les 30 derniers films d'Aventure
         const aventures = [...moviesDB].filter(m => m.genre && m.genre.includes('Aventure')).reverse().slice(0, 30);
@@ -5501,12 +5542,14 @@ function buildNetflixHome() {
 
             card.onclick = () => openP(movie.id, resumeEpisode);
             card.innerHTML = `
-                <div class="badge-card">${movie.type.toUpperCase()}</div>
+                <div class="badge-card" data-cattype="${movie.type}" data-isanime="${isAnimeMovie(movie)}" title="Voir tous les ${movie.type === 'film' ? 'films' : 'séries'}">${movie.type.toUpperCase()}</div>
                 <i class="fas fa-play continue-watching-play-overlay"></i>
                 <div class="netflix-poster" style="background-image: url('${movie.poster}')"></div>
                 ${labelText ? `<div class="continue-watching-ep-label">${labelText}</div>` : ''}
                 ${progressHTML}
             `;
+            const typeBadgeElCw = card.querySelector('.badge-card');
+            if (typeBadgeElCw) typeBadgeElCw.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; if (typeBadgeElCw.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeElCw.dataset.cattype); } });
             container.appendChild(card);
         });
     }
@@ -5519,12 +5562,14 @@ function buildNetflixHome() {
             card.className = 'netflix-card';
             card.onclick = () => openP(m.id);
             card.innerHTML = `
-                <div class="badge-card">${m.type.toUpperCase()}</div>
+                <div class="badge-card" data-cattype="${m.type}" data-isanime="${isAnimeMovie(m)}" title="Voir tous les ${m.type === 'film' ? 'films' : 'séries'}">${m.type.toUpperCase()}</div>
                 ${getNewBadgeType(m) ? `<div class="badge-card-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
                 <div class="netflix-poster" style="background-image: url('${m.poster}')"></div>
             `;
             const newBadgeEl = card.querySelector('.badge-card-new');
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
+            const typeBadgeEl = card.querySelector('.badge-card');
+            if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
             container.appendChild(card);
         });
     }
@@ -5539,13 +5584,15 @@ function buildNetflixHome() {
             card.innerHTML = `
                 <div class="top-10-number">${index + 1}</div>
                 <div class="top-10-poster-wrap">
-                    <div class="badge-card">${m.type.toUpperCase()}</div>
+                    <div class="badge-card" data-cattype="${m.type}" data-isanime="${isAnimeMovie(m)}" title="Voir tous les ${m.type === 'film' ? 'films' : 'séries'}">${m.type.toUpperCase()}</div>
                     ${getNewBadgeType(m) ? `<div class="badge-card-new" data-newtype="${getNewBadgeType(m)}" title="Voir toutes les nouveautés"><i class="fas fa-bolt"></i> NOUVEAU</div>` : ''}
                     <div class="top-10-poster" style="background-image: url('${m.poster}')"></div>
                 </div>
             `;
             const newBadgeEl = card.querySelector('.badge-card-new');
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
+            const typeBadgeEl = card.querySelector('.badge-card');
+            if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
             container.appendChild(card);
         });
     }
