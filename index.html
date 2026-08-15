@@ -3827,9 +3827,41 @@ function showCatalogue() {
     }
 }
 
+    function sanitizePlayerIframe(c) {
+        if (!c || typeof c !== 'string') return c;
+        if (c.toLowerCase().indexOf('<iframe') === -1) return c;
+
+        let fixed = c;
+
+        // Retire les paramètres d'autoplay forcé dans l'URL (bloqués sur mobile,
+        // et qui empêchent le lecteur Uqload de charger son interface / bouton play)
+        fixed = fixed.replace(/[?&](autoplay|autostart|play)=1/gi, '');
+
+        // Ajoute/complète l'attribut allow pour autoriser explicitement
+        // l'autoplay/plein écran/lecture inline sur mobile
+        const neededAllow = 'autoplay; fullscreen; encrypted-media; picture-in-picture';
+        if (/allow\s*=/i.test(fixed)) {
+            fixed = fixed.replace(/allow\s*=\s*(["'])(.*?)\1/i, (m, q, val) => `allow=${q}${val}${val.includes('autoplay') ? '' : '; ' + neededAllow}${q}`);
+        } else {
+            fixed = fixed.replace(/<iframe/i, `<iframe allow="${neededAllow}"`);
+        }
+
+        // S'assure que allowfullscreen est présent
+        if (!/allowfullscreen/i.test(fixed)) {
+            fixed = fixed.replace(/<iframe/i, '<iframe allowfullscreen');
+        }
+
+        // Force width/height à 100% (au cas où des valeurs fixes type WIDTH=640 traînent)
+        fixed = fixed.replace(/\s(width|height)\s*=\s*["']?\d+["']?/gi, '');
+        fixed = fixed.replace(/<iframe/i, '<iframe width="100%" height="100%"');
+
+        return fixed;
+    }
+
     function setVideoContent(c) {
         const box = document.getElementById('video-container');
         if(adTimer) clearInterval(adTimer);
+        c = sanitizePlayerIframe(c);
 
         if (c === "VIP_LOCK") {
             box.innerHTML = '<div style="color:#e74c3c; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%;"><i class="fas fa-lock" style="font-size:24px; margin-bottom:10px;"></i> Réservé aux membres VIP.</div>';
