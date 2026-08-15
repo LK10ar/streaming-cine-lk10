@@ -5331,19 +5331,19 @@ async function saveMovie() {
 function buildNetflixHome() {
         if (!moviesDB || moviesDB.length === 0) return;
 
-        buildContinueWatchingRow();
+        try { buildContinueWatchingRow(); } catch(e) { console.error("Erreur continue-watching:", e); }
 
         // --- FILTRES POUR ÉVITER L'INVASION DES SAGAS ---
         const allItems = moviesDB.filter(m => m.type !== 'saga');
-        const itemsWithoutHP = allItems.filter(m => !m.title.toLowerCase().includes('harry potter'));
+        const itemsWithoutHP = allItems.filter(m => !(m.title || '').toLowerCase().includes('harry potter'));
         
         // On exclut Harry Potter ET Fast & Furious spécifiquement pour la grande bannière Hero
-        const itemsForHero = allItems.filter(m => 
-            !m.title.toLowerCase().includes('harry potter') && 
-            !m.title.toLowerCase().includes('fast') && 
-            !m.title.toLowerCase().includes('furious')
-        );
+        const itemsForHero = allItems.filter(m => {
+            const t = (m.title || '').toLowerCase();
+            return !t.includes('harry potter') && !t.includes('fast') && !t.includes('furious');
+        });
         
+        try {
         // 1. BANNIÈRE GÉANTE HERO (NOUVELLE LOGIQUE) : Nouveautés 2026+ et anciens aléatoires
         const nouveautes = itemsForHero.filter(m => parseInt(m.year) >= 2026);
         let recent3 = [...nouveautes].reverse().slice(0, 3); 
@@ -5366,6 +5366,9 @@ function buildNetflixHome() {
         if (randomSerie) heroMovies.push(randomSerie);
         
         renderHeroCarousel();
+        } catch(e) { console.error("Erreur hero carousel:", e); }
+
+        try {
 // 2. TOP 10 TENDANCES DU JOUR (SÉCURISÉ)
         // On affiche d'abord le fallback par note immédiatement
         const fallback = [...allItems].sort((a, b) => b.rating - a.rating).slice(0, 10);
@@ -5381,11 +5384,15 @@ function buildNetflixHome() {
                 }
             })
             .catch(e => console.log("Tendances serveurs indisponibles, utilisation du fallback."));
+        } catch(e) { console.error("Erreur top10:", e); }
 
+        try {
         // 3. TENDANCES CLASSIQUES : Mélange des 50 derniers ajouts (sans HP)
         const tendances = [...itemsWithoutHP].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('tendances-slider', tendances);
+        } catch(e) { console.error("Erreur tendances:", e); }
 
+        try {
         // 4. CARROUSEL DES SAGAS : Reste intact
         const sagasContainer = document.getElementById('home-sagas-slider');
         sagasContainer.innerHTML = '';
@@ -5395,7 +5402,9 @@ function buildNetflixHome() {
             card.innerHTML = `<div class="badge-card">SAGA</div><div class="netflix-poster" style="background-image: url('${saga.poster}')"></div>`;
             sagasContainer.appendChild(card);
         });
+        } catch(e) { console.error("Erreur sagas:", e); }
 
+        try {
         // 5. FILMS POPULAIRES : Les 30 films les mieux notés
         const filmsPopulaires = [...moviesDB].filter(m => m.type === 'film').sort((a, b) => b.rating - a.rating).slice(0, 30);
         buildStandardSlider('populaires-slider', filmsPopulaires);
@@ -5435,6 +5444,7 @@ function buildNetflixHome() {
         // 8. AVENTURE : Les 30 derniers films d'Aventure
         const aventures = [...moviesDB].filter(m => m.genre && m.genre.includes('Aventure')).reverse().slice(0, 30);
         buildStandardSlider('aventure-slider', aventures);
+        } catch(e) { console.error("Erreur sliders standards:", e); }
     }
 
     function renderHeroCarousel() {
