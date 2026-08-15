@@ -3833,9 +3833,19 @@ function showCatalogue() {
 
         let fixed = c;
 
-        // Retire les paramètres d'autoplay forcé dans l'URL (bloqués sur mobile,
-        // et qui empêchent le lecteur Uqload de charger son interface / bouton play)
-        fixed = fixed.replace(/[?&](autoplay|autostart|play)=1/gi, '');
+        // Retire les paramètres d'autoplay forcé de l'URL (src="...") en reconstruisant
+        // proprement la query string via l'API URL, pour ne jamais casser le lien
+        // (l'ancienne version, à base de remplacement de texte, pouvait laisser un "&"
+        // à la place du "?" et rendre le lien invalide -> écran noir)
+        fixed = fixed.replace(/(src\s*=\s*)(["'])([^"']*)\2/i, (m, prefix, quote, url) => {
+            try {
+                const u = new URL(url);
+                ['autoplay', 'autostart', 'play'].forEach(p => u.searchParams.delete(p));
+                return prefix + quote + u.toString() + quote;
+            } catch (e) {
+                return m; // Si l'URL est invalide/relative, on ne touche à rien
+            }
+        });
 
         // Ajoute/complète l'attribut allow pour autoriser explicitement
         // l'autoplay/plein écran/lecture inline sur mobile
