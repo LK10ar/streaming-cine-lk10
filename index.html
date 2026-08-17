@@ -3861,6 +3861,13 @@ function showCatalogue() {
             fixed = fixed.replace(/<iframe/i, '<iframe allowfullscreen');
         }
 
+        // Force un referrerpolicy qui envoie bien le domaine d'origine (certains hébergeurs
+        // comme Uqload vérifient le referrer pour autoriser l'affichage, et le comportement
+        // par défaut de Safari mobile peut l'omettre ou le tronquer différemment du bureau)
+        if (!/referrerpolicy\s*=/i.test(fixed)) {
+            fixed = fixed.replace(/<iframe/i, '<iframe referrerpolicy="origin"');
+        }
+
         // Force width/height à 100% (au cas où des valeurs fixes type WIDTH=640 traînent)
         fixed = fixed.replace(/\s(width|height)\s*=\s*["']?\d+["']?/gi, '');
         fixed = fixed.replace(/<iframe/i, '<iframe width="100%" height="100%"');
