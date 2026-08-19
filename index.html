@@ -3206,7 +3206,7 @@ async function loadSecureMovies() {
             const response = await fetch(`${API_URL}/api/movies`, { headers: { 'authorization': token } });
             const data = await response.json();
             if (data.success) {
-                let rawMovies = nettoyerLiensAbyss(data.movies); 
+                let rawMovies = nettoyerLiensUqload(nettoyerLiensAbyss(data.movies)); 
                 
                 // ASTUCE MAGIQUE : On sépare l'Affiche et la Bannière cachées par le serveur
                 moviesDB = rawMovies.map(m => {
@@ -3230,6 +3230,17 @@ async function loadSecureMovies() {
     function nettoyerLiensAbyss(donnees) {
         let texte = JSON.stringify(donnees);
         texte = texte.replace(/https:\/\/short\.icu\//g, "https://abyssplayer.com/");
+        return JSON.parse(texte);
+    }
+
+    // Normalise TOUS les domaines Uqload (peu importe l'extension collée par l'admin :
+    // .co, .com, .org, .to, .is, .cx, .party...) vers le domaine actuellement fonctionnel.
+    // Pour changer de domaine à l'avenir si celui-ci meurt à son tour, il suffit de modifier
+    // UQLOAD_DOMAIN_ACTUEL ci-dessous.
+    const UQLOAD_DOMAIN_ACTUEL = "uqload.vc";
+    function nettoyerLiensUqload(donnees) {
+        let texte = JSON.stringify(donnees);
+        texte = texte.replace(/https?:\/\/(www\.)?uqload\.[a-z]{2,6}\//gi, `https://${UQLOAD_DOMAIN_ACTUEL}/`);
         return JSON.parse(texte);
     }
 
@@ -3833,6 +3844,10 @@ function showCatalogue() {
 
         let fixed = c;
 
+        // Normalise le domaine Uqload vers celui actuellement fonctionnel (UQLOAD_DOMAIN_ACTUEL),
+        // au cas où ce lien précis n'aurait pas déjà été nettoyé par nettoyerLiensUqload()
+        fixed = fixed.replace(/uqload\.[a-z]{2,6}\//gi, `${UQLOAD_DOMAIN_ACTUEL}/`);
+
         // Retire les paramètres d'autoplay forcé de l'URL (src="...") en reconstruisant
         // proprement la query string via l'API URL, pour ne jamais casser le lien
         // (l'ancienne version, à base de remplacement de texte, pouvait laisser un "&"
@@ -3859,13 +3874,6 @@ function showCatalogue() {
         // S'assure que allowfullscreen est présent
         if (!/allowfullscreen/i.test(fixed)) {
             fixed = fixed.replace(/<iframe/i, '<iframe allowfullscreen');
-        }
-
-        // Force un referrerpolicy qui envoie bien le domaine d'origine (certains hébergeurs
-        // comme Uqload vérifient le referrer pour autoriser l'affichage, et le comportement
-        // par défaut de Safari mobile peut l'omettre ou le tronquer différemment du bureau)
-        if (!/referrerpolicy\s*=/i.test(fixed)) {
-            fixed = fixed.replace(/<iframe/i, '<iframe referrerpolicy="origin"');
         }
 
         // Force width/height à 100% (au cas où des valeurs fixes type WIDTH=640 traînent)
