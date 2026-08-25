@@ -2101,8 +2101,10 @@ function finishCover() {
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
     <!-- Boutons pour Films / Séries classiques (FilmoFlix) -->
+   <!-- Boutons pour Films / Séries classiques (FilmoFlix) -->
     <div id="classic-servers" style="display: flex; gap: 10px;">
         <button class="server-btn" id="btn-server-prem" onclick="changeServer('premium')">PREMIUM</button>
+        <button class="server-btn" id="btn-server-vidzy" onclick="changeServer('vidzy')">VIDZY</button>
         <button class="server-btn" id="btn-server-uql" onclick="changeServer('uqload')">UQLOAD</button>
     </div>
 
@@ -3714,8 +3716,8 @@ function showCatalogue() {
         const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => typeof item === 'string' ? item === m.id : item.id === m.id);
 
         const langSelect = document.getElementById('language-select'); langSelect.innerHTML = ''; 
-        let hasVF = m.type === 'film' ? (m.iframe_premium || m.iframe_uqload) : (m.episodes?.some(e => e.iframe_premium || e.iframe_uqload));
-        let hasVOST = m.type === 'film' ? (m.iframe_premium_vostfr || m.iframe_uqload_vostfr) : (m.episodes?.some(e => e.iframe_premium_vostfr || e.iframe_uqload_vostfr));
+        let hasVF = m.type === 'film' ? (m.iframe_premium || m.iframe_vidzy || m.iframe_uqload) : (m.episodes?.some(e => e.iframe_premium || e.iframe_vidzy || e.iframe_uqload));
+        let hasVOST = m.type === 'film' ? (m.iframe_premium_vostfr || m.iframe_vidzy_vostfr || m.iframe_uqload_vostfr) : (m.episodes?.some(e => e.iframe_premium_vostfr || e.iframe_vidzy_vostfr || e.iframe_uqload_vostfr));
         if (hasVF) langSelect.add(new Option('VF', 'vf'));
         if (hasVOST) langSelect.add(new Option('VOSTFR', 'vostfr'));
         currentLanguage = langSelect.value || 'vf'; currentServer = 'premium';
@@ -3755,13 +3757,13 @@ function showCatalogue() {
     function changeLanguage() { currentLanguage = document.getElementById('language-select').value; updatePlayerInterface(); }
     function changeServer(s) { currentServer = s; updatePlayerInterface(); }
 
- function updatePlayerInterface() {
+function updatePlayerInterface() {
     if (!currentMovie) return;
 
     const classicServers = document.getElementById('classic-servers');
     const animeServers = document.getElementById('anime-servers');
     
-    let linkP = "", linkU = "";
+    let linkP = "", linkV = "", linkU = "";
 
     // Détection automatique : Animé (Voiranime) vs Classique (FilmoFlix)
     const isAnime = currentMovie.dir === 'Voiranime' || currentMovie.id?.startsWith('voir_anime');
@@ -3773,15 +3775,15 @@ function showCatalogue() {
 
         if (currentMovie.type === 'film') {
             linkU = currentLanguage === 'vf'
-                ? (currentMovie.iframe_uqload || currentMovie.iframe_premium)
-                : (currentMovie.iframe_uqload_vostfr || currentMovie.iframe_uqload || currentMovie.iframe_premium_vostfr || currentMovie.iframe_premium);
+                ? (currentMovie.iframe_vidzy || currentMovie.iframe_uqload || currentMovie.iframe_premium)
+                : (currentMovie.iframe_vidzy_vostfr || currentMovie.iframe_uqload_vostfr || currentMovie.iframe_uqload || currentMovie.iframe_premium_vostfr || currentMovie.iframe_premium);
         } else {
             renderEpisodeList();
             const ep = currentMovie.episodes?.[currentEpisodeIndex];
             if (ep) {
                 linkU = currentLanguage === 'vf'
-                    ? (ep.iframe_uqload || ep.iframe_premium)
-                    : (ep.iframe_uqload_vostfr || ep.iframe_uqload || ep.iframe_premium_vostfr || ep.iframe_premium);
+                    ? (ep.iframe_vidzy || ep.iframe_uqload || ep.iframe_premium)
+                    : (ep.iframe_vidzy_vostfr || ep.iframe_uqload_vostfr || ep.iframe_uqload || ep.iframe_premium_vostfr || ep.iframe_premium);
                 highlightActiveEpisode();
             }
         }
@@ -3795,41 +3797,60 @@ function showCatalogue() {
         setVideoContent(linkU);
 
     } else {
-        // Mode Classique (Films / Séries FilmoFlix) : Affiche PREMIUM et UQLOAD
+        // Mode Classique (Films / Séries FilmoFlix) : Affiche PREMIUM, VIDZY et UQLOAD
         if (classicServers) classicServers.style.display = 'flex';
         if (animeServers) animeServers.style.display = 'none';
 
         if (currentMovie.type === 'film') {
             linkP = currentLanguage === 'vf' ? currentMovie.iframe_premium : (currentMovie.iframe_premium_vostfr || currentMovie.iframe_premium);
+            linkV = currentLanguage === 'vf' ? currentMovie.iframe_vidzy : (currentMovie.iframe_vidzy_vostfr || currentMovie.iframe_vidzy);
             linkU = currentLanguage === 'vf' ? currentMovie.iframe_uqload : (currentMovie.iframe_uqload_vostfr || currentMovie.iframe_uqload);
         } else {
             renderEpisodeList();
             const ep = currentMovie.episodes?.[currentEpisodeIndex];
             if (ep) {
                 linkP = currentLanguage === 'vf' ? ep.iframe_premium : (ep.iframe_premium_vostfr || ep.iframe_premium);
+                linkV = currentLanguage === 'vf' ? ep.iframe_vidzy : (ep.iframe_vidzy_vostfr || ep.iframe_vidzy);
                 linkU = currentLanguage === 'vf' ? ep.iframe_uqload : (ep.iframe_uqload_vostfr || ep.iframe_uqload);
                 highlightActiveEpisode();
             }
         }
 
         const btnP = document.getElementById('btn-server-prem');
+        const btnV = document.getElementById('btn-server-vidzy');
         const btnU = document.getElementById('btn-server-uql');
 
         const hasPremiumAccess = isVipUser || isAdminUnlocked;
 
         if (btnP) btnP.style.display = (linkP && hasPremiumAccess) ? 'inline-block' : 'none';
+        if (btnV) btnV.style.display = linkV ? 'inline-block' : 'none';
         if (btnU) btnU.style.display = linkU ? 'inline-block' : 'none';
 
-        if (!hasPremiumAccess) currentServer = 'uqload';
-        // Si le serveur choisi n'a pas de lien dispo, on retombe automatiquement sur l'autre
-        if (currentServer === 'uqload' && !linkU && linkP) currentServer = 'premium';
-        if (currentServer === 'premium' && (!linkP || !hasPremiumAccess) && linkU) currentServer = 'uqload';
+        // Logique de repli intelligent (Fallback)
+        if (currentServer === 'premium' && (!linkP || !hasPremiumAccess)) {
+            if (linkV) currentServer = 'vidzy';
+            else if (linkU) currentServer = 'uqload';
+        } else if (currentServer === 'vidzy' && !linkV) {
+            if (linkP && hasPremiumAccess) currentServer = 'premium';
+            else if (linkU) currentServer = 'uqload';
+        } else if (currentServer === 'uqload' && !linkU) {
+            if (linkV) currentServer = 'vidzy';
+            else if (linkP && hasPremiumAccess) currentServer = 'premium';
+        }
+
+        // Si aucun serveur n'est défini mais qu'une option existe
+        if (!['premium', 'vidzy', 'uqload'].includes(currentServer)) {
+            currentServer = linkV ? 'vidzy' : (linkU ? 'uqload' : 'premium');
+        }
 
         if (btnP) btnP.classList.toggle('active', currentServer === 'premium');
+        if (btnV) btnV.classList.toggle('active', currentServer === 'vidzy');
         if (btnU) btnU.classList.toggle('active', currentServer === 'uqload');
 
         if (currentServer === 'premium' && linkP && hasPremiumAccess) {
             setVideoContent(linkP);
+        } else if (currentServer === 'vidzy' && linkV) {
+            setVideoContent(linkV);
         } else if (currentServer === 'uqload' && linkU) {
             setVideoContent(linkU);
         } else if (linkP) {
