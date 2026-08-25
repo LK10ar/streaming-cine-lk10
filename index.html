@@ -2248,15 +2248,17 @@ function finishCover() {
                 </select>
             </div>
             
-            <div id="film-inputs">
+           <div id="film-inputs">
                 <div style="background:#111; padding:10px; border:1px solid #333; margin-bottom:10px;">
                     <label style="color:var(--primary);">VERSION FRANÇAISE (VF)</label>
                     <div class="form-group"><input type="text" id="add-iframe" class="form-input" placeholder="Lien Premium VF"></div>
+                    <div class="form-group"><input type="text" id="add-iframe-vidzy" class="form-input" placeholder="Lien Vidzy VF"></div>
                     <div class="form-group"><input type="text" id="add-iframe-uqload" class="form-input" placeholder="Lien Uqload VF"></div>
                 </div>
                 <div style="background:#111; padding:10px; border:1px solid #333;">
                     <label style="color:var(--primary);">VERSION VOSTFR</label>
                     <div class="form-group"><input type="text" id="add-iframe-vostfr" class="form-input" placeholder="Lien Premium VOSTFR"></div>
+                    <div class="form-group"><input type="text" id="add-iframe-vidzy-vostfr" class="form-input" placeholder="Lien Vidzy VOSTFR"></div>
                     <div class="form-group"><input type="text" id="add-iframe-uqload-vostfr" class="form-input" placeholder="Lien Uqload VOSTFR"></div>
                 </div>
             </div>
@@ -4065,14 +4067,19 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
         document.getElementById('admin-row-trailer').style.display = (isSaga || isLink) ? 'none' : 'block';
     } 
 
-   function clearForm() { 
+ function clearForm() { 
         document.getElementById('add-title').value = ""; 
         document.getElementById('add-poster').value = ""; 
         document.getElementById('add-backdrop').value = ""; // NOUVEAU
+        
+        // --- LIENS STREAMING ---
         document.getElementById('add-iframe').value = ""; 
+        document.getElementById('add-iframe-vidzy').value = ""; // <-- AJOUT VIDZY VF
         document.getElementById('add-iframe-uqload').value = ""; 
         document.getElementById('add-iframe-vostfr').value = ""; 
+        document.getElementById('add-iframe-vidzy-vostfr').value = ""; // <-- AJOUT VIDZY VOSTFR
         document.getElementById('add-iframe-uqload-vostfr').value = ""; 
+        
         document.getElementById('add-desc').value = ""; 
         document.getElementById('add-year').value = ""; 
         document.getElementById('add-rating').value = ""; 
@@ -4086,18 +4093,20 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
         document.getElementById('add-saga-movies').value = "";
         isLinkedExisting = false;
         linkedExistingId = null;
+        
         const linkSel = document.getElementById('link-existing-selected');
         if (linkSel) linkSel.innerHTML = "";
         const linkSearch = document.getElementById('link-existing-search');
         if (linkSearch) linkSearch.value = "";
-    if(typeof selectedSagaMovies !== 'undefined') {
+        
+        if(typeof selectedSagaMovies !== 'undefined') {
             selectedSagaMovies = [];
             updateSagaUI();
             document.getElementById('saga-movie-search').value = "";
-        }}
+        }
+    }
 
-    function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }
-    
+function renderEpisodeInputs() { const n = parseInt(document.getElementById('add-ep-count').value) || 0; const c = document.getElementById('episodes-container'); c.innerHTML = ''; for (let i = 1; i <= n; i++) { const d = document.createElement('div'); d.className = 'episode-block'; d.style.marginBottom = "15px"; d.style.padding = "10px"; d.style.background = "#111"; d.style.border = "1px solid #333"; d.innerHTML = `<div style="color:var(--primary); font-weight:bold;">Épisode ${i}</div><input type="text" class="form-input ep-prem-vf" placeholder="Premium VF"><input type="text" class="form-input ep-vidzy-vf" placeholder="Vidzy VF"><input type="text" class="form-input ep-uql-vf" placeholder="Uqload VF"><input type="text" class="form-input ep-prem-vostfr" placeholder="Premium VOSTFR"><input type="text" class="form-input ep-vidzy-vostfr" placeholder="Vidzy VOSTFR"><input type="text" class="form-input ep-uql-vostfr" placeholder="Uqload VOSTFR">`; c.appendChild(d); } }    
  
    function openEditMode() { 
         if(!currentMovie) return; 
@@ -4122,8 +4131,10 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
         
         if (currentMovie.type === 'film') { 
             document.getElementById('add-iframe').value = currentMovie.iframe_premium || ""; 
+            document.getElementById('add-iframe-vidzy').value = currentMovie.iframe_vidzy || ""; // <-- AJOUT VIDZY VF
             document.getElementById('add-iframe-uqload').value = currentMovie.iframe_uqload || ""; 
             document.getElementById('add-iframe-vostfr').value = currentMovie.iframe_premium_vostfr || ""; 
+            document.getElementById('add-iframe-vidzy-vostfr').value = currentMovie.iframe_vidzy_vostfr || ""; // <-- AJOUT VIDZY VOSTFR
             document.getElementById('add-iframe-uqload-vostfr').value = currentMovie.iframe_uqload_vostfr || ""; 
         } else if (currentMovie.type === 'serie') { 
             const eps = currentMovie.episodes || []; 
@@ -4132,8 +4143,10 @@ document.getElementById('saga-fields').style.display = isSaga ? 'block' : 'none'
             document.querySelectorAll('.episode-block').forEach((b, i) => { 
                 if (eps[i]) { 
                     b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || ""; 
+                    b.querySelector('.ep-vidzy-vf').value = eps[i].iframe_vidzy || ""; // <-- AJOUT VIDZY VF
                     b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || ""; 
                     b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || ""; 
+                    b.querySelector('.ep-vidzy-vostfr').value = eps[i].iframe_vidzy_vostfr || ""; // <-- AJOUT VIDZY VOSTFR
                     b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || ""; 
                 } 
             }); 
@@ -4189,7 +4202,18 @@ async function saveMovie() {
         let finalGenre = selG.join(', ');
 
         if (ty === 'serie') {
-            epL = []; document.getElementById('episodes-container').childNodes.forEach((bl, i) => epL.push({ title: "Episode " + (i + 1), iframe_premium: bl.querySelector('.ep-prem-vf').value, iframe_uqload: bl.querySelector('.ep-uql-vf').value, iframe_premium_vostfr: bl.querySelector('.ep-prem-vostfr').value, iframe_uqload_vostfr: bl.querySelector('.ep-uql-vostfr').value }));
+            epL = []; 
+            document.getElementById('episodes-container').childNodes.forEach((bl, i) => 
+                epL.push({ 
+                    title: "Episode " + (i + 1), 
+                    iframe_premium: bl.querySelector('.ep-prem-vf').value, 
+                    iframe_vidzy: bl.querySelector('.ep-vidzy-vf').value, // <-- AJOUT VIDZY VF
+                    iframe_uqload: bl.querySelector('.ep-uql-vf').value, 
+                    iframe_premium_vostfr: bl.querySelector('.ep-prem-vostfr').value, 
+                    iframe_vidzy_vostfr: bl.querySelector('.ep-vidzy-vostfr').value, // <-- AJOUT VIDZY VOSTFR
+                    iframe_uqload_vostfr: bl.querySelector('.ep-uql-vostfr').value 
+                })
+            );
         } else if (ty === 'saga') {
             finalCast = document.getElementById('add-saga-movies').value;
             finalIframe = document.getElementById('add-saga-bg').value;
@@ -4200,7 +4224,14 @@ async function saveMovie() {
             id: isEditing ? editingId : 'custom_' + Date.now(), 
             type: ty, title: t, year: finalYear, 
             poster: finalPoster, // LE SERVEUR CROIT QU'IL N'Y A QU'UNE SEULE IMAGE !
-            rating: finalRating, genre: finalGenre, desc: document.getElementById('add-desc').value, dir: finalDir, cast: finalCast, trailer_iframe: finalTrailer, iframe_premium: finalIframe, iframe_uqload: document.getElementById('add-iframe-uqload').value, iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, episodes: epL 
+            rating: finalRating, genre: finalGenre, desc: document.getElementById('add-desc').value, dir: finalDir, cast: finalCast, trailer_iframe: finalTrailer, 
+            iframe_premium: finalIframe, 
+            iframe_vidzy: document.getElementById('add-iframe-vidzy').value, // <-- AJOUT VIDZY VF
+            iframe_uqload: document.getElementById('add-iframe-uqload').value, 
+            iframe_premium_vostfr: document.getElementById('add-iframe-vostfr').value, 
+            iframe_vidzy_vostfr: document.getElementById('add-iframe-vidzy-vostfr').value, // <-- AJOUT VIDZY VOSTFR
+            iframe_uqload_vostfr: document.getElementById('add-iframe-uqload-vostfr').value, 
+            episodes: epL 
         };
         
         const token = localStorage.getItem('monBadgeCineLK10');
@@ -4213,7 +4244,6 @@ async function saveMovie() {
             } else { alert("Erreur : " + data.message); }
         } catch(e) { alert("Erreur de connexion au serveur."); }
     }
-
     async function deleteMovie() { 
         if(!isEditing || !editingId || !confirm("Es-tu sûr de vouloir supprimer ce contenu définitivement ?")) return; 
         const token = localStorage.getItem('monBadgeCineLK10');
@@ -5791,7 +5821,7 @@ function buildNetflixHome() {
         resultsContainer.style.display = 'block';
     }
 
-    function selectLinkExisting(id) {
+  function selectLinkExisting(id) {
         const m = moviesDB.find(movie => movie.id === id);
         if (!m) return;
 
@@ -5817,15 +5847,19 @@ function buildNetflixHome() {
             document.querySelectorAll('.episode-block').forEach((b, i) => {
                 if (eps[i]) {
                     b.querySelector('.ep-prem-vf').value = eps[i].iframe_premium || "";
+                    b.querySelector('.ep-vidzy-vf').value = eps[i].iframe_vidzy || ""; // <-- AJOUT VIDZY VF
                     b.querySelector('.ep-uql-vf').value = eps[i].iframe_uqload || "";
                     b.querySelector('.ep-prem-vostfr').value = eps[i].iframe_premium_vostfr || "";
+                    b.querySelector('.ep-vidzy-vostfr').value = eps[i].iframe_vidzy_vostfr || ""; // <-- AJOUT VIDZY VOSTFR
                     b.querySelector('.ep-uql-vostfr').value = eps[i].iframe_uqload_vostfr || "";
                 }
             });
         } else {
             document.getElementById('add-iframe').value = m.iframe_premium || "";
+            document.getElementById('add-iframe-vidzy').value = m.iframe_vidzy || ""; // <-- AJOUT VIDZY VF
             document.getElementById('add-iframe-uqload').value = m.iframe_uqload || "";
             document.getElementById('add-iframe-vostfr').value = m.iframe_premium_vostfr || "";
+            document.getElementById('add-iframe-vidzy-vostfr').value = m.iframe_vidzy_vostfr || ""; // <-- AJOUT VIDZY VOSTFR
             document.getElementById('add-iframe-uqload-vostfr').value = m.iframe_uqload_vostfr || "";
         }
 
