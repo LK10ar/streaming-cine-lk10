@@ -1461,6 +1461,13 @@ function finishCover() {
                 </video>
             </div>
 
+             <div class="platform-card" onclick="performSearch('Mtv')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/MTV_2021_%28brand_version%29.svg/960px-MTV_2021_%28brand_version%29.svg.png" alt="Mtv" class="plat-logo" style="filter: invert(1);">
+                <video autoplay loop muted playsinline class="plat-vid">
+                    <source src="https://media.tenor.com/pksVsFVez_AAAAPo/mtv-tv.mp4" type="video/mp4">
+                </video>
+            </div>
+
             <div class="platform-card" onclick="performSearch('Marvel')">
                 <img src="https://u.cubeupload.com/mystic/hUzeosd33nzE5MCNsZxC.png" alt="Marvel" class="plat-logo">
                 <video autoplay loop muted playsinline class="plat-vid">
@@ -2556,7 +2563,7 @@ function finishCover() {
     let hasAccess = false; 
     let moviesDB = [];
     const ITEMS_PER_PAGE = 30;
-const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire","Epouvante-horreur", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney", "Pixar", "Starz", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all'; let lastGridWasSpecial = false; 
+const GENRES_LIST = ["Action", "Aventure", "Animation", "Comédie", "Anime", "Crime", "Drame", "Fantastique", "Guerre", "Documentaire", "Histoire","Epouvante-horreur", "Horreur", "Mystère", "Romance", "Science-Fiction", "Thriller", "Western", "Netflix", "Prime", "Disney","Mtv", "Pixar", "Starz", "Marvel", "DC", "Warner", "HBO", "Apple TV", "Paramount", "Dreamworks", "MGM+", "20th Century Fox"];    let currentPage = 1;    let currentYearFilter = 'all'; let lastGridWasSpecial = false; 
     let filteredList = []; 
     let currentMovie = null;
     let isEditing = false; 
@@ -3358,7 +3365,7 @@ const isHome = document.getElementById('nav-all') && document.getElementById('na
 
 function initMegaMenu() {
         // Ajout de MGM+ pour le menu déroulant :
-        const studios = ["Marvel", "DC", "Disney", "Pixar", "Dreamworks", "Apple TV", "Paramount", "MGM+", "20th Century Fox"];      
+        const studios = ["Marvel", "DC", "Disney", "Pixar", "Dreamworks", "Apple TV", "Paramount", "MGM+","Mtv", "20th Century Fox"];      
         
         // LA LIGNE MANQUANTE QUI FAISAIT TOUT PLANTER EST CELLE-CI :
         const filmNav = document.getElementById('nav-film').nextElementSibling;
@@ -3452,6 +3459,8 @@ function performSearch(forcedQuery = null) {
             'dreamworks': ['dreamworks', 'dragons', 'shrek', 'kung fu panda', 'madagascar'],
             'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from'],
             'starz': ['starz', 'power', 'outlander', 'spartacus', 'p-valley', 'the girlfriend experience', 'heels', 'hightown']
+            'mtv': ['teen wolf', 'scream', 'awkward', 'jackass', 'daria', 'eye candy', 'the shannara chronicles', 'finding carter']
+            
         };
 
         const safeQuery = rawQuery.toLowerCase().trim();
@@ -5781,7 +5790,7 @@ function buildNetflixHome() {
         if (data.production_companies) data.production_companies.forEach(c => studios.push(c.name.toLowerCase()));
         if (data.networks) data.networks.forEach(n => studios.push(n.name.toLowerCase()));
         
-        const platformMapping = { 'netflix': 'Netflix', 'amazon': 'Prime', 'prime': 'Prime', 'disney': 'Disney', 'pixar': 'Pixar', 'lucasfilm': 'Star Wars', 'marvel': 'Marvel', 'dc ': 'DC', 'dc comics': 'DC', 'dc entertainment': 'DC', 'dc films': 'DC', 'warner': 'Warner', 'hbo': 'HBO', 'max': 'HBO', 'apple': 'Apple TV', 'paramount': 'Paramount', '20th century': '20th Century Fox', 'fox': '20th Century Fox' };
+        const platformMapping = { 'netflix': 'Netflix', 'amazon': 'Prime', 'prime': 'Prime', 'disney': 'Disney', 'pixar': 'Pixar','mtv': 'Mtv', 'lucasfilm': 'Star Wars', 'marvel': 'Marvel', 'dc ': 'DC', 'dc comics': 'DC', 'dc entertainment': 'DC', 'dc films': 'DC', 'warner': 'Warner', 'hbo': 'HBO', 'max': 'HBO', 'apple': 'Apple TV', 'paramount': 'Paramount', '20th century': '20th Century Fox', 'fox': '20th Century Fox' };
         
         studios.forEach(studio => {
             for (const [key, value] of Object.entries(platformMapping)) {
