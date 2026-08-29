@@ -1234,32 +1234,42 @@
         /* ================================================== */
         /* ====== PRÉVISUALISATION AU SURVOL (STYLE NETFLIX) === */
         /* ================================================== */
-        .netflix-card, .top-10-card .top-10-poster-wrap, .movie-card {
-            transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s ease, z-index 0s;
+        /* Popup flottant détaché du DOM de la grille (position: fixed, ajouté à <body>) :
+           comme ça il n'est jamais rogné par un overflow:hidden/auto parent et ne
+           déforme pas la grille en dessous, exactement comme le vrai Netflix. */
+        .netflix-preview-popup {
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 9000;
+            background: #181818;
+            border-radius: 6px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.82);
+            transform-origin: center center;
+            transition: transform 0.22s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.18s ease;
+            pointer-events: none;
         }
-        .hover-preview-active {
-            transform: scale(1.35) !important;
-            z-index: 500 !important;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.9);
-            overflow: visible !important;
-        }
-        .hover-preview-media { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; border-radius: 6px 6px 0 0; background:#000; }
-        .hover-preview-media iframe { position: absolute; top: 50%; left: 50%; width: 260%; height: 260%; transform: translate(-50%, -50%); border: none; pointer-events: none; }
-        .hover-preview-info { position: absolute; top: 100%; left: 0; width: 100%; background: #181818; border-radius: 0 0 6px 6px; padding: 10px 12px 12px; box-shadow: 0 15px 25px rgba(0,0,0,0.8); animation: fadeIn 0.2s ease; z-index: 501; }
-        .hover-preview-title { color: white; font-size: 13px; font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .hover-preview-buttons { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .hover-preview-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(42,42,42,0.9); border: 2px solid #6b6b6b; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; transition: 0.2s; }
-        .hover-preview-btn:hover { border-color: white; background: #2a2a2a; transform: scale(1.1); }
-        .hover-preview-btn.hp-play { background: white; color: black; border-color: white; }
-        .hover-preview-btn.hp-play:hover { background: #ddd; }
-        .hover-preview-btn.active { color: var(--primary); border-color: var(--primary); }
-        .hover-preview-genres { font-size: 11px; color: #ccc; display: flex; flex-wrap: wrap; gap: 4px 0; }
-        .hover-preview-genres span { position: relative; padding-right: 10px; }
-        .hover-preview-genres span:not(:last-child)::after { content: "•"; position: absolute; right: 2px; color: #777; }
+        .netflix-preview-popup.np-visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+        .netflix-preview-media { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000 center / cover no-repeat; overflow: hidden; }
+        .netflix-preview-media iframe { position: absolute; top: 50%; left: 50%; width: 300%; height: 300%; transform: translate(-50%, -50%); border: none; pointer-events: none; }
+        .netflix-preview-media::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 55%; background: linear-gradient(to top, #181818 8%, transparent 100%); pointer-events: none; }
+        .netflix-preview-body { padding: 12px 14px 14px; position: relative; }
+        .netflix-preview-title { color: white; font-size: 14px; font-weight: bold; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .netflix-preview-buttons { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .np-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(42,42,42,0.6); border: 2px solid #6b6b6b; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .np-btn:hover { border-color: white; background: #2a2a2a; transform: scale(1.1); }
+        .np-btn.np-play { background: white; color: black; border-color: white; }
+        .np-btn.np-play:hover { background: #ddd; }
+        .np-btn.active { color: var(--primary); border-color: var(--primary); }
+        .np-btn.np-info { margin-left: auto; }
+        .netflix-preview-genres { font-size: 12px; color: #ccc; display: flex; flex-wrap: wrap; gap: 4px 0; }
+        .netflix-preview-genres span { position: relative; padding-right: 10px; }
+        .netflix-preview-genres span:not(:last-child)::after { content: "•"; position: absolute; right: 2px; color: #777; }
 
         @media (hover: none) {
-            .hover-preview-active { transform: none !important; box-shadow: none !important; }
-            .hover-preview-info, .hover-preview-media { display: none !important; }
+            .netflix-preview-popup { display: none !important; }
         }
 
         </style>
@@ -2555,59 +2565,117 @@ function finishCover() {
         return t; // déjà un ID brut
     }
 
+    // Popup unique, réutilisé pour toutes les cartes, ajouté directement à <body>
+    // en position: fixed. Il n'est donc jamais coupé par un parent en overflow
+    // (les sliders sont en overflow-x:auto, ce qui coupait l'ancienne preview).
+    let npPopupEl = null;
+    let npShowTimer = null;
+    let npHideTimer = null;
+    let npVideoTimer = null;
+    let npActiveCard = null;
+
+    function ensureNpPopup() {
+        if (npPopupEl) return npPopupEl;
+        npPopupEl = document.createElement('div');
+        npPopupEl.className = 'netflix-preview-popup';
+        document.body.appendChild(npPopupEl);
+        npPopupEl.addEventListener('mouseenter', () => { clearTimeout(npHideTimer); });
+        npPopupEl.addEventListener('mouseleave', () => { scheduleNpHide(); });
+        return npPopupEl;
+    }
+
+    function scheduleNpHide() {
+        clearTimeout(npHideTimer);
+        npHideTimer = setTimeout(hideNpPopup, 150);
+    }
+
+    function hideNpPopup() {
+        clearTimeout(npVideoTimer);
+        if (!npPopupEl) return;
+        npPopupEl.classList.remove('np-visible');
+        npActiveCard = null;
+    }
+
+    function positionNpPopup(cardEl, popup) {
+        const rect = cardEl.getBoundingClientRect();
+        const scale = 1.4;
+        const width = Math.min(rect.width * scale, 340);
+        popup.style.width = width + 'px';
+        let left = rect.left + rect.width / 2 - width / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - width - 8));
+        const estHeight = popup.offsetHeight || (width * 0.95);
+        let top = rect.top + rect.height / 2 - estHeight / 2;
+        top = Math.max(8, Math.min(top, window.innerHeight - estHeight - 8));
+        popup.style.left = left + 'px';
+        popup.style.top = top + 'px';
+    }
+
+    function showNpPopup(cardEl, movie) {
+        const popup = ensureNpPopup();
+        clearTimeout(npHideTimer);
+        clearTimeout(npVideoTimer);
+        npActiveCard = cardEl;
+
+        const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => (typeof item === 'string' ? item : item.id) === movie.id);
+        const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => (typeof item === 'string' ? item : item.id) === movie.id);
+        const genres = (movie.genre || '').split(',').map(g => g.trim()).filter(g => g && g.toLowerCase() !== 'anime').slice(0, 3);
+
+        popup.innerHTML = `
+            <div class="netflix-preview-media" style="background-image:url('${movie.poster || ''}')"></div>
+            <div class="netflix-preview-body">
+                <div class="netflix-preview-title">${movie.title}</div>
+                <div class="netflix-preview-buttons">
+                    <div class="np-btn np-play" title="Lecture"><i class="fas fa-play"></i></div>
+                    <div class="np-btn np-wl ${isWl ? 'active' : ''}" title="À voir"><i class="fas fa-${isWl ? 'check' : 'plus'}"></i></div>
+                    <div class="np-btn np-fav ${isFav ? 'active' : ''}" title="Favoris"><i class="fas fa-heart"></i></div>
+                    <div class="np-btn np-info" title="Plus d'infos"><i class="fas fa-chevron-down"></i></div>
+                </div>
+                <div class="netflix-preview-genres">${genres.map(g => `<span>${g}</span>`).join('')}</div>
+            </div>
+        `;
+        popup.querySelector('.np-play').onclick = (e) => { e.stopPropagation(); hideNpPopup(); openP(movie.id); };
+        popup.querySelector('.np-info').onclick = (e) => { e.stopPropagation(); hideNpPopup(); openP(movie.id); };
+        popup.querySelector('.np-wl').onclick = (e) => { e.preventDefault(); e.stopPropagation(); toggleWatchlater(movie.id, e); };
+        popup.querySelector('.np-fav').onclick = (e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(movie.id, e); };
+
+        positionNpPopup(cardEl, popup);
+        requestAnimationFrame(() => {
+            popup.classList.add('np-visible');
+            positionNpPopup(cardEl, popup);
+        });
+
+        const videoId = extractYoutubeId(movie.trailer_iframe);
+        if (videoId) {
+            npVideoTimer = setTimeout(() => {
+                if (npActiveCard !== cardEl) return;
+                const mediaEl = popup.querySelector('.netflix-preview-media');
+                if (mediaEl) {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0&showinfo=0`;
+                    iframe.allow = 'autoplay; encrypted-media';
+                    mediaEl.appendChild(iframe);
+                }
+            }, 400);
+        }
+    }
+
     function attachNetflixHover(cardEl, movie, posterSelector) {
         if (!cardEl || !movie || window.matchMedia('(hover: none)').matches) return;
-        let hoverTimer = null;
-        let infoBox = null;
-        let mediaWrap = null;
 
         cardEl.addEventListener('mouseenter', () => {
-            hoverTimer = setTimeout(() => {
-                const posterEl = cardEl.querySelector(posterSelector);
-                if (!posterEl) return;
-                cardEl.classList.add('hover-preview-active');
-
-                const videoId = extractYoutubeId(movie.trailer_iframe);
-                if (videoId) {
-                    mediaWrap = document.createElement('div');
-                    mediaWrap.className = 'hover-preview-media';
-                    mediaWrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0" allow="autoplay; encrypted-media"></iframe>`;
-                    posterEl.style.position = 'relative';
-                    posterEl.appendChild(mediaWrap);
-                }
-
-                const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => (typeof item === 'string' ? item : item.id) === movie.id);
-                const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => (typeof item === 'string' ? item : item.id) === movie.id);
-                const genres = (movie.genre || '').split(',').map(g => g.trim()).filter(g => g && g.toLowerCase() !== 'anime').slice(0, 3);
-
-                infoBox = document.createElement('div');
-                infoBox.className = 'hover-preview-info';
-                infoBox.innerHTML = `
-                    <div class="hover-preview-title">${movie.title}</div>
-                    <div class="hover-preview-buttons">
-                        <div class="hover-preview-btn hp-play" title="Lecture"><i class="fas fa-play"></i></div>
-                        <div class="hover-preview-btn hp-wl ${isWl ? 'active' : ''}" title="À voir"><i class="fas fa-${isWl ? 'check' : 'plus'}"></i></div>
-                        <div class="hover-preview-btn hp-fav ${isFav ? 'active' : ''}" title="Favoris"><i class="fas fa-heart"></i></div>
-                        <div class="hover-preview-btn hp-info" style="margin-left:auto;" title="Plus d'infos"><i class="fas fa-chevron-down"></i></div>
-                    </div>
-                    <div class="hover-preview-genres">${genres.map(g => `<span>${g}</span>`).join('')}</div>
-                `;
-                infoBox.querySelector('.hp-play').onclick = (e) => { e.stopPropagation(); openP(movie.id); };
-                infoBox.querySelector('.hp-info').onclick = (e) => { e.stopPropagation(); openP(movie.id); };
-                infoBox.querySelector('.hp-wl').onclick = (e) => { e.preventDefault(); e.stopPropagation(); toggleWatchlater(movie.id, e); };
-                infoBox.querySelector('.hp-fav').onclick = (e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(movie.id, e); };
-                cardEl.style.position = 'relative';
-                cardEl.appendChild(infoBox);
-            }, HOVER_PREVIEW_DELAY);
+            clearTimeout(npShowTimer);
+            clearTimeout(npHideTimer);
+            npShowTimer = setTimeout(() => showNpPopup(cardEl, movie), HOVER_PREVIEW_DELAY);
         });
 
         cardEl.addEventListener('mouseleave', () => {
-            clearTimeout(hoverTimer);
-            cardEl.classList.remove('hover-preview-active');
-            if (infoBox) { infoBox.remove(); infoBox = null; }
-            if (mediaWrap) { mediaWrap.remove(); mediaWrap = null; }
+            clearTimeout(npShowTimer);
+            scheduleNpHide();
         });
     }
+
+    window.addEventListener('scroll', () => { if (npActiveCard) hideNpPopup(); }, true);
+    window.addEventListener('resize', () => { if (npActiveCard) hideNpPopup(); });
 
     // Clic sur le badge "Nouveau" : ouvre la page des nouveautés filtrée sur le bon type
     // --- BOUTON RETOUR EN HAUT (desktop + mobile) ---
