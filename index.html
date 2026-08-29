@@ -1231,6 +1231,37 @@
             .back-to-top-btn { bottom: 18px; right: 16px; width: 44px; height: 44px; font-size: 17px; }
         }
 
+        /* ================================================== */
+        /* ====== PRÉVISUALISATION AU SURVOL (STYLE NETFLIX) === */
+        /* ================================================== */
+        .netflix-card, .top-10-card .top-10-poster-wrap, .movie-card {
+            transition: transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.35s ease, z-index 0s;
+        }
+        .hover-preview-active {
+            transform: scale(1.35) !important;
+            z-index: 500 !important;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.9);
+            overflow: visible !important;
+        }
+        .hover-preview-media { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; border-radius: 6px 6px 0 0; background:#000; }
+        .hover-preview-media iframe { position: absolute; top: 50%; left: 50%; width: 260%; height: 260%; transform: translate(-50%, -50%); border: none; pointer-events: none; }
+        .hover-preview-info { position: absolute; top: 100%; left: 0; width: 100%; background: #181818; border-radius: 0 0 6px 6px; padding: 10px 12px 12px; box-shadow: 0 15px 25px rgba(0,0,0,0.8); animation: fadeIn 0.2s ease; z-index: 501; }
+        .hover-preview-title { color: white; font-size: 13px; font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hover-preview-buttons { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .hover-preview-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(42,42,42,0.9); border: 2px solid #6b6b6b; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .hover-preview-btn:hover { border-color: white; background: #2a2a2a; transform: scale(1.1); }
+        .hover-preview-btn.hp-play { background: white; color: black; border-color: white; }
+        .hover-preview-btn.hp-play:hover { background: #ddd; }
+        .hover-preview-btn.active { color: var(--primary); border-color: var(--primary); }
+        .hover-preview-genres { font-size: 11px; color: #ccc; display: flex; flex-wrap: wrap; gap: 4px 0; }
+        .hover-preview-genres span { position: relative; padding-right: 10px; }
+        .hover-preview-genres span:not(:last-child)::after { content: "•"; position: absolute; right: 2px; color: #777; }
+
+        @media (hover: none) {
+            .hover-preview-active { transform: none !important; box-shadow: none !important; }
+            .hover-preview-info, .hover-preview-media { display: none !important; }
+        }
+
         </style>
 </head>
 <body class="no-scroll">
@@ -2507,6 +2538,77 @@ function finishCover() {
         return !!getNewBadgeType(m);
     }
 
+    // ==========================================
+    // PRÉVISUALISATION AU SURVOL (STYLE NETFLIX)
+    // ==========================================
+    const HOVER_PREVIEW_DELAY = 600;
+    function extractYoutubeId(raw) {
+        if (!raw) return null;
+        let t = raw.trim();
+        if (t.toLowerCase().includes('<iframe')) {
+            const m = t.match(/embed\/([a-zA-Z0-9_-]{6,})/);
+            return m ? m[1] : null;
+        }
+        if (t.includes('v=')) return t.split('v=')[1].split('&')[0];
+        if (t.includes('youtu.be/')) return t.split('youtu.be/')[1].split('?')[0];
+        if (t.includes('/embed/')) return t.split('/embed/')[1].split('?')[0];
+        return t; // déjà un ID brut
+    }
+
+    function attachNetflixHover(cardEl, movie, posterSelector) {
+        if (!cardEl || !movie || window.matchMedia('(hover: none)').matches) return;
+        let hoverTimer = null;
+        let infoBox = null;
+        let mediaWrap = null;
+
+        cardEl.addEventListener('mouseenter', () => {
+            hoverTimer = setTimeout(() => {
+                const posterEl = cardEl.querySelector(posterSelector);
+                if (!posterEl) return;
+                cardEl.classList.add('hover-preview-active');
+
+                const videoId = extractYoutubeId(movie.trailer_iframe);
+                if (videoId) {
+                    mediaWrap = document.createElement('div');
+                    mediaWrap.className = 'hover-preview-media';
+                    mediaWrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&modestbranding=1&rel=0" allow="autoplay; encrypted-media"></iframe>`;
+                    posterEl.style.position = 'relative';
+                    posterEl.appendChild(mediaWrap);
+                }
+
+                const isFav = currentUser && currentUser.favorites && currentUser.favorites.some(item => (typeof item === 'string' ? item : item.id) === movie.id);
+                const isWl = currentUser && currentUser.watchlater && currentUser.watchlater.some(item => (typeof item === 'string' ? item : item.id) === movie.id);
+                const genres = (movie.genre || '').split(',').map(g => g.trim()).filter(g => g && g.toLowerCase() !== 'anime').slice(0, 3);
+
+                infoBox = document.createElement('div');
+                infoBox.className = 'hover-preview-info';
+                infoBox.innerHTML = `
+                    <div class="hover-preview-title">${movie.title}</div>
+                    <div class="hover-preview-buttons">
+                        <div class="hover-preview-btn hp-play" title="Lecture"><i class="fas fa-play"></i></div>
+                        <div class="hover-preview-btn hp-wl ${isWl ? 'active' : ''}" title="À voir"><i class="fas fa-${isWl ? 'check' : 'plus'}"></i></div>
+                        <div class="hover-preview-btn hp-fav ${isFav ? 'active' : ''}" title="Favoris"><i class="fas fa-heart"></i></div>
+                        <div class="hover-preview-btn hp-info" style="margin-left:auto;" title="Plus d'infos"><i class="fas fa-chevron-down"></i></div>
+                    </div>
+                    <div class="hover-preview-genres">${genres.map(g => `<span>${g}</span>`).join('')}</div>
+                `;
+                infoBox.querySelector('.hp-play').onclick = (e) => { e.stopPropagation(); openP(movie.id); };
+                infoBox.querySelector('.hp-info').onclick = (e) => { e.stopPropagation(); openP(movie.id); };
+                infoBox.querySelector('.hp-wl').onclick = (e) => { e.preventDefault(); e.stopPropagation(); toggleWatchlater(movie.id, e); };
+                infoBox.querySelector('.hp-fav').onclick = (e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(movie.id, e); };
+                cardEl.style.position = 'relative';
+                cardEl.appendChild(infoBox);
+            }, HOVER_PREVIEW_DELAY);
+        });
+
+        cardEl.addEventListener('mouseleave', () => {
+            clearTimeout(hoverTimer);
+            cardEl.classList.remove('hover-preview-active');
+            if (infoBox) { infoBox.remove(); infoBox = null; }
+            if (mediaWrap) { mediaWrap.remove(); mediaWrap = null; }
+        });
+    }
+
     // Clic sur le badge "Nouveau" : ouvre la page des nouveautés filtrée sur le bon type
     // --- BOUTON RETOUR EN HAUT (desktop + mobile) ---
     function scrollToTopPage() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -3324,6 +3426,7 @@ async function loadSecureMovies() {
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             const typeBadgeEl = div.querySelector('.b-type');
             if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
+            attachNetflixHover(div, m, '.poster');
             grid.appendChild(div);
         });
         renderPagination();
@@ -5498,8 +5601,8 @@ function buildNetflixHome() {
         const seriesRecentes = [...moviesDB].filter(m => m.type === 'serie').reverse().slice(0, 30);
         buildStandardSlider('series-recentes-slider', seriesRecentes);
 
-        // 6bis. SÉRIES TENDANCE : Mélange des 50 dernières séries ajoutées
-        const seriesSource = moviesDB.filter(m => m.type === 'serie');
+        // 6bis. SÉRIES TENDANCE : Mélange des 50 dernières séries ajoutées (hors séries "Anime", les cartoons type Hulk/Spider-Man restent)
+        const seriesSource = moviesDB.filter(m => m.type === 'serie' && !isAnimeMovie(m));
         const seriesTendance = [...seriesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('series-tendance-slider', seriesTendance);
         
@@ -5691,6 +5794,7 @@ function buildNetflixHome() {
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             const typeBadgeEl = card.querySelector('.badge-card');
             if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
+            attachNetflixHover(card, m, '.netflix-poster');
             container.appendChild(card);
         });
     }
@@ -5714,6 +5818,7 @@ function buildNetflixHome() {
             if (newBadgeEl) newBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); goToNewPage(newBadgeEl.dataset.newtype); });
             const typeBadgeEl = card.querySelector('.badge-card');
             if (typeBadgeEl) typeBadgeEl.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); if (document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none'; if (typeBadgeEl.dataset.isanime === 'true') { filterContent('anime'); } else { setCategory(typeBadgeEl.dataset.cattype); } });
+            attachNetflixHover(card, m, '.top-10-poster');
             container.appendChild(card);
         });
     }
