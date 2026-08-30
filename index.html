@@ -943,23 +943,64 @@
         
        .hero-slide { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background-size: cover; 
-            background-position: center 15%; /* Remonte l'image pour mieux voir les visages */
+            overflow: hidden;
             opacity: 0; transition: opacity 1s ease-in-out; z-index: 0; 
-            /* Filtres pour réduire la pixellisation et donner du peps */
-            image-rendering: high-quality;
-            filter: brightness(1.1) contrast(1.05); 
         }
         .hero-slide.active { opacity: 1; z-index: 1; }
-        
-     /* Dégradé ultra doux : laisse l'image respirer, l'ombre reste dans le coin */
-    
-        
+
+        /* Fond de la slide : image/.gif classique via background-image (anime les .gif
+           nativement), ou balise <video> pour un fond .mp4/.webm. */
+        .hero-slide-media {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center 15%; /* Remonte l'image pour mieux voir les visages */
+            z-index: 0;
+            image-rendering: high-quality;
+            filter: brightness(1.1) contrast(1.05);
+            object-fit: cover;
+        }
+
+        /* Bande-annonce Netflix-style : se fond en fondu par-dessus le backdrop après
+           quelques secondes, sans jamais intercepter les clics (pointer-events: none). */
+        .hero-slide-trailer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; opacity: 0; transition: opacity 1.2s ease;
+            pointer-events: none; overflow: hidden; background: #000;
+        }
+        .hero-slide-trailer.active { opacity: 1; }
+        .hero-slide-trailer iframe {
+            position: absolute; top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            min-width: 177.78vh; /* astuce "cover" pour un iframe 16:9 */
+            min-height: 56.25vw;
+            transform: translate(-50%, -50%);
+            border: 0; pointer-events: none;
+        }
+
+        /* Bouton son du trailer (coin haut droit, comme Netflix) */
+        .hero-sound-btn {
+            position: absolute; top: 25px; right: 25px; z-index: 5;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.4);
+            color: white; display: none; align-items: center; justify-content: center;
+            cursor: pointer; backdrop-filter: blur(4px); transition: 0.2s; font-size: 15px;
+        }
+        .hero-sound-btn:hover { background: rgba(0,0,0,0.75); border-color: white; transform: scale(1.08); }
+
         .hero-content { position: absolute; bottom: 15%; left: 5%; z-index: 3; max-width: 600px; }
         .hero-type { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; margin-right: 10px; letter-spacing: 1px; backdrop-filter: blur(5px); }
         .hero-rating { color: #f1c40f; font-weight: bold; font-size: 13px; }
-        .hero-title { font-size: 55px; font-weight: 900; color: white; margin: 15px 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); line-height: 1.1; letter-spacing: -1px; }
-        .hero-desc { font-size: 15px; color: #ddd; line-height: 1.6; margin-bottom: 25px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 1px 1px 3px black; font-weight: 500; }
+        .hero-meta-row { display: flex; align-items: center; overflow: hidden; max-height: 40px; margin-bottom: 10px; opacity: 1; transition: opacity 0.5s ease, max-height 0.5s ease, margin 0.5s ease; }
+        .hero-title { font-size: 55px; font-weight: 900; color: white; margin: 0 0 15px 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); line-height: 1.1; letter-spacing: -1px; }
+        .hero-desc { font-size: 15px; color: #ddd; line-height: 1.6; margin-bottom: 25px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 1px 1px 3px black; font-weight: 500; max-height: 90px; opacity: 1; transition: opacity 0.5s ease, max-height 0.5s ease, margin 0.5s ease; }
+        /* Genres : masqués tant que la bande-annonce n'est pas lancée, comme demandé */
+        .hero-genres { color: #eee; font-size: 14px; font-weight: 600; letter-spacing: 1px; text-shadow: 1px 1px 4px rgba(0,0,0,0.9); overflow: hidden; max-height: 0; opacity: 0; margin: 0; transition: opacity 0.6s ease 0.15s, max-height 0.6s ease, margin 0.6s ease; }
+
+        /* Quand le trailer se lance : on ne garde que le titre + les genres.
+           Les boutons restent inchangés (aucune classe ne les affecte). */
+        .hero-slide.trailer-active .hero-meta-row,
+        .hero-slide.trailer-active .hero-desc { opacity: 0; max-height: 0; margin: 0; pointer-events: none; }
+        .hero-slide.trailer-active .hero-genres { opacity: 1; max-height: 40px; margin-bottom: 20px; }
         
         .hero-buttons { display: flex; gap: 15px; }
         
@@ -975,12 +1016,12 @@
             background: rgba(255, 255, 255, 0.18); /* Verre transparent clair ! */
             color: #272525; border: 1px solid rgba(255, 255, 255, 0.4); padding: 12px 35px; font-size: 15px; font-weight: bold; border-radius: 30px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.3s; backdrop-filter: blur(10px); 
         }
-        .btn-info-hero:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }    /* BARRE DE PROGRESSION 8S */
+        .btn-info-hero:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }    /* BARRE DE PROGRESSION 20S */
         .hero-controls { position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
         .hero-dot { width: 8px; height: 8px; background: #666; border-radius: 50%; cursor: pointer; transition: 0.3s; }
         .hero-dot.active { width: 40px; border-radius: 4px; background: rgba(255,255,255,0.2); position: relative; overflow: hidden; }
         .hero-dot.active .progress-fill { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--danger); }
-        .hero-controls.playing .hero-dot.active .progress-fill { animation: fillBar 8s linear forwards; }
+        .hero-controls.playing .hero-dot.active .progress-fill { animation: fillBar 20s linear forwards; }
         .hero-pause-play { color: white; cursor: pointer; font-size: 14px; transition: 0.3s; padding-left: 5px; border-left: 1px solid #444; }
         .hero-pause-play:hover { color: var(--primary); }
         @keyframes fillBar { 0% { width: 0%; } 100% { width: 100%; } }
@@ -1773,6 +1814,17 @@ function finishCover() {
                     justify-content: center;
                     background-color: transparent; /* Force le fond transparent ici aussi */
                 }
+
+                /* Bannière Saga en vidéo (.mp4/.webm) : les .gif passent, eux, par
+                   background-image ci-dessus, qui les anime nativement. */
+                .saga-hero-video {
+                    position: absolute;
+                    top: 0; left: 0;
+                    width: 100%; height: 100%;
+                    object-fit: cover;
+                    z-index: 0;
+                    display: none;
+                }
                 
                 .saga-hero-gradient {
                     position: absolute;
@@ -1917,6 +1969,7 @@ function finishCover() {
                 </div>
 
                 <div class="saga-hero-pro" id="saga-hero-pro">
+                    <video id="saga-hero-video" class="saga-hero-video" muted loop autoplay playsinline></video>
                     <div class="saga-hero-gradient"></div>
                     <div class="saga-hero-content-pro">
                         <img src="" id="saga-poster-pro" class="saga-poster-pro" alt="Affiche Saga">
@@ -2289,7 +2342,7 @@ function finishCover() {
 <div class="form-group"><label><i class="fas fa-align-left"></i> Synopsis</label><textarea id="add-desc" class="form-textarea" placeholder="Résumé du film..."></textarea></div>
 <div class="form-group" id="admin-row-trailer"><label><i class="fas fa-play"></i> Bande-Annonce (YouTube)</label><input type="text" id="add-trailer" class="form-input" placeholder="Lien YouTube ou ID"></div>            <div class="form-group"><label><i class="fas fa-image"></i> Image (Affiche verticale) *</label><input type="text" id="add-poster" class="form-input" placeholder="Lien de l'image"></div>
             
-            <div class="form-group"><label><i class="fas fa-desktop"></i> Image de fond (Bannière HD TMDB)</label><input type="text" id="add-backdrop" class="form-input" placeholder="Lien généré par TMDB"></div> 
+            <div class="form-group"><label><i class="fas fa-desktop"></i> Image de fond (Bannière HD TMDB, .gif ou .mp4 accepté)</label><input type="text" id="add-backdrop" class="form-input" placeholder="Lien généré par TMDB, .gif ou .mp4"></div> 
             <div class="form-group">
                 <label><i class="fas fa-mobile"></i> Catégorie *</label>
                 <select id="add-type" class="form-select" onchange="onTypeSelectChange()">
@@ -2324,7 +2377,7 @@ function finishCover() {
             </div>
 
           <div id="saga-fields" style="display:none; margin-top:15px; padding:15px; background:rgba(255,255,255,0.05); border-radius:5px;">
-                <div class="form-group"><label><i class="fas fa-image"></i> Image de fond Saga (Bannière HD)</label><input type="text" id="add-saga-bg" class="form-input" placeholder="Lien de l'image"></div>
+                <div class="form-group"><label><i class="fas fa-image"></i> Image de fond Saga (Bannière HD, .gif ou .mp4 accepté)</label><input type="text" id="add-saga-bg" class="form-input" placeholder="Lien de l'image, .gif ou .mp4"></div>
                 
                 <div class="form-group">
                     <label><i class="fas fa-film"></i> Sélection des films de la Saga</label>
@@ -2548,6 +2601,15 @@ function finishCover() {
 
     function isNewMovie(m) {
         return !!getNewBadgeType(m);
+    }
+
+    // Détecte si une URL de bannière pointe vers un fichier vidéo (.mp4/.webm/.mov/.m4v)
+    // plutôt qu'une image ou un .gif. Les .gif restent gérés via background-image,
+    // qui les anime nativement ; seule la vidéo a besoin d'une vraie balise <video>.
+    function isVideoUrl(url) {
+        if (!url) return false;
+        const clean = url.split('?')[0].split('#')[0].toLowerCase();
+        return clean.endsWith('.mp4') || clean.endsWith('.webm') || clean.endsWith('.mov') || clean.endsWith('.m4v');
     }
 
     // ==========================================
@@ -5493,8 +5555,23 @@ async function saveMovie() {
 
         // --- 2. Remplissage du nouveau Design Pro ---
         const heroPro = document.getElementById('saga-hero-pro');
-        const bgProImageUrl = saga.bg || saga.poster; 
-        heroPro.style.backgroundImage = `url('${bgProImageUrl}')`; // APPLIQUE L'IMAGE DE FOND SUR LE HÉROS ENTIER
+        const heroVideo = document.getElementById('saga-hero-video');
+        const bgProImageUrl = saga.bg || saga.poster;
+        if (isVideoUrl(bgProImageUrl)) {
+            // Bannière vidéo (.mp4/.webm/.mov) : on utilise la balise <video>, une
+            // simple background-image ne pouvant pas lire de vidéo.
+            heroPro.style.backgroundImage = 'none';
+            if (heroVideo.getAttribute('src') !== bgProImageUrl) heroVideo.src = bgProImageUrl;
+            heroVideo.style.display = 'block';
+            heroVideo.play().catch(() => {});
+        } else {
+            // Image classique ou .gif : background-image anime déjà les GIF nativement.
+            heroVideo.pause();
+            heroVideo.removeAttribute('src');
+            heroVideo.load();
+            heroVideo.style.display = 'none';
+            heroPro.style.backgroundImage = `url('${bgProImageUrl}')`; // APPLIQUE L'IMAGE DE FOND SUR LE HÉROS ENTIER
+        }
 
         // L'affiche, le titre, la description et le compteur
         document.getElementById('saga-poster-pro').src = saga.poster;
@@ -5644,6 +5721,13 @@ async function saveMovie() {
     let isHeroPlaying = true;
     let currentHeroIndex = 0;
     let heroMovies = [];
+
+    // --- Bande-annonce auto (style Netflix) ---
+    const HERO_SLIDE_DURATION = 20000; // 20 secondes par slide, comme demandé
+    const HERO_TRAILER_DELAY = 4000;   // délai avant le lancement du trailer
+    let heroTrailerTimer = null;
+    let heroTrailerActiveIndex = null;
+    let heroMuted = true; // son coupé par défaut, comme sur Netflix
 
     // Afficher la page d'accueil
     function showHome() {
@@ -5799,22 +5883,34 @@ function buildNetflixHome() {
         const container = document.getElementById('hero-slides-container');
         const dotsContainer = document.getElementById('hero-dots');
         container.innerHTML = ''; dotsContainer.innerHTML = '';
+        currentHeroIndex = 0; // la slide 0 est toujours celle marquée "active" ci-dessous
 
         heroMovies.forEach((m, index) => {
             const slide = document.createElement('div');
             slide.className = `hero-slide ${index === 0 ? 'active' : ''}`;
-            
+
             // ON UTILISE LE BACKDROP HD ICI, ou le poster si pas de backdrop.
-            slide.style.backgroundImage = `url('${m.backdrop || m.poster}')`; 
-            
+            // Supporte aussi les bannières .gif (background-image l'anime nativement)
+            // et .mp4/.webm (balise <video> dédiée), comme pour les bannières de Saga.
+            const bgUrl = m.backdrop || m.poster || '';
+            const mediaHtml = isVideoUrl(bgUrl)
+                ? `<video class="hero-slide-media" src="${bgUrl}" autoplay muted loop playsinline></video>`
+                : `<div class="hero-slide-media" style="background-image:url('${bgUrl}')"></div>`;
+
+            const genres = (m.genre || '').split(',').map(g => g.trim()).filter(g => g && g.toLowerCase() !== 'anime').slice(0, 3);
+
             slide.innerHTML = `
+                ${mediaHtml}
+                <div class="hero-slide-trailer" id="hero-trailer-${index}"></div>
+                <div class="hero-sound-btn" id="hero-sound-${index}" title="Son"><i class="fas fa-volume-mute"></i></div>
                 <div class="hero-content">
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
+                    <div class="hero-meta-row">
                         <span class="hero-type">${m.type === 'serie' ? 'SÉRIE' : 'FILM'}</span>
                         <span class="hero-rating"><i class="fas fa-star"></i> ${m.rating || "N/A"}</span>
                     </div>
                     <h1 class="hero-title">${m.title}</h1>
                     <p class="hero-desc">${m.desc}</p>
+                    <div class="hero-genres">${genres.join(' • ')}</div>
                     <div class="hero-buttons">
                         <button class="btn-play-hero" onclick="openP('${m.id}')"><i class="fas fa-play"></i> Lecture</button>
                         <button class="btn-info-hero" onclick="openP('${m.id}')"><i class="fas fa-info-circle"></i> Plus d'infos</button>
@@ -5823,6 +5919,18 @@ function buildNetflixHome() {
             `;
             container.appendChild(slide);
 
+            // Bouton son du trailer : coupe/active le son sans recharger la vidéo
+            const soundBtn = slide.querySelector('.hero-sound-btn');
+            soundBtn.onclick = (e) => {
+                e.stopPropagation();
+                heroMuted = !heroMuted;
+                soundBtn.innerHTML = `<i class="fas fa-volume-${heroMuted ? 'mute' : 'up'}"></i>`;
+                const iframe = slide.querySelector('.hero-slide-trailer iframe');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: heroMuted ? 'mute' : 'unMute', args: [] }), '*');
+                }
+            };
+
             const dot = document.createElement('div');
             dot.className = `hero-dot ${index === 0 ? 'active' : ''}`;
             dot.innerHTML = `<div class="progress-fill"></div>`;
@@ -5830,7 +5938,56 @@ function buildNetflixHome() {
             dotsContainer.appendChild(dot);
         });
 
+        scheduleHeroTrailer(currentHeroIndex);
         startHeroInterval();
+    }
+
+    // Referme/retire proprement le trailer en cours (retire l'iframe pour couper le son
+    // immédiatement, comme pour la preview au survol) avant de passer à une autre slide.
+    function clearHeroTrailer() {
+        clearTimeout(heroTrailerTimer);
+        if (heroTrailerActiveIndex !== null) {
+            const oldSlide = document.querySelectorAll('.hero-slide')[heroTrailerActiveIndex];
+            if (oldSlide) {
+                oldSlide.classList.remove('trailer-active');
+                const trailerBox = oldSlide.querySelector('.hero-slide-trailer');
+                if (trailerBox) { trailerBox.classList.remove('active'); trailerBox.innerHTML = ''; }
+                const soundBtn = oldSlide.querySelector('.hero-sound-btn');
+                if (soundBtn) soundBtn.style.display = 'none';
+            }
+        }
+        heroTrailerActiveIndex = null;
+    }
+
+    // Programme le lancement du trailer de la slide "index" après quelques secondes.
+    // Au lancement : le titre + les genres restent seuls visibles (le reste s'efface
+    // en fondu via la classe .trailer-active), les boutons Lecture/Plus d'infos ne
+    // bougent pas.
+    function scheduleHeroTrailer(index) {
+        clearHeroTrailer();
+        const movie = heroMovies[index];
+        if (!movie) return;
+        const videoId = extractYoutubeId(movie.trailer_iframe);
+        if (!videoId) return; // pas de bande-annonce pour ce titre : on garde juste le backdrop
+
+        heroTrailerTimer = setTimeout(() => {
+            if (currentHeroIndex !== index) return; // la slide a déjà changé entre-temps
+            const slide = document.querySelectorAll('.hero-slide')[index];
+            const trailerBox = slide ? slide.querySelector('.hero-slide-trailer') : null;
+            if (!slide || !trailerBox) return;
+
+            heroMuted = true;
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&enablejsapi=1&loop=1&playlist=${videoId}&modestbranding=1&rel=0&origin=${encodeURIComponent(location.origin)}`;
+            iframe.allow = 'autoplay; encrypted-media';
+            trailerBox.appendChild(iframe);
+            requestAnimationFrame(() => trailerBox.classList.add('active'));
+            slide.classList.add('trailer-active');
+            heroTrailerActiveIndex = index;
+
+            const soundBtn = slide.querySelector('.hero-sound-btn');
+            if (soundBtn) { soundBtn.style.display = 'flex'; soundBtn.innerHTML = '<i class="fas fa-volume-mute"></i>'; }
+        }, HERO_TRAILER_DELAY);
     }
 
     function startHeroInterval() {
@@ -5840,7 +5997,7 @@ function buildNetflixHome() {
         isHeroPlaying = true;
         heroInterval = setInterval(() => {
             goToHeroSlide((currentHeroIndex + 1) % heroMovies.length);
-        }, 8000); // 8 secondes
+        }, HERO_SLIDE_DURATION); // 20 secondes, comme demandé
     }
 
     function toggleHeroPlay() {
@@ -5874,6 +6031,9 @@ function buildNetflixHome() {
         
         slides[index].classList.add('active');
         dots[index].classList.add('active');
+
+        // Coupe le trailer de l'ancienne slide et programme celui de la nouvelle
+        scheduleHeroTrailer(index);
 
         if (isHeroPlaying) startHeroInterval(); // Reset le timer
     }
