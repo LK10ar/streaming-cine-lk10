@@ -1001,8 +1001,8 @@
         .badge-card:hover { transform: scale(1.08); box-shadow: 0 0 10px rgba(255, 222, 0, 0.8); }
 
         /* FLÈCHES CARROUSEL */
-        .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 4%; height: 85%; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 30px; cursor: pointer; z-index: 99; opacity: 0; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
-        .slider-section:hover .slider-arrow { opacity: 1; }
+        .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 4%; height: 85%; background: rgba(0,0,0,0.5); border: none; color: white; font-size: 30px; cursor: pointer; z-index: 99; opacity: 0; pointer-events: none; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .slider-section:hover .slider-arrow { opacity: 1; pointer-events: auto; }
         .slider-arrow.left { left: 0; background: linear-gradient(to right, rgba(21,21,21,0.9), transparent); }
         .slider-arrow.right { right: 0; background: linear-gradient(to left, rgba(21,21,21,0.9), transparent); }
         .slider-arrow:hover { color: var(--primary); font-size: 40px; }
