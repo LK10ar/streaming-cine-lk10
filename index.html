@@ -2604,6 +2604,25 @@ function finishCover() {
 
     let npMuted = true; // son coupé par défaut, comme sur Netflix (icône haut-parleur pour activer)
 
+    // --- Tolérance anti-"scroll fantôme" ---
+    // Le popup ajuste sa hauteur dynamiquement (padding-bottom pour couvrir l'affiche,
+    // insertion tardive de l'iframe de la bande-annonce...). Ces recalculs de mise en
+    // page peuvent provoquer un micro-scroll de quelques pixels que le navigateur
+    // rapporte comme un vrai événement 'scroll'. Sans tolérance, le listener refermait
+    // alors le popup immédiatement, ce qui pouvait le rendre transparent au clic et
+    // redéclencher un mouseenter -> nouvelle ouverture -> nouveau micro-scroll -> boucle.
+    let npScrollBaselineY = window.scrollY;
+    let npScrollBaselineX = window.scrollX;
+    let npScrollGraceUntil = 0;
+    const NP_SCROLL_TOLERANCE = 4;   // px : en dessous, on considère que ce n'est pas un vrai scroll
+    const NP_SCROLL_GRACE_MS = 200;  // ms : fenêtre après un repositionnement où on est encore plus tolérant
+
+    function markNpScrollBaseline() {
+        npScrollBaselineY = window.scrollY;
+        npScrollBaselineX = window.scrollX;
+        npScrollGraceUntil = Date.now() + NP_SCROLL_GRACE_MS;
+    }
+
     function positionNpPopup(cardEl, popup) {
         const rect = cardEl.getBoundingClientRect();
         const scale = 1.4;
@@ -2632,6 +2651,12 @@ function finishCover() {
         top = Math.max(8, Math.min(top, window.innerHeight - estHeight - 8));
         popup.style.left = left + 'px';
         popup.style.top = top + 'px';
+
+        // Le recalcul de mise en page ci-dessus (padding-bottom, offsetHeight...) peut
+        // déclencher un scroll fantôme de quelques pixels. On mémorise la position de
+        // scroll juste après ce repositionnement pour que le listener 'scroll' puisse
+        // distinguer ce bruit d'un vrai scroll utilisateur.
+        markNpScrollBaseline();
     }
 
     function showNpPopup(cardEl, movie) {
@@ -2696,6 +2721,9 @@ function finishCover() {
                     iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
                     iframe.allow = 'autoplay; encrypted-media';
                     mediaEl.appendChild(iframe);
+                    // L'insertion de l'iframe modifie aussi la hauteur du popup : on retarde
+                    // la baseline de scroll pour couvrir ce second recalcul de mise en page.
+                    markNpScrollBaseline();
                     // Repositionne une fois la vidéo en place, au cas où sa hauteur réelle diffère.
                     setTimeout(() => { if (npActiveCard === cardEl) positionNpPopup(cardEl, popup); }, 60);
                 }
@@ -2718,7 +2746,17 @@ function finishCover() {
         });
     }
 
-    window.addEventListener('scroll', () => { if (npActiveCard) hideNpPopup(); }, true);
+    window.addEventListener('scroll', () => {
+        if (!npActiveCard) return;
+        const dy = Math.abs(window.scrollY - npScrollBaselineY);
+        const dx = Math.abs(window.scrollX - npScrollBaselineX);
+        const withinGrace = Date.now() < npScrollGraceUntil;
+        // On ignore le scroll s'il est minime (bruit de recalcul de mise en page),
+        // surtout juste après un repositionnement du popup (fenêtre de grâce).
+        if (dy <= NP_SCROLL_TOLERANCE && dx <= NP_SCROLL_TOLERANCE) return;
+        if (withinGrace && dy <= NP_SCROLL_TOLERANCE * 2 && dx <= NP_SCROLL_TOLERANCE * 2) return;
+        hideNpPopup();
+    }, true);
     window.addEventListener('resize', () => { if (npActiveCard) hideNpPopup(); });
 
     // Clic sur le badge "Nouveau" : ouvre la page des nouveautés filtrée sur le bon type
