@@ -2693,7 +2693,7 @@ function finishCover() {
                 const mediaEl = popup.querySelector('.netflix-preview-media');
                 if (mediaEl) {
                     const iframe = document.createElement('iframe');
-                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&controls=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
+                    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
                     iframe.allow = 'autoplay; encrypted-media';
                     mediaEl.appendChild(iframe);
                     // Repositionne une fois la vidéo en place, au cas où sa hauteur réelle diffère.
@@ -5670,8 +5670,18 @@ function buildNetflixHome() {
 
         try {
 // 2. TOP 10 TENDANCES DU JOUR (SÉCURISÉ)
-        // On affiche d'abord le fallback par note immédiatement
-        const fallback = [...allItems].sort((a, b) => b.rating - a.rating).slice(0, 10);
+        // On affiche d'abord le fallback par note immédiatement.
+        // Au lieu de toujours prendre pile les 10 mieux notés (donc toujours les mêmes),
+        // on pioche 10 titres dans un pool plus large des mieux notés, avec une graine
+        // basée sur la date du jour : la sélection change chaque jour ("tendances DU JOUR")
+        // mais reste identique pour tout le monde pendant 24h.
+        const ratedPool = [...allItems].filter(m => m.rating).sort((a, b) => b.rating - a.rating).slice(0, 40);
+        const daySeed = getDaySeed();
+        const fallback = ratedPool
+            .map((m, i) => ({ m, r: seededRandom(daySeed + i) }))
+            .sort((a, b) => a.r - b.r)
+            .map(x => x.m)
+            .slice(0, 10);
         buildTop10Slider('top10-slider', fallback);
 
         // Puis on essaie de demander les vraies tendances au serveur (sans bloquer)
@@ -5909,6 +5919,23 @@ function buildNetflixHome() {
             attachNetflixHover(card, m, '.netflix-poster');
             container.appendChild(card);
         });
+    }
+
+    // Nombre pseudo-aléatoire déterministe à partir d'une graine (mulberry32)
+    function seededRandom(seed) {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    // Graine basée sur la date du jour (YYYY-MM-DD) : identique pour tout le monde
+    // pendant 24h, puis change automatiquement le lendemain.
+    function getDaySeed() {
+        const d = new Date();
+        const dateStr = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        let hash = 0;
+        for (let i = 0; i < dateStr.length; i++) { hash = (hash << 5) - hash + dateStr.charCodeAt(i); hash |= 0; }
+        return hash;
     }
 
     function buildTop10Slider(containerId, moviesList) {
