@@ -106,7 +106,7 @@ textarea:focus,input:focus{border-color:var(--y)}
   </section>
 
   <section class="step" data-s="2">
-    <h3>3. Ce que vous aimeriez voir</h3><p class="sub" style="margin:4px 0 0">Cochez tout ce qui vous plairait (minimum 3) *</p>
+    <h3>3. Ce que vous aimeriez voir</h3><p class="sub" style="margin:4px 0 0">Cochez tout ce qui vous plairait, minimum 3 *<br>Les fonctions déjà présentes (filtres, Top 10, nouveautés, sagas…) ne sont pas listées : la 1re catégorie propose de les améliorer.</p>
     <div id="ideas"></div><div class="cnt" id="ic">0 sélectionnée</div>
   </section>
 
@@ -143,15 +143,15 @@ const OPT={
 };
 const RATES=['Design général','Rapidité de chargement','Choix du catalogue','Recherche et filtres','Lecteur vidéo','Confort sur mobile','Clarté de la navigation','Inscription / connexion','Wishboard (demandes)','Notifications'];
 const IDEAS={
- '🎞️ Lecteur':['Reprise à la seconde près','Sauter l\'intro / générique','Épisode suivant automatique','Vitesse de lecture','Choix qualité et sous-titres','Raccourcis clavier','Mini-lecteur flottant','Mode cinéma'],
- '🎬 Catalogue':['Plus de films récents','Plus de séries et animés','Filtres avancés (genre, année, note)','Collections thématiques','Bandes-annonces','Top 10 de la semaine','Section nouveautés','Sagas mieux organisées'],
- '🧭 Découverte':['Recommandations personnalisées','Recherche vocale','Recherche par humeur','Assistant IA « que regarder ce soir ? »','Films similaires améliorés','Calendrier des sorties','Calendrier des nouveaux épisodes','Film surprise du jour'],
- '👥 Social':['Profils multiples (famille)','Listes partageables','Suivre d\'autres membres','Soirée ciné synchronisée','Chat pendant le film','Badges et niveaux','Classement des membres','Notes détaillées par critère'],
- '🔐 Compte':['Connexion Google ou Discord','Contrôle parental','Import / export de ma liste','Mes statistiques de visionnage','Récap de l\'année','Synchro multi-appareils','Thèmes de couleur','Avatars personnalisés'],
- '🔔 Alertes':['Alerte nouvel épisode','Alerte quand ma demande est ajoutée','Newsletter hebdomadaire','Notifications navigateur','Rappel pour reprendre un film','Alertes sur Discord'],
- '🎨 Design':['Mode clair','Animations plus fluides','Navigation simplifiée','Accueil personnalisable','Affiches plus grandes','Mode compact','Meilleure accessibilité','Tutoriel de bienvenue'],
- '📱 Technique':['Application installable (PWA)','Application Android / iOS','Chromecast / AirPlay','Chargement plus rapide','Mode hors-ligne','Économie de données','Version pour télé','Barre de navigation mobile'],
- '🛟 Communauté':['FAQ / centre d\'aide','Signalement plus simple','Roadmap publique','Votes sur les futures idées','Actualités du site','Support par tickets']
+ '🛠️ Améliorer l\'existant':['Filtres combinables (plusieurs genres + durée)','Filtre VF / VOSTFR','Filtre par plateforme (Netflix, Prime…)','Top 10 par genre ou par semaine','Recherche avec suggestions et tolérance aux fautes','Fiche film plus complète (durée, réalisateur)','Lien de secours si une source ne marche plus','Avis avec likes et réponses','Suivi plus clair de mes demandes Wishboard','Historique triable et effaçable'],
+ '🎞️ Lecteur':['Épisode suivant automatique','Reprise à la minute exacte','Sauter l\'intro / générique','Raccourcis clavier','Mode cinéma (lumières éteintes)','Lecture en fenêtre flottante','Épisodes déjà vus marqués','Mémoriser ma langue VF / VOSTFR'],
+ '🧭 Découverte':['Recommandations personnalisées','Films similaires sous chaque fiche','Recherche vocale','Recherche par ambiance ou humeur','Assistant IA « que regarder ce soir ? »','Calendrier des sorties et nouveaux épisodes','Collections thématiques (soirée horreur, feel-good…)','Classements par décennie'],
+ '👥 Social':['Profils multiples (famille)','Mon Top partageable en public','Suivre d\'autres membres','Soirée ciné synchronisée','Badges et niveaux','Classement des membres actifs','Sondage de la semaine','Réactions rapides (emoji) sur les avis'],
+ '🔐 Compte':['Connexion Google ou Discord','Contrôle parental / profil enfant','Import / export de ma liste','Mes statistiques de visionnage','Récap de l\'année','Thèmes de couleur'],
+ '🔔 Alertes':['Alerte nouvel épisode d\'une série suivie','Mail quand ma demande est ajoutée','Newsletter hebdomadaire','Notifications navigateur','Rappel pour reprendre mon film','Annonces de maintenance'],
+ '🎨 Design':['Mode clair','Animations plus fluides','Navigation mobile simplifiée','Accueil personnalisable (ordre des rangées)','Affiches plus grandes ou mode compact','Meilleure accessibilité (contraste, taille du texte)','Tutoriel de bienvenue','Chargement avec squelettes'],
+ '📱 Technique':['Application installable (PWA)','Application Android / iOS','Chromecast / AirPlay','Chargement plus rapide des images','Mode économie de données','Version pour télé','Mode hors-ligne partiel','Page d\'état des serveurs'],
+ '🛟 Communauté':['FAQ / centre d\'aide','Roadmap publique','Votes sur les futures idées','Actualités du site','Contact direct avec l\'équipe','Système de tickets']
 };
 const S={freq:'',device:'',senior:'',uses:[],rates:{},wants:[],prio:[],nps:null};
 let step=0;const $=id=>document.getElementById(id);
