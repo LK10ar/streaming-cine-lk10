@@ -2042,6 +2042,18 @@ function finishCover() {
                 @media (max-width: 1200px) { .saga-grid-4x4 { grid-template-columns: repeat(3, 1fr); } }
                 @media (max-width: 800px) { .saga-details-wrapper { background: rgba(21, 21, 21, 0.95); } .saga-hero-content-pro { flex-direction: column; align-items: center; text-align: center; } .saga-poster-pro { width: 140px; height: 210px; } .saga-title-pro { font-size: 32px; } .saga-meta-pro { justify-content: center; } .saga-info-pro { align-items: center; text-align: center; } .saga-desc-pro { text-align: center; } .saga-actions-pro { flex-wrap: wrap; justify-content: center; } .saga-grid-4x4 { grid-template-columns: repeat(2, 1fr); } }
                 @media (max-width: 500px) { .saga-grid-4x4 { grid-template-columns: 1fr; } .pro-sg-poster { aspect-ratio: 16 / 9; background-position: top center; } .saga-hero-pro { height: auto; padding: 20px 0;} .saga-title-pro {font-size: 28px;} }
+                   /* ===== FIX MOBILE : plus de décalage à droite ===== */
+        @media (max-width: 768px) {
+            html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+            .hero-carousel { margin: 0 0 20px 0 !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+            header { padding: 8px 10px !important; gap: 6px; }
+            .header-right { gap: 8px !important; min-width: 0; flex: 1 1 auto; justify-content: flex-end; }
+            .logo img { height: 42px !important; }
+            .burger-menu { margin-left: 0 !important; }
+            #user-profile-nav, #notif-bell-wrap { margin-right: 0 !important; }
+            .random-btn-header { margin-right: 0 !important; flex-shrink: 0; }
+            .search-box { width: auto !important; flex: 1 1 80px; min-width: 70px; max-width: 150px; }
+        }
             </style>
             
             <div class="saga-details-wrapper">
