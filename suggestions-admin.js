@@ -9,13 +9,6 @@
   const api = (p, o = {}) => fetch(API_URL + p, { ...o, headers: { authorization: tok(), 'Content-Type': 'application/json' } }).then(r => r.json());
   const copy = async (t, b) => { try { await navigator.clipboard.writeText(t); } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); } const o = b.textContent; b.textContent = 'Copié ✔'; setTimeout(() => b.textContent = o, 1500); };
 
-  function addNav() {
-    const w = $('nav-wishboard'); if (!w || $('nav-suggest')) return;
-    const li = document.createElement('li'); li.className = 'nav-item';
-    li.innerHTML = '<a id="nav-suggest" class="nav-link" href="suggestions.html"><i class="fas fa-lightbulb"></i> SUGGESTIONS</a>';
-    w.closest('li').after(li);
-  }
-
   function addCard() {
     const m = document.querySelector('#analytics-overlay .analytics-modal'); if (!m || $('sg-card')) return;
     const c = document.createElement('div');
@@ -44,6 +37,8 @@
     const nps = n ? (all.reduce((a, s) => a + (s.nps || 0), 0) / n).toFixed(1) : '?';
     return `Tu es mon développeur full-stack senior. Voici la synthèse de ${n} évaluations de mon site de streaming "Ciné LK10" (front index.html vanilla sur GitHub Pages, back Node/Express/MongoDB sur Render, thème sombre + jaune #ffde00). Je te joins index.html et server.js ; ne supprime aucune fonctionnalité existante.
 
+Déjà présent (ne pas recréer, seulement améliorer) : Accueil : carrousel héros, « Continuer à regarder », tendances du jour, rangées films / séries / animés (tendance, récents, populaires), Top 10, sagas incontournables, plateformes de streaming. Navigation : menus Films et Séries avec genres et années, tri (récents, anciens, mieux notés, A-Z), masquage des animés, page Nouveautés avec badge « Nouveau », recherche et fiches acteurs. Fiche : bande-annonce, lecteurs VF / VOSTFR multi-sources, liste d'épisodes avec recherche, partage par lien, commentaires, signalement de problème. Compte : favoris, à voir plus tard, Mon Top, historique, photo de profil, changement de mot de passe, notifications (cloche), accès VIP. Communauté : Wishboard (demandes + votes), Discord, mode Aléatoire. Admin : création de contenu et tableau de bord analytique.
+
 Recommandation moyenne : ${nps}/10
 Notes moyennes :
 ${avg}
@@ -54,7 +49,7 @@ ${top}
 Problèmes cités :
 ${pains || '- (aucun)'}
 
-Mission : 1) analyse et classe les chantiers par impact/effort, 2) implémente les quick wins et les 5 idées les plus demandées avec le code complet à coller, 3) termine par une checklist de tests.`;
+Mission : vérifie dans mon index.html ce qui existe déjà avant tout ajout. 1) analyse et classe les chantiers par impact/effort, 2) implémente les quick wins et les 5 idées les plus demandées avec le code complet à coller, 3) termine par une checklist de tests.`;
   }
 
   function render() {
@@ -96,9 +91,8 @@ Mission : 1) analyse et classe les chantiers par impact/effort, 2) implémente l
   }
 
   function init() {
-    addNav(); addCard();
+    addCard();
     if (typeof window.openAnalytics === 'function') { const o = window.openAnalytics; window.openAnalytics = async function () { const r = o.apply(this, arguments); load(); return r; }; }
-    setTimeout(addNav, 1500);
   }
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 })();
