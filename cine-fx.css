@@ -1,8 +1,6 @@
 /* Ciné LK10 — couche visuelle "3D motion" (additive : supprime les 2 lignes d'inclusion pour revenir en arrière) */
 #home-page{background-color:transparent!important}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
- background:radial-gradient(60vmax 60vmax at 12% 8%,rgba(255,222,0,.10),transparent 60%),radial-gradient(50vmax 50vmax at 92% 85%,rgba(255,120,0,.07),transparent 60%)}
-#fx-progress{position:fixed;top:0;left:0;width:100%;height:3px;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,#ffde00,#ff8a00);z-index:2000;pointer-events:none;box-shadow:0 0 12px rgba(255,222,0,.7)}
+#fx-progress{position:fixed;top:0;left:0;width:100%;height:3px;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,#ffde00,#ff8a00);z-index:1500;pointer-events:none;box-shadow:0 0 12px rgba(255,222,0,.7)}
 
 /* Titre du héros en dégradé + boutons plus vivants */
 .hero-title{background:linear-gradient(90deg,#fff 0%,#ffe866 55%,#fff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important;text-shadow:none!important;filter:drop-shadow(0 4px 16px rgba(0,0,0,.75))}
@@ -17,23 +15,19 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
 
 /* Desktop uniquement : effets plus lourds */
 @media (min-width:993px) and (hover:hover) and (pointer:fine){
- header{background:rgba(22,22,22,.78)!important;-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4)}
  .hero-carousel{border:1px solid rgba(255,222,0,.16);box-shadow:0 30px 80px -30px rgba(255,222,0,.28)}
  div.hero-slide-media{animation:fxKB 24s ease-in-out infinite alternate;will-change:transform}
  .hero-content{transform:perspective(900px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));transition:transform .25s ease-out}
  .hero-buttons>*:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(255,222,0,.35)}
- body::after{content:"";position:fixed;left:-20vmax;top:-20vmax;width:60vmax;height:60vmax;z-index:-1;pointer-events:none;
-  background:radial-gradient(circle,rgba(255,222,0,.07),transparent 65%);animation:fxDrift 28s ease-in-out infinite alternate;will-change:transform}
  .netflix-card:hover,.movie-card:hover{box-shadow:0 18px 40px -12px rgba(255,222,0,.35)}
 }
 @keyframes fxKB{from{transform:scale(1.02)}to{transform:scale(1.1) translate3d(-1.5%,-1%,0)}}
-@keyframes fxDrift{to{transform:translate3d(70vw,55vh,0)}}
 
 /* Appareils faibles / économie de données / mouvement réduit : tout est coupé */
 html.fx-lite .fx-reveal{opacity:1;transform:none;transition:none}
-html.fx-lite div.hero-slide-media,html.fx-lite body::after{animation:none!important}
+html.fx-lite div.hero-slide-media{animation:none!important}
 html.fx-lite .hero-content{transform:none!important}
-@media (prefers-reduced-motion:reduce){.fx-reveal{opacity:1;transform:none;transition:none}div.hero-slide-media,body::after{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.fx-reveal{opacity:1;transform:none;transition:none}div.hero-slide-media{animation:none!important}}
 
 /* ===== Fond de formes lumineux (canvas dessiné par cine-fx.js, desktop uniquement) ===== */
 .fx-hexc{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
@@ -58,3 +52,20 @@ html.fx-lite .hero-content{transform:none!important}
 }
 @keyframes fxPlayerIn3D{from{opacity:0;transform:perspective(1400px) rotateX(9deg) translateY(50px) scale(.96)}}
 html.fx-lite .player-content{animation:none!important}
+
+/* ===== Header transparent sans barre jaune (desktop ; le mobile reste comme avant) ===== */
+@media (min-width:993px){
+ header{background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,0))!important;border-bottom:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+ /* pas de barres de défilement visibles sur ordinateur (la molette et le tactile marchent toujours) */
+ *{scrollbar-width:none}
+ ::-webkit-scrollbar{display:none;width:0;height:0}
+}
+/* le fond de formes n'existe pas en dessous de 993 px (mobile / tablette) */
+@media (max-width:992px){.fx-hexc{display:none!important}}
+
+/* ===== Sagas : bouton à droite, et libellé court sur mobile ===== */
+#home-sagas-container .slider-title::after{display:none}
+@media (max-width:768px){
+ #home-sagas-container .slider-title>span:nth-of-type(2){font-size:0!important}
+ #home-sagas-container .slider-title>span:nth-of-type(2)::after{content:"Les sagas \2192";font-size:12px}
+}
