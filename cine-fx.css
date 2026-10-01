@@ -56,9 +56,10 @@ html.fx-lite .player-content{animation:none!important}
 /* ===== Header transparent sans barre jaune (desktop ; le mobile reste comme avant) ===== */
 @media (min-width:993px){
  header{background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,0))!important;border-bottom:none!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
- /* pas de barres de défilement visibles sur ordinateur (la molette et le tactile marchent toujours) */
- *{scrollbar-width:none}
- ::-webkit-scrollbar{display:none;width:0;height:0}
+ /* pas de barre de défilement sur la page et la fenêtre film (la molette marche toujours) ;
+    les autres fenêtres (tableau de bord, listes…) gardent la leur */
+ html,body,#player-overlay{scrollbar-width:none}
+ html::-webkit-scrollbar,body::-webkit-scrollbar,#player-overlay::-webkit-scrollbar{display:none;width:0;height:0}
 }
 /* le fond de formes n'existe pas en dessous de 993 px (mobile / tablette) */
 @media (max-width:992px){.fx-hexc{display:none!important}}
@@ -68,4 +69,34 @@ html.fx-lite .player-content{animation:none!important}
 @media (max-width:768px){
  #home-sagas-container .slider-title>span:nth-of-type(2){font-size:0!important}
  #home-sagas-container .slider-title>span:nth-of-type(2)::after{content:"Les sagas \2192";font-size:12px}
+}
+
+/* ===== Bouton « Bande annonce » arrondi ===== */
+.btn-trailer{border-radius:12px!important;transition:transform .2s,box-shadow .2s,border-color .2s}
+.btn-trailer:hover{transform:translateY(-2px);border-color:var(--primary,#ffde00);box-shadow:0 8px 22px -8px rgba(255,222,0,.45)}
+
+/* ===== Page profil ===== */
+.profile-page-wrapper{background:radial-gradient(900px 340px at 50% 0%,rgba(255,222,0,.07),transparent 70%),var(--dark,#151515)}
+.prof-header{overflow:hidden;border-radius:20px;border:1px solid rgba(255,222,0,.18);background:linear-gradient(120deg,#1e1e1e 0%,#161616 62%,rgba(255,222,0,.07) 100%);box-shadow:0 20px 50px -22px #000}
+.prof-header::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:linear-gradient(90deg,#ffde00,#ff8a00 55%,transparent)}
+.prof-user-info img{box-shadow:0 0 0 4px rgba(255,222,0,.14),0 0 26px rgba(255,222,0,.35)}
+.prof-btn-settings,.prof-btn-close,.prof-btn-logout{border-radius:10px!important;transition:transform .2s,box-shadow .2s,background .2s}
+.prof-btn-settings:hover,.prof-btn-close:hover{background:#444!important;transform:translateY(-2px)}
+.prof-btn-logout:hover{transform:translateY(-2px);box-shadow:0 8px 20px -8px rgba(231,76,60,.7)}
+.prof-stat-box{border-radius:16px;border:1px solid #2c2c2c;background:linear-gradient(160deg,#202020,#171717);transition:transform .25s,border-color .25s,box-shadow .25s,background .25s}
+.prof-stat-box.active-stat-box{border-color:rgba(255,222,0,.55);box-shadow:inset 0 -3px 0 var(--primary,#ffde00),0 12px 30px -16px rgba(255,222,0,.45)}
+.prof-tabs-container{border-bottom:1px solid #2a2a2a}
+.prof-tabs-left{gap:10px}
+.prof-tab-btn{padding:8px 16px;border-radius:999px;border:1px solid transparent;transition:background .25s,color .25s,border-color .25s}
+.prof-tab-btn:hover{background:rgba(255,255,255,.05)}
+.prof-tab-btn.active{background:rgba(255,222,0,.12);border:1px solid rgba(255,222,0,.4)}
+.prof-filter-btn{border-radius:999px;padding:6px 16px}
+.profile-page-inner div[style*="grid-column: 1 / -1"]{border:1px dashed #333;border-radius:16px;padding:48px 20px!important;color:#888!important}
+.profile-page-inner div[style*="grid-column: 1 / -1"]::before{content:"\1F3AC";display:block;font-size:34px;margin-bottom:8px;opacity:.7}
+@media (min-width:769px){
+ .prof-header{padding:26px 30px}
+ .prof-user-info img{width:96px;height:96px}
+ .prof-user-info h1{font-size:30px;letter-spacing:.3px}
+ .prof-stat-box .stat-num{font-size:32px}
+ .prof-stat-box:hover{transform:translateY(-4px);border-color:rgba(255,222,0,.45);box-shadow:0 14px 30px -14px rgba(255,222,0,.3)}
 }
