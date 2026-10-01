@@ -5,7 +5,7 @@
   let all = [], page = 1;
   const $ = id => document.getElementById(id);
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const tok = () => { try { return token; } catch (e) { return localStorage.getItem('token') || ''; } };
+  const tok = () => localStorage.getItem('monBadgeCineLK10') || '';
   const api = (p, o = {}) => fetch(API_URL + p, { ...o, headers: { authorization: tok(), 'Content-Type': 'application/json' } }).then(r => r.json());
   const copy = async (t, b) => { try { await navigator.clipboard.writeText(t); } catch (e) { const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); } const o = b.textContent; b.textContent = 'Copié ✔'; setTimeout(() => b.textContent = o, 1500); };
 
@@ -86,7 +86,7 @@ Mission : vérifie dans mon index.html ce qui existe déjà avant tout ajout. 1)
   async function load() {
     addCard(); if (!$('sg-list')) return;
     $('sg-list').innerHTML = '<div style="color:#aaa;text-align:center;padding:10px">Chargement...</div>';
-    try { const r = await api('/api/admin/suggestions'); all = r.success ? r.suggestions : []; if (!r.success) $('sg-list').innerHTML = '<div style="color:#ff6b5e;text-align:center">Accès refusé ou erreur.</div>'; else render(); }
+    try { const r = await api('/api/admin/suggestions'); all = r.success ? r.suggestions : []; if (!r.success) $('sg-list').innerHTML = '<div style="color:#ff6b5e;text-align:center;padding:10px">' + esc(r.message || 'Erreur') + (r.message === 'Admin uniquement' ? '<br><small>Le compte connecté n\'est pas celui de ADMIN_EMAIL sur Render.</small>' : '') + '</div>'; else render(); }
     catch (e) { $('sg-list').innerHTML = '<div style="color:#ff6b5e;text-align:center">Erreur de chargement.</div>'; }
   }
 
