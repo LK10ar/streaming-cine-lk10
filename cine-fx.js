@@ -93,3 +93,186 @@
   size();
  }catch(e){console.warn('cine-fx hex',e)}
 })();
+
+
+/* ===== Page profil enrichie (email, photo/GIF, bannière, Mes alertes, En cours) + tris du Tableau de bord ===== */
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var cu = function () { try { return currentUser; } catch (e) { return null; } };
+  var api = function (p, o) {
+    o = o || {}; o.headers = { 'Content-Type': 'application/json', authorization: localStorage.getItem('monBadgeCineLK10') || '' };
+    return fetch(API_URL + p, o).then(function (r) { return r.json(); });
+  };
+  var fmt = function (d) { try { return new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+  var ts = function (o) { return parseInt(String((o && o._id) || '').slice(0, 8), 16) || 0; };
+
+  /* ---------- Bannière ---------- */
+  function applyBanner() {
+    var h = document.querySelector('.prof-header'); if (!h) return;
+    var b = $('fx-prof-banner');
+    if (!b) { b = document.createElement('div'); b.id = 'fx-prof-banner'; h.insertBefore(b, h.firstChild); }
+    var u = (cu() && cu().banner) || '';
+    if (/^https?:\/\//i.test(u)) { b.style.backgroundImage = 'url("' + u.replace(/"/g, '%22') + '")'; h.classList.add('has-banner'); }
+    else { b.style.backgroundImage = ''; h.classList.remove('has-banner'); }
+  }
+
+  /* ---------- Paramètres : photo/GIF (lien ou fichier), bannière (lien ou fichier), email ---------- */
+  function readFile(f) { return new Promise(function (ok, ko) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = ko; r.readAsDataURL(f); }); }
+  function shrink(data, w, h) {
+    return new Promise(function (ok, ko) {
+      var im = new Image();
+      im.onload = function () { var c = document.createElement('canvas'); c.width = w; c.height = h; var x = c.getContext('2d'), s = Math.max(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s; x.drawImage(im, (w - dw) / 2, (h - dh) / 2, dw, dh); ok(c.toDataURL('image/jpeg', .82)); };
+      im.onerror = ko; im.src = data;
+    });
+  }
+  function fromFile(file, kind) {
+    if (!file || !/^image\//.test(file.type)) return Promise.reject(new Error("Ce fichier n'est pas une image."));
+    var max = kind === 'pic' ? 150 * 1024 : 400 * 1024;
+    return readFile(file).then(function (d) {
+      if (file.type === 'image/gif') { if (file.size > max) throw new Error('GIF trop lourd (max ' + Math.round(max / 1024) + ' Ko). Utilise plutôt un lien (Giphy, Imgur, Tenor…).'); return d; }
+      return kind === 'pic' ? shrink(d, 256, 256) : shrink(d, 1400, 383);
+    });
+  }
+  function send(kind, url) {
+    return api(kind === 'pic' ? '/api/user/update-pic' : '/api/user/update-banner', { method: 'POST', body: JSON.stringify({ url: url }) }).then(function (d) {
+      if (!d.success) throw new Error(d.message || 'Erreur');
+      var u = cu();
+      if (kind === 'pic') { if (u) u.profilePic = url; ['nav-avatar', 'prof-page-avatar'].forEach(function (i) { if ($(i)) $(i).src = url; }); }
+      else { if (u) u.banner = url; applyBanner(); }
+    });
+  }
+  function patchSettings() {
+    var m = document.querySelector('#settings-overlay .settings-modal'), pic = $('input-new-pic');
+    if (!m || !pic || $('fx-set-extra')) return;
+    var lab = m.querySelector('label'); if (lab) lab.textContent = 'Photo de profil : lien (GIF accepté) ou fichier';
+    var picBtn = pic.parentNode.querySelector('.action-btn');
+    pic.insertAdjacentHTML('afterend', '<img id="fx-pic-prev" class="fx-prev" alt="">');
+    pic.addEventListener('input', function () { var p = $('fx-pic-prev'), v = pic.value.trim(); if (/^https?:\/\//i.test(v)) { p.src = v; p.style.display = 'block'; } else p.style.display = 'none'; });
+    if (picBtn) picBtn.insertAdjacentHTML('afterend', '<label class="fx-file"><i class="fas fa-folder-open"></i> Choisir une photo ou un GIF depuis mon appareil<input type="file" id="fx-pic-file" accept="image/*" hidden></label>');
+    var box = document.createElement('div'); box.id = 'fx-set-extra';
+    box.innerHTML = '<div class="fx-set"><label>Bannière du profil : lien (image ou GIF) ou fichier — idéal 1546×423</label>' +
+      '<input type="text" id="fx-in-banner" placeholder="https://lien-de-ma-banniere.jpg"><div class="fx-row">' +
+      '<button class="action-btn" id="fx-b-save">Enregistrer la bannière</button><button class="fx-btn" id="fx-b-del">Retirer</button></div>' +
+      '<label class="fx-file"><i class="fas fa-folder-open"></i> Choisir une bannière depuis mon appareil<input type="file" id="fx-ban-file" accept="image/*" hidden></label></div>' +
+      '<div class="fx-set"><label>Adresse email <span id="fx-mail-cur"></span></label>' +
+      '<input type="email" id="fx-in-mail" placeholder="nouvel@email.com"><input type="password" id="fx-in-mailpw" placeholder="Ton mot de passe actuel (confirmation)">' +
+      '<button class="action-btn" id="fx-m-save">Enregistrer l\'email</button></div>';
+    pic.parentNode.after(box);
+    var done = function (msg) { return function () { alert(msg); }; }, fail = function (e) { alert((e && e.message) || 'Erreur de connexion.'); };
+    $('fx-pic-file').onchange = function () { var f = this.files[0]; this.value = ''; if (f) fromFile(f, 'pic').then(function (d) { return send('pic', d); }).then(done('Photo mise à jour !')).catch(fail); };
+    $('fx-ban-file').onchange = function () { var f = this.files[0]; this.value = ''; if (f) fromFile(f, 'banner').then(function (d) { return send('banner', d); }).then(done('Bannière mise à jour !')).catch(fail); };
+    $('fx-b-save').onclick = function () { var u = $('fx-in-banner').value.trim(); if (!u) return alert("Entre un lien d'image ou de GIF, ou choisis un fichier."); send('banner', u).then(function () { $('fx-in-banner').value = ''; alert('Bannière mise à jour !'); }).catch(fail); };
+    $('fx-b-del').onclick = function () { send('banner', '').then(done('Bannière retirée.')).catch(fail); };
+    $('fx-m-save').onclick = function () {
+      var e = $('fx-in-mail').value.trim(), p = $('fx-in-mailpw').value;
+      if (!e || !p) return alert('Entre ton nouvel email et ton mot de passe.');
+      api('/api/user/update-email', { method: 'POST', body: JSON.stringify({ email: e, password: p }) }).then(function (d) {
+        if (!d.success) throw new Error(d.message || 'Erreur');
+        if (cu()) cu().email = d.email; $('fx-mail-cur').textContent = '(' + d.email + ')'; $('fx-in-mail').value = $('fx-in-mailpw').value = ''; alert('Email enregistré !');
+      }).catch(fail);
+    };
+  }
+  /* bouton visible sur l'en-tête du profil */
+  function addBannerBtn() {
+    var h = document.querySelector('.prof-header'); if (!h || $('fx-banner-btn')) return;
+    var b = document.createElement('button'); b.id = 'fx-banner-btn'; b.type = 'button'; b.innerHTML = '<i class="fas fa-camera"></i> <span>Modifier la bannière</span>';
+    b.onclick = function () { var s = $('settings-overlay'); if (s) s.style.display = 'flex'; patchSettings(); setTimeout(function () { var i = $('fx-in-banner'); if (i) { i.scrollIntoView({ block: 'center' }); i.focus(); } }, 50); };
+    h.appendChild(b);
+  }
+  function showMail() { var s = $('fx-mail-cur'), u = cu(); if (s) s.textContent = u && u.email ? '(' + u.email + ')' : '(aucun email)'; }
+
+  /* ---------- Onglets « Mes alertes » et « En cours » ---------- */
+  function panel() {
+    var p = $('fx-prof-panel');
+    if (!p) { var g = $('profile-grid'); p = document.createElement('div'); p.id = 'fx-prof-panel'; g.parentNode.insertBefore(p, g); }
+    return p;
+  }
+  function addTabs() {
+    var s = $('tab-suggest'); if (!s || $('tab-alerts')) return;
+    var mk = function (id, ico, label) {
+      var e = document.createElement('span'); e.id = id; e.className = 'prof-tab-btn';
+      e.innerHTML = '<i class="fas ' + ico + '"></i> ' + label; e.onclick = function () { openTab(id === 'tab-alerts' ? 'alerts' : 'wip'); }; return e;
+    };
+    var a = mk('tab-alerts', 'fa-bell', 'Mes alertes <span id="tab-alerts-count" class="fx-pill"></span>'), w = mk('tab-wip', 'fa-hourglass-half', 'En cours');
+    s.after(a, w);
+  }
+  function openTab(kind) {
+    document.querySelectorAll('.prof-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+    $(kind === 'alerts' ? 'tab-alerts' : 'tab-wip').classList.add('active');
+    document.querySelectorAll('.prof-stat-box').forEach(function (b) { b.classList.remove('active-stat-box'); });
+    var g = $('profile-grid'), f = document.querySelector('.prof-filters-container'); if (g) g.style.display = 'none'; if (f) f.style.display = 'none';
+    var p = panel(); p.style.display = 'block'; p.innerHTML = '<div class="fx-empty">Chargement…</div>';
+    (kind === 'alerts' ? loadAlerts : loadWip)(p);
+  }
+  function loadAlerts(p) {
+    api('/api/notifications').then(function (d) {
+      var l = d.notifications || [];
+      var html = '<div class="fx-head"><b><i class="fas fa-bell"></i> Mes alertes</b>' + (l.length ? '<button class="fx-btn" id="fx-readall">Tout marquer comme lu</button>' : '') + '</div>';
+      html += l.length ? l.map(function (n) {
+        return '<div class="fx-item' + (n.read ? '' : ' unread') + '"><i class="fas fa-bell"></i><div><div class="fx-t">' + esc(n.message) + '</div><div class="fx-s">' + fmt(n.date) + '</div></div></div>';
+      }).join('') : '<div class="fx-empty">🔔<br>Aucune alerte pour le moment.</div>';
+      p.innerHTML = html;
+      var r = $('fx-readall'); if (r) r.onclick = function () {
+        api('/api/notifications/mark-read', { method: 'POST' }).then(function () { var nb = $('notif-badge'); if (nb) nb.style.display = 'none'; $('tab-alerts-count').textContent = ''; loadAlerts(p); });
+      };
+    }).catch(function () { p.innerHTML = '<div class="fx-empty">Erreur de chargement.</div>'; });
+  }
+  function wishCard(w) {
+    var st = w.status || 'En attente', k = st === 'Ajouté' ? 2 : (st === 'En cours' ? 1 : 0), me = cu() && w.requestedBy === cu().username;
+    var steps = ['Envoyée', 'En cours', 'Ajoutée'].map(function (t, i) { return '<span class="fx-step' + (i <= k ? ' on' : '') + '">' + t + '</span>'; }).join('<i class="fx-bar' + '"></i>');
+    var img = /^https?:\/\//i.test(w.posterUrl || '') ? '<img src="' + esc(w.posterUrl) + '" alt="" loading="lazy">' : '<div class="fx-nop"><i class="fas fa-film"></i></div>';
+    return '<div class="fx-wish" data-id="' + esc(w._id) + '">' + img + '<div class="fx-wb"><div class="fx-t">' + esc(w.title) + '</div>' +
+      '<div class="fx-s">' + (me ? 'Ma demande' : 'Je l\'ai votée') + ' · ' + esc(w.votes || 1) + ' vote' + ((w.votes || 1) > 1 ? 's' : '') + '</div><div class="fx-steps">' + steps + '</div></div></div>';
+  }
+  function loadWip(p) {
+    api('/api/wishes/mine').then(function (d) {
+      var l = d.wishes || [], wip = l.filter(function (w) { return w.status !== 'Ajouté'; }), done = l.filter(function (w) { return w.status === 'Ajouté'; });
+      var html = '<div class="fx-head"><b><i class="fas fa-hourglass-half"></i> Mes demandes en cours <span class="fx-pill on">' + wip.length + '</span></b></div>';
+      html += wip.length ? '<div class="fx-wgrid">' + wip.map(wishCard).join('') + '</div>' : '<div class="fx-empty">🎬<br>Aucune demande en cours.<br><small>Fais une demande depuis le Wishboard !</small></div>';
+      if (done.length) html += '<details class="fx-done-box"><summary>Déjà ajoutées (' + done.length + ')</summary><div class="fx-wgrid">' + done.map(wishCard).join('') + '</div></details>';
+      p.innerHTML = html;
+      p.querySelectorAll('.fx-wish').forEach(function (el) {
+        el.onclick = function () { try { if (typeof closeProfilePage === 'function') closeProfilePage(); if (typeof openWishDetails === 'function') openWishDetails(el.dataset.id); } catch (e) {} };
+      });
+    }).catch(function () { p.innerHTML = '<div class="fx-empty">Erreur de chargement.</div>'; });
+  }
+  function alertCount() {
+    api('/api/notifications').then(function (d) { var c = $('tab-alerts-count'); if (c) c.textContent = d.unreadCount > 0 ? d.unreadCount : ''; }).catch(function () {});
+  }
+
+  /* ---------- Branchements sur les fonctions du site ---------- */
+  var oSwitch = window.switchProfTab;
+  if (typeof oSwitch === 'function') window.switchProfTab = function () {
+    var p = $('fx-prof-panel'), g = $('profile-grid'), f = document.querySelector('.prof-filters-container');
+    if (p) p.style.display = 'none'; if (g) g.style.display = ''; if (f) f.style.display = '';
+    return oSwitch.apply(this, arguments);
+  };
+  var oOpen = window.openProfilePage;
+  if (typeof oOpen === 'function') window.openProfilePage = function () {
+    var r = oOpen.apply(this, arguments);
+    try { addTabs(); patchSettings(); addBannerBtn(); applyBanner(); showMail(); alertCount(); } catch (e) { console.warn('cine-profile', e); }
+    return r;
+  };
+
+  /* Tableau de bord : membres du plus récent au plus ancien */
+  var oUsers = window.renderAnalyticsUsersPage;
+  if (typeof oUsers === 'function') window.renderAnalyticsUsersPage = function () {
+    try { var by = function (a, b) { return ts(b) - ts(a); }; analyticsUsersAll = analyticsUsersAll.slice().sort(by); analyticsUsersFiltered = analyticsUsersFiltered.slice().sort(by); } catch (e) {}
+    return oUsers.apply(this, arguments);
+  };
+  /* Tableau de bord : demandes à traiter d'abord (puis les « Ajouté »), les plus récentes en premier */
+  var oWish = window.renderAnalyticsWishesPage;
+  if (typeof oWish === 'function') window.renderAnalyticsWishesPage = function () {
+    try {
+      var d = function (w) { return w.status === 'Ajouté' ? 1 : 0; };
+      analyticsWishesFiltered = analyticsWishesFiltered.slice().sort(function (a, b) { return d(a) - d(b) || ts(b) - ts(a); });
+    } catch (e) {}
+    var r = oWish.apply(this, arguments), c = $('analytics-wishes-list');
+    if (c) c.querySelectorAll('.user-list-item').forEach(function (el) { el.classList.add(el.textContent.toUpperCase().indexOf('AJOUTÉ') > -1 ? 'fx-done' : 'fx-pending'); });
+    return r;
+  };
+
+  try { addTabs(); patchSettings(); addBannerBtn(); } catch (e) {}
+})();

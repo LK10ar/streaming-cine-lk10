@@ -224,3 +224,11 @@ html.fx-lite .player-content{animation:none!important}
  .prof-header.has-banner{min-height:170px}
  .fx-row{flex-direction:column}
 }
+
+/* ===== Profil : sélecteur de fichier et bouton bannière ===== */
+.fx-file{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:11px;border:1px dashed rgba(255,222,0,.5);border-radius:10px;color:var(--primary,#ffde00)!important;font-size:12px!important;font-weight:700;cursor:pointer;transition:background .2s}
+.fx-file:hover{background:rgba(255,222,0,.08)}
+.prof-header{position:relative}
+#fx-banner-btn{position:absolute;right:14px;bottom:12px;z-index:2;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;transition:background .2s,border-color .2s}
+#fx-banner-btn:hover{background:rgba(0,0,0,.8);border-color:var(--primary,#ffde00)}
+@media (max-width:600px){#fx-banner-btn span{display:none}#fx-banner-btn{padding:9px 11px}}
