@@ -106,6 +106,27 @@
     b.innerHTML = '<i class="fas fa-images"></i> Parcourir tous les avatars' + (total() ? ' (' + total() + ')' : '');
     b.onclick = function () { openPicker(setMyPic); };
     g.parentNode.insertBefore(b, g);
+    showcase(g);
+  }
+  /* Présentoir : remplace les 12 avatars emoji par 12 icônes tirées au hasard dans tous les thèmes */
+  function allIcons() {
+    var a = []; pack().forEach(function (t) { ((t && t.icons) || []).forEach(function (u) { if (safeUrl(u)) a.push(u); }); }); return a;
+  }
+  function fillShowcase(g) {
+    var all = allIcons(); if (all.length < 12) return;
+    for (var i = all.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = all[i]; all[i] = all[j]; all[j] = x; }
+    g.innerHTML = '';
+    all.slice(0, 12).forEach(function (u) {
+      var b = document.createElement('button'); b.type = 'button'; b.style.backgroundImage = 'url("' + u.replace(/"/g, '%22') + '")';
+      b.onclick = function () { setMyPic(u); }; g.appendChild(b);
+    });
+  }
+  function showcase(g) {
+    if (allIcons().length < 12) return;
+    fillShowcase(g);
+    var s = document.createElement('button'); s.type = 'button'; s.className = 'fx-btn'; s.style.marginTop = '8px';
+    s.innerHTML = '<i class="fas fa-random"></i> Mélanger'; s.onclick = function () { fillShowcase(g); };
+    g.after(s);
   }
 
   /* ---------- Inscription ---------- */
