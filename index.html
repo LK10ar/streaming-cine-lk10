@@ -3200,7 +3200,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         if (!password) return alert("❌ Veuillez entrer un mot de passe.");
 
         const bodyData = { username, password, isVip: isVipUser };
-        if (!isLoginMode) bodyData.email = email; 
+        if (!isLoginMode) { bodyData.email = email; if (window.__signupAvatar) bodyData.profilePic = window.__signupAvatar; }
 
         try {
             const res = await fetch(API_URL + endpoint, {
@@ -6528,5 +6528,8 @@ function buildNetflixHome() {
 </script>
     <script src="suggestions-admin.js"></script>
     <script src="cine-fx.js"></script>
+    <script src="cine-profile.js"></script>
+    <script src="avatars-data.js"></script>
+    <script src="cine-avatars.js"></script>
 </body>
 </html>
