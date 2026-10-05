@@ -30,7 +30,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Black Mirror",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/dg3OindVAGZBjlT3xYKqIAdukPL.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABVfRng_a6tvvynIfXPdDYDAr9QAFt6xSspWHi1sS53iTZC-MZxmhBWa9Pjp_l1Gtg_eM9eTtIEPGzLZPItqRT_YbB3EWdrY7Aw.png?r=287",
    "https://occ-0-3945-2567.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABaOUM79jMcgAlMo2ew01lkY2HzpiaJMoRZP1fRkjgxX_b06h7opq67-JgtaI9oAP48rlNMt1fzgKrcps2L_VfJ83JkX5WdJRdg.png?r=937",
@@ -70,7 +70,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Cobra Kai",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/5NrSIzfcBOFI9HRGV4nRYgMGhDU.jpg",
   "icons": [
    "https://occ-0-3945-2567.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABUuJkcqfTU_Pxqx-wPjgtktVoO6bubyXK-5hk6XNKnYQpDd9UZFp9gNZmq3aE9zmA0L148Xi0k10u8Kz-rNgxX4ZoL6CCWjCnw.png?r=a48",
    "https://occ-0-3945-2567.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABRTzjHMLp_V4lvvJunatv6AM5p7HK8CM26ZwA8bgllwfSqoMtEr1IPKx380AJRw_6ktjhsLDzpnp2gjqAGCRtbLx439kPwXIDA.png?r=de5",
@@ -113,7 +113,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Stranger Things",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/9P4IIMYY3HifqeruZq0ZZ9g7YUi.jpg",
   "icons": [
    "https://occ-0-2352-1740.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABQyyBznLc9trefnRqqBbDG-afrAENJJTa4E_fAEL80CG8SH9CJruWXj_dOgzLjpfYhk3vVqoZX_sKiuVb-mve1TsxoVIwWym9g.png?r=9f9",
    "https://occ-0-2352-1740.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABW6HXqFKoVZf1bk7i1fAnuFUkFWbwtMfwlfsDg4UEu8by0x2mGows1xz3gcRmIgGIJNl3I1Nz9vdp9ysTDmnbo04oPmxL1Bh_Q.png?r=e66",
@@ -211,7 +211,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "The Crown",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/8VXhcrl5z2I1zEU9X3pkkNrZlD.jpg",
   "icons": [
    "https://occ-0-1001-999.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABTllfP3b_Hn8RS8iUwm5HxLzTT8rK8wty7YhDA-YhHdQe-fKBTji0gyLGk9PBadiOyoGTOBe8WkVLsZko-9H3x_M57D_L_lXwQQ9.png",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABc7-7DszDD2Q_aSWeL_c15OHrzjAHdYpgQXC49ouln9dXD7iRNw39fL522NmabzUA7u1geKi74nxxxWcMZbomIfhZ-AuMM_tCw.png?r=a3f",
@@ -231,7 +231,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Squid Game",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/2meX1nMdScFOoV4370rqHWKmXhY.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXdH6Sk3KxYMbMqA5Td4BF7SIH4ew3eYAxU1Iny70Qc9Eha6XUELjjxa0FR2d7iSx_45NgMsdRjq96yIQcdVyGYonu8Cub6fJw.png?r=2bf",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXemoPE3lC35SOs3WAqWufbIarYoei3uySBUovYBY5-uVF-AN3xVRy8abILuMQAxXCFMCLDzQhxKO8haIL6CrXUZFKGTWzAQDg.png?r=5bf",
@@ -262,7 +262,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Aggretsuko",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/uPaX3KczjZiXxLJiG91F8pZh88s.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABRtijVc5BCI5JRhmDxbfRnQsJRFuIRcj5Q4zjWMEoyHKKcdcVGMfk1hCF3pP82r5r6VN3yIAYzX4XbSIYzqOgNWRtkglYexxf9RI.png?r=026",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABTpq0B8Xmva3HmhtytMu7WspRS7dWKK5f_Dvj2kS3fieLbk5vn8DOcDPSmEnQ_Srbo-IxXJCYObrdmSXxBhksB4E9T0f0lt1EsOq.png?r=e50",
@@ -285,7 +285,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Castlevania",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/jLE5bsPA9xOKzBWOaOmKbp1DWQS.jpg",
   "icons": [
    "https://occ-0-3933-2433.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABaDFUut690IdH8gsi6QdZsCp4Ork5BeE838S1Bp50jTZIRJKN_rNH7vZNEewhp4TYDss4HKh2m-IOPDsBXcyz7W7Rh3PJWZOjA.png?r=230",
    "https://occ-0-3933-2433.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABR6lZif4N87iFa5YceQadeZMBxuroZKPsMNb4KCOvIAaRKMsW9U2M3EJ-gUcRZFXfTYQQTQfU-qquFwFksUXsRc7TryLdQclzQ.png?r=e00",
@@ -294,7 +294,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Cowboy Bebop",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/A4PHx94G7mvM3b8vsDJ5HEaQ6uv.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABbymByOZ9rFpUTaH2Y_2lcTPK1OcJXA-QMBZDpzQM0NeTyg5lyocNQBdDaaqV2aoTGUkCMxScLqH2WbWJghkFniLU82bC0BP7Q.png?r=a82",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABaaidpi17hiywztid8SBKdX2wcQXylPdsQPM7RyT8Brb7mrVvrsHk8rbr_vc8fVK-eqXiZBBngzv91F0F5VgOByLyS5y_IfrBVJ2.png?r=eb5",
@@ -303,7 +303,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Lost in Space",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/i01wnWz0Z3rMATqbkAVLHEaGbNP.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABdy3J5Ku5M51cdW-5yDgGr3C0R0nAoPAVM4NElrHx7NCjfBCEmpw10jWNoc1JITqCk7VKx1NygHkoVblU9CDJj48d91C0v0GoA.png?r=001",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABc0s-wAf17-B-Mp--OWpivu5gEnqZ8hezX4tSX2LMGGviFAidA1N1A6T3C4fLUiZvUAViKn2N9i6wleX-3kFYFfJI6zky7h_BQ.png?r=db3",
@@ -336,7 +336,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "She-Ra and the Princesses of Power",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/uKG6BOipnZM9XRtrRzDjoq52jab.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABbB14VnLqWkU7TwOSG5BN3yCu_mia4XxH7CWLEezXSySfjzPAII1RCTr_JYFhOc-3QAeLFiwVc2CRFiKSStUUcDcQSTTLnllHg.png?r=e5f",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSey6gKIG0CzNLdwH_qrQT2b9WmxHENx6nv7Je9CzQFAQw0AgYYAJNW52blfpmKgZlRqI9jmU23mEY_z5BGeD9gTLP8zkiqmyw.png?r=3bf",
@@ -349,7 +349,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Voltron: Legendary Defender",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/A7zBjRDFh1TXG3Buhi55mmS1qSr.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABcF2ye7of-_Vgu56Xht85q0Mqa8WeTgVOOGDKEZXtKVhzw_xKgzQERKAqFyKt-5CFOE3Xg2jqUoYAWyVcdrz_-oKXnJS-u0Mtw.png?r=4db",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABWNHJ1bLhtDJIKZbokd2qZZaQykFh9VMWdDOrmH1kxXEQznlcrjjwL7rPHwCZfQbP5cyXAqy2TVjvpCU32wqLhImZ8JOPLI4bw.png?r=6c5",
@@ -363,7 +363,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "The End of the F***ing World",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/nfWhNM5VVd9a5bEGobs83TWTuLM.jpg",
   "icons": [
    "https://occ-0-2430-2433.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABatlxCf_xz2VcZE1YZKd-D7GIXol_E5PYFEiuCdki5Y__v-hOLaUWrUpiex6GYof-k3XbY4lbyaHYFltzENFilGQGkeIvrBYbA.png?r=a94",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSIpXmTmFQYcn42vgR0DO235KFRqqwmzjMdu9X5LTjvXQjgdRW3SGn4YV1T-K9ANV9kWamMxAGfjY5DDlsco7hzDvRBbV1RnFw.png?r=a38",
@@ -372,7 +372,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Unbreakable Kimmy Schmidt",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/iWQMxRDCTruFjbQ79qxpHAmklNw.jpg",
   "icons": [
    "https://occ-0-1001-2433.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABWDDZhpnenlFejH_5VpxWE-YwxPC3tfQR3EFCme6XJlei8ZKZlxR4IGzpYAsrO_Gtv6FRf9GtSi2O0nX5saZjai34s37ze_yrA.png?r=f27",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSZbL5W1m6TPo45t_YAidkg58D04Keh63Xp-mXrUhWaMBHwsOMOJEPeuMzrava-8C-L8FjjOsKvAjFYrf4yUqx560ZDGXlAy8w.png?r=674"
@@ -380,7 +380,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "WWE",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/fvnxFPUsTFMh81cMoIGBrJo8F6z.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSjrLac7N50F23jssfddtmaWbLmlm0NxduGr7L9ashViLG3RHB4wuxDdP8jg103EQAnBAEp9kUmmDPHA6bFHKRuNBi-UNMus3A.png?r=ff3",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABe82SlhjodXmyqF9PYpQsVvHR5zbf-JiMsBRfgyfKZCVmpm3V5M7UvmtoMxMuHWlP771sMOwRATKNGDWKfRnuPturaft5uraSA.png?r=d16",
@@ -394,7 +394,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Heeramandi",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/z0F11p7HBaIUizZHGzyZ32FLm7O.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABQvfzVdDMocA4KTWn6QsplNcQvihrqdS5NKfeJXevTT4ERYUXBWeIHXKYjaEeNBQJqTlDtxZlM65MIYhpozPsZkzXp8Q_AcKqg.png?r=57f",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABah7o8hseN3Mn1FJK0xXriS1jkjpR2K57pvpMme4Yj5MTn7m7-iG1tYOZZMP3xVoJyJtsaM5gaZfxqIfRvkgjWcTSFSpmBB1-w.png?r=aa3",
@@ -413,7 +413,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Shaun the Sheep",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/onwny8s0VTTN7te9TJnItgvyWHy.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABZlZyz6cnz1wpWUoMTfoM4vTxG5bZ4RoiCgnIwWymeSqOuEnSMRE-W0o4-KgnELW1gEFDn0gqI1GdrC56PVzusCLWzi-zs3K7Q.png?r=08c",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABS3hqxzqMxygnOurza5a1fH56yCZAdMphP7fqpPAOJg5cv0RLuy7z5CTy_6SdkFqSNoHLV712ffIrouBdVyhFg1xfBPCf-9Q6w.png?r=660",
@@ -426,7 +426,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Jurassic World: Camp Cretaceous",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/4WIglfr4lDFVjCEcXzCeu6cJsOh.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABZ0yUoc4QPb48oB0tuYaptqTkp5LlO8Z5a1JhEPuvtmpMSQrmrFvkSgV2oi_7mqoEe-g9FFLNtc1d1bEHI7tz503ziVixAQZ4A.png?r=f63",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSTuPTpui6LvHJDt_vQ_IspsTr20iBRmkf2e5N24wmmmquX1UCTZMedtCfflMOV4PBETflCrsnM_wBUw0gvDLwE-uAeTydV33g.png?r=ef2",
@@ -444,7 +444,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Fuller House",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/aiXDRO3jglLdpkBjTJTJ1o8yQbL.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXSFpQayczOpDxUY36Cpc_2wIlx5y3SXBmDxA4yxOytyngzcOWyBmY8F6nk2wNpNjCpvhH4QNRMPCXzm8jsx37XV95xxjPan0Q.png?r=6c1",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABZ6In-4lV2p8of2YD5xJC6dQpYUHhD1QpKWGummFw4yja4UxGFw858LSonK8Tu84-w9vvug2t2W0YLO3ctc8MEc__AcDtQvpRw.png?r=f6e",
@@ -458,7 +458,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Spirit Riding Free",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/fZkhO3JhRajayNejQUaIiBegayM.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABUFGgyIOgIhR1xONS0vOWV5KvUULtngZ1j3gc6Nhu0yQWpl5241cXTGUf88kIjxHfiFPft664eRI86V2YQqJXCpRSzCWMuzicw.png?r=aa7",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABVI8cfnEzK_fQF3Lb4_4HPDuuNw5IlHlxDiWENTYv41tdgfbfXxQbpwm0zdAO3llrREw2mWgxDp37uLq8RO54xpshqUbWlLt0g.png?r=c90",
@@ -528,7 +528,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Young Royals",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/lWkS3ygISl4tRHpcvWHWySG1Uxz.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABZJLyXiZYIw-JTmlhGohCfJ3KjBoAZMHW537tuj55wSzqhQkqjqX5B74rHNUvOIUMIdFoQwVIB8_ZJv5-PS-_aaHopFtg_urWQ.png?r=c79",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABcTlNhZDQxKosKfbdpS0Aa0mDnX-lGLxsARmWmkEibvVb5TY6oQcPQQ9az-Ga4p9UAcNM3CJ6R1Cd3SUMhwqz-JzOyrVTi2EfA.png?r=a16",
@@ -541,7 +541,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "KPop Demon Hunters",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/w3Bi0wygeFQctn6AqFTwhGNXRwL.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABbyIXEHaGLoMrB6UTqhFBkKqEPM1ewP5ssOR9Ei0ie7b7OQvFaZSaM43dAI43-7nY01H303gpjb4TYwId6vxz152sM28c3BQaQ.png?r=f77",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABaKlXPxQEoyoKIF1QH7QG5uAEd0RUtNiIzsIwv_etpExO0VO7rOdP10ztcyxbZwsThvbAMXC6mJWjxJfqI5BSwVoMxqiEoM6Fw.png?r=86a",
@@ -558,7 +558,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "On My Block",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/sIlni6nuGcI5NBwyBGaFINifn9q.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXnyFljVTAmFDVBL9Y9UzBbZmlQCkvzulLI5NopQr25eaRg8jltRBpdSDR1-Ha4oFEnqz3p2QWBqsgiaQiWAK5ybukdDOHIRKQ.png?r=a17",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABevvvlJ8nIxyihPAZpFk71mKo6flniyjSeewgyo9NnayONUzwg3bMUfCQu63w7UYCv7aQsskDieLGWWhupTiMVpDd-8KtTZVzw.png?r=a6d",
@@ -624,7 +624,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "The Dragon Prince",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/sD3OAmfxHRXWmZFROjRRL3HcPXj.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABf2jAcbJhmFlWxUP7_CZT_1onzIe_0qE2OResEv60YqEbBsCYvyXSD9THBtTXHMrNEjqL4M0kXoAY7wSmfKjI7DVdrCTDodpag.png?r=60a",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABb4maIC9jPCoISdWYpVyOfWBcauTlyMWGtgHQMK8vWULi7xUHZy7j1yK5MIeI4bR6nDdY-qW9eQiZMIuvRWxLhYbrCbRr5tWFw.png?r=e64",
@@ -642,7 +642,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Trollhunters",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/oyi9AeavhrKTbISf4tZ83S7xp29.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXfsrmlVjYPJ4K2tcgr5M0rEPHURlNWQ9O5NUEBv0hprmURE8ELPGLIzQ91EcdtMZa__7Sey02NKj-jXZ_tVQP7rSeRslPyIXA.png?r=830",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABTRN2hmDAx6GALSak7FP0ssRf94Cz4jzsw_41VjhvsjaN2Ov--rfQNLWj5RIuSz7XlcZhwO1bknkPyMwhxwYEUl84iF-n1hKeA.png?r=dd4",
@@ -656,7 +656,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Skylanders Academy",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/4Lgk1eAW1w1ch76cagXfxABbHA7.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXSd6GYoZPek5m9yrWrsSBrZ9dfzRT72xpp8-EmZ5mzqGVVnt7yszFpHLq_RSIlFNCRILLl_F-fIK3HL6K5A5qTAO5AGHviwGQ.png?r=01d",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABQ-1jc5wQfTfPtGHTXSWNIQGFPUjSvUPYzFe2MqYieI18thtJHpaUrK7sar7szmr0aL6GVO3VjvGidG4YO0Pb_RBNKzTvfjXyA.png?r=42d",
@@ -665,7 +665,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Frankenstein",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/hpXBJxLD2SEf8l2CspmSeiHrBKX.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABVacLweq8cgWZZ6ey2QDI-wfKx2ToenQZYAWsQMnH-leEvMH495fMmTtGcGDiTYHZ4plEOufy7R1FUxD9P6jNK34dApPe_sSpA.png?r=95d",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABdTXw9UmmGyYI-oihNG9nWxbQAVKKcxQyEGViRg1Cv6Qr4dNbNy50R43xQRdvp69EyJCFm1ePNVgqzAQl_xxbCukWd5qPPq-mg.png?r=f36",
@@ -677,7 +677,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "The Witcher",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/foGkPxpw9h8zln81j63mix5B7m8.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABQOZCiH_y_Kx34Pk6LWUXdCd8RTz63obXdX3nFwDEaCdd6fTCyd4M3pgiiQBqI3ttYR9hHGRjjdHp3ZP7vijBpTW_qFfZ8T3tQ.png?r=93c",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABf4WEMS5ZGBiLvuc_N53JgV0C2kwp0Ec9kmmLtxHvxaoRXKxD3msUEJ5_EKTm_eqiZo2f3KDmqH2iOEhxzRzlW2FKur5aQHfqg.png?r=1d8",
@@ -702,7 +702,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "One Piece",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/v38qp4bySLTXYu3MF8r5GD51FN3.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABZlnNgl7GUU4pLwCZcuthPRVNLdwsdsM8_O_sMuE0Wum5osWumjXexU-0RnTmR8OA1NuOdSH7QD9p9R3IdpGB0gu75v3lN-jmA.png?r=5ec",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABY0A9yHaJ0IRujgwML4zbOys4ufNI8HOJugbjY7qeF7iEqQs2hiCBL44MtRxs2MqzgsCsS4hKe4KvBbSmjYpHmsw1EtnelhhcA.png?r=0a4",
@@ -722,7 +722,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Pokémon",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/yYpQV25I7XB6S0POJOScPjxYWV5.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABaUUO8292Wae3s5tg1ykvXpwzLFOO1EmxAroBFtbJRDFXdVq9HqIu2OAje7PIWokAK06a0aP4zs-k_d_CgubsdCBGUgeGXiY0Q.png?r=4f9",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABb7LgNLpzHz7xkzXVKN-qBXHtZn1FrKztYDok55Dd-KHfjnDvrOyX8odQSgIQIWk9nuxhl-sTdZeR6ytS58CLe6xhmGcBtiHfA.png?r=469",
@@ -750,7 +750,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "BoJack Horseman",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/81BCTObfPk0EvarJpUgnGXHvM9x.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSGQnHoC1SO4fqLsgu5rGiVDFLZiL8yzleR9R6x1AxN3QxkRRfGuprQxvYm01i-EoJbb_QFdlXlEGoltctDvel_R9UPpf1Bu9w.png?r=3e2",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSLSwXTtgFuFxTh1w7F7dBU1IHkqjO9s4gQKSmuIrbrvJKynuVNksuaRuVNyIfRGyKmwPprdOainBy3KhEra0LqMMUrCFZQezw.png?r=652",
@@ -761,7 +761,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Orange Is the New Black",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/zJiWhsEYCy5BkFCBONoMnUunyZQ.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABb3R3HS89acNZVeR-0efEMmckWDL8HLtQYOwtwa-ZEbX2M7K_uCWgZlYF9l7mtxppnRumxfiXizWB2h0ommxZ7HpchScBNMFIw.png?r=729",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABYzB_p4JEOg6VevQJrVJR8XHIJk_wZuW-JA9QWcArN0SGDcUXjG4VxAcss_PkWA79x0ZSMx1dmdHPJv-QlrAEgz-6bm29LRPXg.png?r=1f8",
@@ -777,7 +777,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Twilight of the Gods",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/qSdvfhaDhFhNbfU3A6ukJgJrGLQ.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABVkspAxjpRewIUGtOQc44Dz-1mIaBCIesme5ThSLKhy4Tf4XC332PBzv2z2A9BUtAyusPEMdQrz4qMR7zjAhfjy0adD5beShQw.png?r=da7",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXCv6w9HjFvQ9p0gwW1K-WVRQnaLc8ZffNRUrpgTnhYTxdWFA0ZMidPUsMzJLsFKomXidhNpNrivp4aq7tYum-a4MLmw6sZvOg.png?r=59f",
@@ -797,7 +797,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Alice in Borderland",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/QZaPkNUvhdcKONuO2fXuqtcQRo.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABdC80itC3KP054_AE0ILSfyr4A40T00jQTWFjloMpt0L4bwdMViAhMkcGssBWlycVV_BYaCy1GBV2OqaOkGSfaUZhGbpjhgM_Q.png?r=ce1",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABY1l8SJXKp7IYTG3tpmPZG0CcFSvinnRo8zuLdh1CSRKfYg8MVprm93c47WcbZ-hk2pCN8it2Bv-IU_-jHZdXeIU6fOmpOP8IA.png?r=246",
@@ -815,7 +815,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Money Heist",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/xGexTKCJDkl12dTW4YCBDXWb1AD.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABUtR0bn6Vh5KdefXiToaOq8BAHLCV0Hw53fk4j5IfRuzjO60oW0mvPrR2M4ILSYHJvQxuT8MhKy4BSYV2ehUT4c4FOb-N1Va_A.png?r=52c",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABaJAMR78CUPIMM-lVujvyaAxojp95SeBL9jYUomGz8O0A5spnqaPNtn4hm5u5uA56v6WsHsA24DlegGHUtrdxrzDM3CW4cWz6A.png?r=3f3",
@@ -837,7 +837,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Carmen Sandiego",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/rpouileCT7DFfMbJoWQfOST1O8U.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABUDp77SaKdZJ__zReadgBDJLLdimt9uujcOpP-BT-08SMGqbA6Zne3pZyzdYA3qHt07R_Shy7WPC5Hc9Spm4IiRUKuobDLnndw.png?r=b21",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABTkR44RYdpecUXYKQCTzLhHpb713JaJYv-YBYfoyn335z4MlaYz_LL6E3i7f8PXAB28SvdF2_JYuC7d_KsKiEPHvG8mBGxrqrQ.png?r=ebc",
@@ -856,7 +856,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Bubble",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/a8Q2g0g7XzAF6gcB8qgn37ccb9Y.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABX-Q_GJZJLl8FDovDdEl0V2Q2VpXXonspYnkxZHvxJW1aYNpstHZiILi8T4ZcpaRFDfj-FcrTa_VNV3W5hrToeMoOhuoH1seEA.png?r=9ef",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSeeyfq7e-f_3JxCjRKKnIEGFf7tqrkH2yRs6RlnP4VrJrHYKJRfM_pmnFpy4eZoAm18s3ff40c-4graBSCWPv1eH2TF2agJZQ.png?r=347",
@@ -875,7 +875,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Shadow and Bone",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/qzSjrYSZAWrjhg6Yf3hCcfJE4o0.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABQdZONbeFbtDA8ko447AakEdbqstRnbKhHmtl0-RrLZ9zdfVVqCW34RPn-QshCfJmDP-ycaz0eHtehYTNVbmYdSuf8jVMMR2bQ.png?r=014",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABYAYnSikylc-m8DfZWos6OKE1wl9f1AtB1pb7eqoFQJ9XLrXNsPF7jJtzzke9IUSw1l67lGTm7midc1v7CjEgy-UjZk1Ji6FgA.png?r=ade",
@@ -890,7 +890,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Vivo",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/lBVLPOZzu1O39R8TjTDO1GTXUUk.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABRmT0w5iuAyvVE9DaDT_vI0HUK0e518ERbET_AKCWh55sdQemDji55m8OVami_Tu8t2PR-TFI7xsfbesa61b7mQOK3gugIVPFg.png?r=fd1",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABUKCC8-dR2Mor_MC0Xoztxp6CEUBMZTVCsc6zXzQMdO739Muks-sQjTe4LEiYAjI2pMk9nFStZhnQWqJ3RhGPP12HZ8ScSYmsQ.png?r=ce1",
@@ -906,7 +906,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Maya and the Three",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/vmLt0tC5KeLd4K5ASLG5s0Ho7op.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABYJbmRVezvWHFCwnEhFWYPJKjfJQPml43vu_HlHx4r5X6gLI4Rz8sdnJ36EBurNsKiQDA_bOiH2-6e4HrESVTLRNum1BIfA_Ow.png?r=14a",
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSgb0hwwSwslemREXIbSr9B5mgl7S--x4EaaXWb_MMNeq26e99slOnGOXKUpna_g0rVoqR5x3CTxIAOv5bLHTmveU8LNDB45ZA.png?r=d8c",
@@ -919,7 +919,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Disenchantment",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/hHEqDPbO6z4Xje5tOf3Wm1mdMtI.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABdl99egM_fjhBR1IAO-K89hQbaG7XWsfgqB6T4jYqkkXtBN8pfu9cri7W0HupvIWSf2ihBDJ1DJuRSc5FHLjZWsd5CAAuc4TrQ.png?r=69d",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABXHTJntA_317MnwyfnBwo0J496EfxBdfUWo34eImPANmYvUrujpSs5wDBB616vW31s7Tf_I-lSDwwghkXus4oCYqarD52juPOQ.png?r=4e1",
@@ -931,7 +931,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Lucifer",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/ta5oblpMlEcIPIS2YGcq9XEkWK2.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABZTO6iLdMK66SbFdLYOsuWNQSyUaFD8GPNpAuhn2U7sUfv95jj5Kb7Gqr6CSaypCIjOi7ldgqJPejmXVud_CqSlywXqch59z3g.png?r=2c8",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABW75gw1fd6E-71Wu7xyPYjrWovPjvFyQt8e1xQy44cRjYqdTVWc947wZWX089ggXDRzxg-aUbbY8BoH2TAgDaSFi3j2ESe-mSw.png?r=c99",
@@ -945,7 +945,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Dark",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/pVVobDO8cezhVPvwD6EBUN0g3mt.jpg",
   "icons": [
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABU2x9ED3H5k_2uuu_TjFHONsuvCDfEpZcaeV0qRIcFZ2acADMeGqBl1riq-qzmqH6ycnXPj-GbD5woYfLcwZ--SaguMrhBypmQ.png?r=805",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABatLjcqhvIUw4ChV9plA_YlRQPOkCC5EbRDx1I0hc2rDxLvX8G0ZVIpGqxwLv7RP2XXeArmMZx9xHashfPpiEL3Dh6IC4871wA.png?r=5f8",
@@ -962,7 +962,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Captain Underpants",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/tV5pAtzZHKZCltnywHp0WGgxLZF.jpg",
   "icons": [
    "https://occ-0-33-37.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABTcM4_a8n93Vj6sTusTV1owRx9uGuyFR8SYdKsNEGqVc4TcfB8vDvVUui1TGjFdm4DL1blCefsJkVDNQ8gu22ZmJlNAsWul5bw.png?r=b07",
    "https://occ-0-3933-116.1.nflxso.net/dnm/api/v6/vN7bi_My87NPKvsBoib006Llxzg/AAAABSPD1dBD65htm359agjpGVoFD37w5xSlYPyBvmmDOjTqi2Pgvv3Qo-SJ51HWiF1s8T2NKBHIrNBVdQ97xywcgA4f6F97YJYIkQ.png?r=b7d",
@@ -971,7 +971,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Outer Banks",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/fGk5GVPP7qfEHr8b9pzS6AWsOmV.jpg",
   "icons": [
    "https://occ-0-37-33.1.nflxso.net/dnm/api/v6/SO2HoVCx33X8phZh2pZZmQ4QgNY/AAAABSWL7A3sr4uAPRv2BYdX8kLgHc8OtHlpx14YDbQmAJ6gqDBudrq2WjfY7k2N_yk50--S2sNx51HrG399h-9if3v_77T7tAT6xg.png?r=072",
    "https://occ-0-37-33.1.nflxso.net/dnm/api/v6/SO2HoVCx33X8phZh2pZZmQ4QgNY/AAAABaWlDUuHfbe8Tde6Gmdj228EUT7KQxQhmC50c2mp5YYl3oouBmyDQGzQ4aPmGvxEElFonHWgnW97b02CCmEr0ZhQcCJEzsNppw.png?r=334",
@@ -984,7 +984,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "BTS",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/c8dm74uPCMA27iKAR1WnHKTsI9h.jpg",
   "icons": [
    "https://occ-0-37-33.1.nflxso.net/dnm/api/v6/SO2HoVCx33X8phZh2pZZmQ4QgNY/AAAABaPcCGPQK1ScD5DsC_VRkytzCe49APvRwpDts0v3_8ccj-JH917xW8UVEpYybpTS4PhW2ot001F6bkvtGORmCzibqXImue9xWg.png?r=3d9",
    "https://occ-0-37-33.1.nflxso.net/dnm/api/v6/SO2HoVCx33X8phZh2pZZmQ4QgNY/AAAABSpYW5fgzUqfonAaD_HmTZSauTgScVJfAO91e68HuiUR4fCemLdjeFaB72_BVniGnXwsxlbKr4U24EPLkC509TNxTblQWQgwGQ.png?r=cb2",
@@ -997,7 +997,7 @@ window.AVATAR_PACK = [
  },
  {
   "name": "Little House on the Prairie",
-  "banner": "",
+  "banner": "https://image.tmdb.org/t/p/w1280/uCvpgfY4oTeZxEcFqm1ATJkDDmu.jpg",
   "icons": [
    "https://occ-0-37-33.1.nflxso.net/dnm/api/v6/SO2HoVCx33X8phZh2pZZmQ4QgNY/AAAABV_-pEF3osObDQSByce6rayQry7UZP1aSHE8WlctZFevfyBiZJM6hXhZJ9ePmF0qpxlSdlOdrzX60pIQLjL8x_k5HJzZQh-CjA.png?r=e8f",
    "https://occ-0-37-33.1.nflxso.net/dnm/api/v6/SO2HoVCx33X8phZh2pZZmQ4QgNY/AAAABYrk4vD1LMLA7LQTg7m-NmsUOmz2cdmRLsFGLW2Lh6-2_ahpJnwr724x-mEgjuR6wJoNz5jujyoYKTF-80PwlZWnNZExi1jCtQ.png?r=215",
