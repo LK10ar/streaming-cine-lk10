@@ -57,7 +57,7 @@
     list.forEach(function (t) {
       var sec = document.createElement('div'); sec.className = 'av-theme'; sec.dataset.name = String(t.name || '').toLowerCase();
       var th = document.createElement('div'); th.className = 'av-th';
-      if (safeUrl(t.banner)) { th.classList.add('has-b'); th.style.backgroundImage = 'url("' + t.banner.replace(/"/g, '%22') + '")'; }
+      if (safeUrl(t.banner)) { th.classList.add('has-b'); th.style.backgroundImage = 'url("' + t.banner.replace(/"/g, '%22') + '")'; th.style.backgroundPosition = (t.posX == null ? 50 : t.posX) + '% ' + (t.posY == null ? 50 : t.posY) + '%'; }
       th.innerHTML = '<span>' + esc(t.name || 'Divers') + '</span>'; sec.appendChild(th);
       var g = document.createElement('div'); g.className = 'av-grid';
       t.icons.filter(safeUrl).forEach(function (u) {
