@@ -541,11 +541,29 @@
   var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
   var isoD = function (d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
   var KIND = { film: 'Film', serie: 'Série', anime: 'Animé' };
-  var CAL = { y: new Date().getFullYear(), m: new Date().getMonth(), kind: 'all', cat: false, q: '', data: {}, tv: {}, mv: {}, pend: 0, idx: null, t: 0 };
+  var CAL = { y: new Date().getFullYear(), m: new Date().getMonth(), kind: 'all', cat: false, q: '', data: {}, done: {}, sh: {}, se: {}, pend: 0, idx: null, t: 0 };
 
-  function tmdb(path, params) {
+  var GEN_X = [10763, 10767, 10764, 10766]; /* talk-shows, actualités, télé-réalité, feuilletons quotidiens : exclus (une « sortie » chaque jour, sans épisode utile) */
+  var latin = function (s) { var l = String(s || '').match(/\p{L}/gu); if (!l || !l.length) return false; var la = String(s).match(/\p{Script=Latin}/gu); return (la ? la.length : 0) * 2 >= l.length; };
+  var addDays = function (ds, n) { var d = new Date(ds + 'T12:00:00'); d.setDate(d.getDate() + n); return isoD(d); };
+
+  function tmdb(path, params, lang, again) {
     var k; try { k = TMDB_API_KEY; } catch (e) { return Promise.reject(e); }
-    return fetch('https://api.themoviedb.org/3' + path + '?api_key=' + k + '&language=fr-FR&' + params).then(function (r) { return r.json(); });
+    return fetch('https://api.themoviedb.org/3' + path + '?api_key=' + k + '&language=' + (lang || 'fr-FR') + (params ? '&' + params : '')).then(function (r) {
+      if (r.status === 429 && !again) return new Promise(function (ok) { setTimeout(ok, 700); }).then(function () { return tmdb(path, params, lang, 1); });
+      if (!r.ok) throw new Error('TMDB ' + r.status);
+      return r.json();
+    });
+  }
+  function pool(tasks, n, each) {          // exécute les requêtes n par n
+    var i = 0, out = [];
+    function next() {
+      if (i >= tasks.length) return Promise.resolve();
+      var t = tasks[i++];
+      return Promise.resolve().then(t).then(function (r) { if (r != null) out.push(r); }, function () {}).then(function () { if (each) each(); return next(); });
+    }
+    var w = [], k; for (k = 0; k < Math.min(n, tasks.length); k++) w.push(next());
+    return Promise.all(w).then(function () { return out; });
   }
   function catIndex() {
     if (CAL.idx && CAL.idxN === DB().length) return CAL.idx;
@@ -555,7 +573,7 @@
   }
   function mk(x, kind) {
     var t = x.title || x.name || '', ix = catIndex();
-    return { kind: kind, title: t, poster: x.poster_path ? 'https://image.tmdb.org/t/p/w154' + x.poster_path : '', rating: x.vote_average || 0,
+    return { kind: kind, title: t, poster: x.poster_path ? 'https://image.tmdb.org/t/p/w154' + x.poster_path : '', rating: x.vote_average || 0, pop: x.popularity || 0,
       over: x.overview || '', year: (x.release_date || x.first_air_date || '').slice(0, 4), cat: ix[norm(t)] || ix[norm(x.original_title || x.original_name)] || null };
   }
   var dayOf = function (ds) { return CAL.data[ds] || (CAL.data[ds] = { movies: [], tv: [] }); };
@@ -564,30 +582,83 @@
     for (i = 0; i < total; i++) out.push(new Date(CAL.y, CAL.m, 1 - dow + i));
     return out;
   }
-  function loadRange() {
-    var days = gridDays(), a = isoD(days[0]), b = isoD(days[days.length - 1]), tasks = [], key = a + '_' + b, tick = function () { clearTimeout(CAL.t); CAL.t = setTimeout(renderGrid, 120); };
-    if (!CAL.mv[key]) {
-      CAL.mv[key] = 1;
-      [1, 2, 3, 4, 5, 6].forEach(function (p) {
-        tasks.push(function () {
-          return tmdb('/discover/movie', 'sort_by=popularity.desc&include_adult=false&primary_release_date.gte=' + a + '&primary_release_date.lte=' + b + '&page=' + p).then(function (r) {
-            (r.results || []).forEach(function (x) { if (!x.release_date) return; var d = dayOf(x.release_date), it = mk(x, 'film'); if (!d.movies.some(function (m) { return m.title === it.title; })) d.movies.push(it); });
-          }).catch(function () { CAL.mv[key] = 0; });
-        });
+  /* ----- Séries & animés : on repère les séries qui diffusent dans la période, puis on lit leurs saisons pour avoir les VRAIS épisodes (S2E05…) jour par jour ----- */
+  function discoverShows(a, b, tick) {
+    var rng = 'include_adult=false&sort_by=popularity.desc&air_date.gte=' + a + '&air_date.lte=' + b, cand = {}, jobs = [], today = isoD(new Date()), p;
+    function take(r) {
+      ((r && r.results) || []).forEach(function (x) {
+        var g = x.genre_ids || [];
+        if (g.some(function (i) { return GEN_X.indexOf(i) > -1; })) return;
+        var an = g.indexOf(16) > -1 && (x.origin_country || []).indexOf('JP') > -1, c = cand[x.id];
+        cand[x.id] = { id: x.id, anime: an, pop: Math.max(x.popularity || 0, c ? c.pop : 0) };
       });
     }
-    days.forEach(function (d) {
-      var ds = isoD(d); if (CAL.tv[ds]) return; CAL.tv[ds] = 1;
-      tasks.push(function () {
-        return tmdb('/discover/tv', 'sort_by=popularity.desc&air_date.gte=' + ds + '&air_date.lte=' + ds + '&page=1').then(function (r) {
-          dayOf(ds).tv = (r.results || []).slice(0, 14).map(function (s) { return mk(s, (s.genre_ids || []).indexOf(16) > -1 && s.original_language === 'ja' ? 'anime' : 'serie'); });
-        }).catch(function () { CAL.tv[ds] = 0; });
+    function page(path, n, extra) { jobs.push(function () { return tmdb(path, (extra ? extra + '&' : '') + 'page=' + n).then(take); }); }
+    for (p = 1; p <= 4; p++) page('/discover/tv', p, rng + '&without_genres=' + GEN_X.join(','));
+    for (p = 1; p <= 5; p++) page('/discover/tv', p, rng + '&with_genres=16&with_origin_country=JP');     // animés japonais
+    if (today >= a && today <= b) { for (p = 1; p <= 3; p++) page('/tv/airing_today', p); for (p = 1; p <= 2; p++) page('/tv/on_the_air', p); }
+    return pool(jobs, 6, tick).then(function () {
+      var l = Object.keys(cand).map(function (k) { return cand[k]; }).sort(function (x, y) { return y.pop - x.pop; });
+      return l.filter(function (x) { return !x.anime; }).slice(0, 60).concat(l.filter(function (x) { return x.anime; }).slice(0, 90));
+    });
+  }
+  function showDet(id) { return CAL.sh[id] || (CAL.sh[id] = tmdb('/tv/' + id, '').catch(function () { delete CAL.sh[id]; return null; })); }
+  function seasonDet(id, n) { var k = id + ':' + n; return CAL.se[k] || (CAL.se[k] = tmdb('/tv/' + id + '/season/' + n, '').catch(function () { delete CAL.se[k]; return null; })); }
+  function showFull(id) {                  // titre latin obligatoire (sinon on retente en anglais, sinon on ignore)
+    return showDet(id).then(function (s) {
+      if (!s) return null; if (latin(s.name)) return s;
+      return tmdb('/tv/' + id, '', 'en-US').then(function (e) { if (e && latin(e.name)) { s.name = e.name; return s; } return null; }).catch(function () { return null; });
+    });
+  }
+  function seasonsFor(show, a, b) {        // saisons qui diffusent dans la période
+    var set = {};
+    (show.seasons || []).forEach(function (s) {
+      if (!(s.season_number >= 1) || !s.air_date) return;
+      if (s.air_date <= b && addDays(s.air_date, Math.max(1, s.episode_count || 1) * 7) >= a) set[s.season_number] = 1;
+    });
+    [show.last_episode_to_air, show.next_episode_to_air].forEach(function (e) {
+      if (e && e.season_number >= 1 && e.air_date && e.air_date >= addDays(a, -60) && e.air_date <= b) set[e.season_number] = 1;
+    });
+    return Object.keys(set).map(Number).sort(function (x, y) { return y - x; }).slice(0, 2);
+  }
+  function addShow(show, a, b, anime) {
+    return Promise.all(seasonsFor(show, a, b).map(function (n) { return seasonDet(show.id, n); })).then(function (res) {
+      var groups = {};
+      res.forEach(function (sd) {
+        ((sd && sd.episodes) || []).forEach(function (e) {
+          if (!e.air_date || e.air_date < a || e.air_date > b || typeof e.episode_number !== 'number') return;
+          var k = e.air_date + ':' + e.season_number; (groups[k] = groups[k] || []).push(e);
+        });
+      });
+      Object.keys(groups).forEach(function (k) {
+        var l = groups[k].sort(function (x, y) { return x.episode_number - y.episode_number; }), f = l[0], z = l[l.length - 1], it = mk(show, anime ? 'anime' : 'serie');
+        it.ep = 'S' + f.season_number + 'E' + pad2(f.episode_number) + (l.length > 1 ? '–E' + pad2(z.episode_number) : '');
+        it.epName = l.length > 1 ? l.length + ' épisodes' : (f.name || '');
+        it.epOver = l.length === 1 ? (f.overview || '') : '';
+        it.key = 't:' + show.id + ':' + f.season_number + ':' + f.episode_number + '-' + z.episode_number;
+        var d = dayOf(f.air_date); if (!d.tv.some(function (x) { return x.key === it.key; })) d.tv.push(it);
       });
     });
-    if (!tasks.length) return renderGrid();
-    var qi = 0, worker = function () { if (qi >= tasks.length) return Promise.resolve(); var t = tasks[qi++]; CAL.pend++; return t().then(function () { CAL.pend--; tick(); return worker(); }); };
-    var w = [], k; for (k = 0; k < 6; k++) w.push(worker());
-    Promise.all(w).then(function () { CAL.pend = 0; renderGrid(); });
+  }
+  function loadRange() {
+    var days = gridDays(), a = isoD(days[0]), b = isoD(days[days.length - 1]), key = a + '_' + b,
+      tick = function () { clearTimeout(CAL.t); CAL.t = setTimeout(renderGrid, 150); },
+      fin = function () { CAL.pend = Math.max(0, CAL.pend - 1); tick(); };
+    if (CAL.done[key]) return renderGrid();
+    CAL.done[key] = 1;
+    var movieJobs = [1, 2, 3, 4, 5, 6].map(function (p) {
+      return function () {
+        return tmdb('/discover/movie', 'sort_by=popularity.desc&include_adult=false&primary_release_date.gte=' + a + '&primary_release_date.lte=' + b + '&page=' + p).then(function (r) {
+          (r.results || []).forEach(function (x) { if (!x.release_date) return; var d = dayOf(x.release_date), it = mk(x, 'film'); if (!d.movies.some(function (m) { return m.title === it.title; })) d.movies.push(it); });
+        });
+      };
+    });
+    CAL.pend++; pool(movieJobs, 4, tick).then(fin, fin);
+    CAL.pend++;
+    discoverShows(a, b, tick).then(function (c) {
+      if (!c.length) { CAL.done[key] = 0; return; }
+      return pool(c.map(function (s) { return function () { return showFull(s.id).then(function (sh) { return sh ? addShow(sh, a, b, s.anime) : null; }); }; }), 8, tick);
+    }).then(fin, function () { CAL.done[key] = 0; fin(); });
     renderGrid();
   }
   function itemsOf(ds, all) {
@@ -595,7 +666,7 @@
     var l = d.movies.concat(d.tv).filter(function (x) {
       return (all || ((CAL.kind === 'all' || x.kind === CAL.kind) && (!CAL.cat || x.cat) && (!CAL.q || norm(x.title).indexOf(norm(CAL.q)) > -1)));
     });
-    return l.sort(function (a, b) { return (b.cat ? 1 : 0) - (a.cat ? 1 : 0); });
+    return l.sort(function (a, b) { return (b.cat ? 1 : 0) - (a.cat ? 1 : 0) || (b.pop || 0) - (a.pop || 0); });
   }
   function renderGrid() {
     var g = $('fxc-grid'); if (!g) return;
@@ -606,7 +677,7 @@
       var ds = isoD(d), all = itemsOf(ds, true), l = itemsOf(ds, false), out = d.getMonth() !== CAL.m;
       if (!out) monthN += all.length; if (ds >= wsI && ds <= weI) weekN += all.length; if (ds === today) todayN = all.length;
       html += '<div class="fxc-cell' + (out ? ' out' : '') + (ds === today ? ' today' : '') + '" data-d="' + ds + '"><span class="fxc-n">' + d.getDate() + '</span>' +
-        l.slice(0, 3).map(function (x) { return '<div class="fxc-chip k-' + x.kind + (x.cat ? ' cat' : '') + '" title="' + esc(x.title) + '">' + esc(x.title) + '</div>'; }).join('') +
+        l.slice(0, 3).map(function (x) { return '<div class="fxc-chip k-' + x.kind + (x.cat ? ' cat' : '') + '" title="' + esc(x.title + (x.ep ? ' — ' + x.ep : '')) + '">' + (x.ep ? '<b>' + esc(x.ep) + '</b>' : '') + esc(x.title) + '</div>'; }).join('') +
         (l.length > 3 ? '<div class="fxc-more">+' + (l.length - 3) + ' autres</div>' : '') +
         (l.length ? '<div class="fxc-dots">' + l.slice(0, 4).map(function (x) { return '<i class="d-' + x.kind + '"></i>'; }).join('') + '</div><div class="fxc-cnt">' + l.length + '</div>' : '') + '</div>';
     });
@@ -623,7 +694,8 @@
     $('fxc-dl').innerHTML = l.length ? l.map(function (x, i) {
       return '<div class="fxc-r"><div class="fxc-rp" style="background-image:url(\'' + esc(x.poster) + '\')"></div><div class="fxc-rb"><div class="fxc-rt">' + esc(x.title) + '</div>' +
         '<div class="fxc-rm"><span class="fxc-tag k-' + x.kind + '">' + KIND[x.kind] + '</span>' + (x.year ? ' ' + x.year : '') + (x.rating ? ' · ★ ' + x.rating.toFixed(1) : '') + '</div>' +
-        (x.over ? '<div class="fxc-ro">' + esc(x.over) + '</div>' : '') +
+        (x.ep ? '<div class="fxc-epn"><b>' + esc(x.ep) + '</b>' + (x.epName ? ' · ' + esc(x.epName) : '') + '</div>' : '') +
+        ((x.epOver || x.over) ? '<div class="fxc-ro">' + esc(x.epOver || x.over) + '</div>' : '') +
         (x.cat ? '<button class="fxc-watch" data-id="' + esc(x.cat) + '"><i class="fas fa-play"></i> Regarder</button>' : '<span class="fxc-no">Pas encore au catalogue</span>') + '</div></div>';
     }).join('') : '<div class="fx-empty">🎬<br>Aucune sortie ce jour-là.</div>';
     $('fxc-dl').querySelectorAll('.fxc-watch').forEach(function (b) { b.onclick = function () { closeCal(); try { openP(b.dataset.id); } catch (e) {} }; });
@@ -655,6 +727,7 @@
       $('fxc-day').onclick = function (e) { if (e.target === this) this.classList.remove('on'); };
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('fx-calpage').classList.contains('on')) { if ($('fxc-day').classList.contains('on')) $('fxc-day').classList.remove('on'); else closeCal(); } });
     }
+    if (!$('fxc-extra-css')) { var st = document.createElement('style'); st.id = 'fxc-extra-css'; st.textContent = '.fxc-chip b{font-weight:800;font-size:10px;opacity:.75;margin-right:5px}.fxc-epn{color:var(--primary,#ffde00);font-weight:700;font-size:13px;margin:4px 0 2px}.fxc-epn b{font-weight:900;margin-right:2px}'; document.head.appendChild(st); }
     o.classList.add('on'); document.body.classList.add('no-scroll'); o.scrollTop = 0; loadRange();
   }
   function closeCal() { var o = $('fx-calpage'); if (o) o.classList.remove('on'); var d = $('fxc-day'); if (d) d.classList.remove('on'); document.body.classList.remove('no-scroll'); }
