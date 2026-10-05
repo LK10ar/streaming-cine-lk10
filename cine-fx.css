@@ -429,3 +429,36 @@ html.fx-lite .player-content{animation:none!important}
  .prof-tabs-container .prof-tab-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 13px;font-size:12px;white-space:nowrap;background:#1a1a1a;border:1px solid #2a2a2a}
  .prof-tabs-container .prof-tab-btn.active{background:rgba(255,222,0,.12);border-color:rgba(255,222,0,.5)}
 }
+
+/* ===== FIX 1 (mobile) : le menu burger passe devant la page profil =====
+   Le <nav> est dans le <header> (z-index 1000) alors que la page profil est à 1050 :
+   le menu restait donc derrière. On remonte le header au-dessus du profil. */
+header{z-index:1060!important}
+@media (max-width:992px){
+ nav{z-index:1061!important}
+}
+
+/* ===== FIX 2 (desktop) : barre de navigation en 3 zones, plus rien collé à droite =====
+   Avant : le menu était centré en position:absolute (donc sorti du flux) et écrasait le logo / les boutons.
+   Maintenant : logo | menu (prend la place restante, centré) | boutons à droite. */
+@media (min-width:993px){
+ header{gap:14px;padding:0 20px}
+ header>div:first-child{flex:0 0 auto}
+ .logo{flex-shrink:0}
+ #main-nav{position:static!important;left:auto!important;transform:none!important;flex:1 1 auto;min-width:0;justify-content:center;height:100%}
+ #main-nav .nav-links{flex-wrap:nowrap;justify-content:center}
+ .nav-link{padding:0 10px;font-size:13px;white-space:nowrap}
+ .header-right{flex:0 0 auto;gap:10px}
+ #user-profile-nav,#notif-bell-wrap,.random-btn-header{margin-right:0!important}
+ .search-box{width:200px}
+}
+@media (min-width:993px) and (max-width:1300px){
+ .nav-link{padding:0 7px;font-size:12px;gap:4px}
+ .search-box{width:150px}
+ .random-btn-header .random-text{display:none}
+ .random-btn-header{padding:8px 10px}
+}
+@media (min-width:993px) and (max-width:1120px){
+ .nav-link>i:first-child,.nav-link>span>i:first-child{display:none}
+ .search-box{width:120px}
+}
