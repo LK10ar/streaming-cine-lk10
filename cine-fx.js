@@ -344,21 +344,16 @@
       $('fx-share-prof').onclick = function () { if (!cu().isPublic) toast('Ton profil est privé : active « Profil public » dans les Paramètres pour que le lien fonctionne.'); copy(shareUrl('u=' + encodeURIComponent(cu().username))); };
     }
     var ex = $('fx-extra'); if (!ex) { ex = document.createElement('div'); ex.id = 'fx-extra'; h.after(ex); }
-    var hist = (u.history || []).filter(function (x) { return x && typeof x === 'object'; }).sort(function (a, b) { return new Date(b.watchedAt || 0) - new Date(a.watchedAt || 0); }).slice(0, 10);
-    var rs = hist.length ? '<div class="fx-sec"><div class="fx-sech"><b><i class="fas fa-history"></i> Récemment vus</b></div><div class="fx-strip">' + hist.map(function (x, i) {
-      var ep = typeof x.episodeIndex === 'number', pct = ep && x.totalEpisodes ? Math.round((x.episodeIndex + 1) / x.totalEpisodes * 100) : 0;
-      return '<div class="fx-rc" data-i="' + i + '"><div class="fx-rp" style="background-image:url(\'' + esc(x.poster || (movie(x.id) || {}).poster || '') + '\')"><span class="fx-play"><i class="fas fa-play"></i></span>' + (pct ? '<i class="fx-prog" style="width:' + pct + '%"></i>' : '') + '</div><div class="fx-rt">' + esc(x.title) + '</div><div class="fx-s">' + (ep ? 'Épisode ' + (x.episodeIndex + 1) + (x.totalEpisodes ? '/' + x.totalEpisodes : '') : 'Reprendre') + '</div></div>';
-    }).join('') + '</div></div>' : '';
+    var rs = '';
     ex.innerHTML = rs + '<div class="fx-stats">' + statsFor(u).map(function (x) { return '<div class="fx-stat"><i class="fas ' + x[0] + '"></i><b>' + esc(x[1]) + '</b><span>' + x[2] + '</span></div>'; }).join('') + '</div>';
-    ex.querySelectorAll('.fx-rc').forEach(function (el) { el.onclick = function () { var x = hist[+el.dataset.i]; try { openP(x.id, typeof x.episodeIndex === 'number' ? x.episodeIndex : null); } catch (e) {} }; });
   }
 
-  /* ---------- Onglets : Mes listes, Abonnements, Calendrier ---------- */
+  /* ---------- Onglets : Mes listes, Abonnements ---------- */
   function panel() { var p = $('fx-prof-panel'); if (!p) { var g = $('profile-grid'); p = document.createElement('div'); p.id = 'fx-prof-panel'; g.parentNode.insertBefore(p, g); } return p; }
   function addTabs() {
     var a = $('tab-wip') || $('tab-suggest'); if (!a || $('tab-lists')) return;
     var mk = function (id, ico, label, fn) { var e = document.createElement('span'); e.id = id; e.className = 'prof-tab-btn'; e.innerHTML = '<i class="fas ' + ico + '"></i> ' + label; e.onclick = fn; return e; };
-    a.after(mk('tab-lists', 'fa-list', 'Mes listes', function () { openPanel('tab-lists', loadLists); }), mk('tab-follow', 'fa-user-friends', 'Abonnements', function () { openPanel('tab-follow', loadFollow); }), mk('tab-cal', 'fa-calendar-alt', 'Calendrier', function () { openCal(); }));
+    a.after(mk('tab-lists', 'fa-list', 'Mes listes', function () { openPanel('tab-lists', loadLists); }), mk('tab-follow', 'fa-user-friends', 'Abonnements', function () { openPanel('tab-follow', loadFollow); }));
   }
   function openPanel(tab, fn) {
     document.querySelectorAll('.prof-tab-btn').forEach(function (b) { b.classList.remove('active'); }); $(tab).classList.add('active');
@@ -536,36 +531,134 @@
     setTimeout(function () { toast('Reprendre « ' + h.title + ' »' + (typeof h.episodeIndex === 'number' ? ' — épisode ' + (h.episodeIndex + 1) : '') + ' ?', function () { try { openP(h.id, typeof h.episodeIndex === 'number' ? h.episodeIndex : null); } catch (e) {} }, '▶ Reprendre'); }, 3500);
   }
 
-  /* ---------- Calendrier des sorties ---------- */
-  var cal = { y: new Date().getFullYear(), m: new Date().getMonth(), kind: 'movie' };
+  /* ---------- Calendrier des sorties : page à part, dans le menu à côté de Wishboard ---------- */
   var norm = function (s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); };
-  function openCal() {
-    var o = $('fx-cal'); if (!o) { o = document.createElement('div'); o.id = 'fx-cal'; o.innerHTML = '<div class="fx-pubin"><button class="fx-pubx" id="fx-calx">✕</button><div class="fx-head"><b><i class="fas fa-calendar-alt"></i> Calendrier des sorties</b></div><div class="fx-calbar"><button class="fx-btn" id="fx-calp">◀</button><b id="fx-calt"></b><button class="fx-btn" id="fx-caln">▶</button><span class="fx-sp"></span><button class="fx-btn on" data-k="movie">Films</button><button class="fx-btn" data-k="tv">Nouvelles séries</button></div><div id="fx-calc"></div></div>'; document.body.appendChild(o);
-      $('fx-calx').onclick = function () { o.classList.remove('on'); document.body.classList.remove('no-scroll'); };
-      $('fx-calp').onclick = function () { cal.m--; if (cal.m < 0) { cal.m = 11; cal.y--; } loadCal(); }; $('fx-caln').onclick = function () { cal.m++; if (cal.m > 11) { cal.m = 0; cal.y++; } loadCal(); };
-      o.querySelectorAll('[data-k]').forEach(function (b) { b.onclick = function () { cal.kind = b.dataset.k; o.querySelectorAll('[data-k]').forEach(function (x) { x.classList.toggle('on', x === b); }); loadCal(); }; });
-    }
-    o.classList.add('on'); document.body.classList.add('no-scroll'); loadCal();
+  var pad2 = function (n) { return n < 10 ? '0' + n : '' + n; };
+  var isoD = function (d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
+  var KIND = { film: 'Film', serie: 'Série', anime: 'Animé' };
+  var CAL = { y: new Date().getFullYear(), m: new Date().getMonth(), kind: 'all', cat: false, q: '', data: {}, tv: {}, mv: {}, pend: 0, idx: null, t: 0 };
+
+  function tmdb(path, params) {
+    var k; try { k = TMDB_API_KEY; } catch (e) { return Promise.reject(e); }
+    return fetch('https://api.themoviedb.org/3' + path + '?api_key=' + k + '&language=fr-FR&' + params).then(function (r) { return r.json(); });
   }
-  function loadCal() {
-    var c = $('fx-calc'), pad = function (n) { return (n < 10 ? '0' : '') + n; }, last = new Date(cal.y, cal.m + 1, 0).getDate();
-    var a = cal.y + '-' + pad(cal.m + 1) + '-01', b = cal.y + '-' + pad(cal.m + 1) + '-' + pad(last);
-    $('fx-calt').textContent = new Date(cal.y, cal.m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }); c.innerHTML = '<div class="fx-empty">Chargement…</div>';
-    var key; try { key = TMDB_API_KEY; } catch (e) { c.innerHTML = '<div class="fx-empty">Calendrier indisponible.</div>'; return; }
-    var base = 'https://api.themoviedb.org/3/discover/' + cal.kind + '?api_key=' + key + '&language=fr-FR&sort_by=popularity.desc' + (cal.kind === 'movie' ? '&region=FR&with_release_type=2|3&release_date.gte=' + a + '&release_date.lte=' + b : '&first_air_date.gte=' + a + '&first_air_date.lte=' + b);
-    Promise.all([1, 2, 3].map(function (pg) { return fetch(base + '&page=' + pg).then(function (r) { return r.json(); }).catch(function () { return {}; }); })).then(function (rs) {
-      var items = []; rs.forEach(function (r) { items = items.concat(r.results || []); });
-      var by = {}; items.forEach(function (i) { var d = i.release_date || i.first_air_date; if (d && i.poster_path) (by[d] = by[d] || []).push(i); });
-      var days = Object.keys(by).sort(), mine = {}; DB().forEach(function (x) { mine[norm(x.title)] = x; });
-      var today = new Date().toISOString().slice(0, 10);
-      c.innerHTML = days.length ? days.map(function (d) {
-        return '<div class="fx-day' + (d === today ? ' today' : '') + '"><div class="fx-dh">' + new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + '</div><div class="fx-strip">' + by[d].slice(0, 12).map(function (i) {
-          var t = i.title || i.name, on = mine[norm(t)];
-          return '<div class="fx-rc fx-cc" ' + (on ? 'data-id="' + esc(on.id) + '"' : 'data-t="' + i.id + '"') + '><div class="fx-rp" style="background-image:url(\'https://image.tmdb.org/t/p/w342' + i.poster_path + '\')">' + (on ? '<span class="fx-on">Sur Ciné LK10</span>' : '') + '</div><div class="fx-rt">' + esc(t) + '</div><div class="fx-s">' + (i.vote_average ? '★ ' + i.vote_average.toFixed(1) : '') + '</div></div>';
-        }).join('') + '</div></div>';
-      }).join('') : '<div class="fx-empty">📅<br>Rien de prévu ce mois-ci.</div>';
-      c.querySelectorAll('.fx-cc').forEach(function (el) { el.onclick = function () { if (el.dataset.id) { $('fx-cal').classList.remove('on'); document.body.classList.remove('no-scroll'); try { if (typeof closeProfilePage === 'function') closeProfilePage(); openP(el.dataset.id); } catch (e) {} } else window.open('https://www.themoviedb.org/' + cal.kind + '/' + el.dataset.t, '_blank'); }; });
+  function catIndex() {
+    if (CAL.idx && CAL.idxN === DB().length) return CAL.idx;
+    CAL.idx = {}; CAL.idxN = DB().length;
+    DB().forEach(function (m) { if (m.type !== 'saga' && m.title) CAL.idx[norm(m.title)] = m.id; });
+    return CAL.idx;
+  }
+  function mk(x, kind) {
+    var t = x.title || x.name || '', ix = catIndex();
+    return { kind: kind, title: t, poster: x.poster_path ? 'https://image.tmdb.org/t/p/w154' + x.poster_path : '', rating: x.vote_average || 0,
+      over: x.overview || '', year: (x.release_date || x.first_air_date || '').slice(0, 4), cat: ix[norm(t)] || ix[norm(x.original_title || x.original_name)] || null };
+  }
+  var dayOf = function (ds) { return CAL.data[ds] || (CAL.data[ds] = { movies: [], tv: [] }); };
+  function gridDays() {
+    var first = new Date(CAL.y, CAL.m, 1), dow = (first.getDay() + 6) % 7, n = new Date(CAL.y, CAL.m + 1, 0).getDate(), total = Math.ceil((dow + n) / 7) * 7, out = [], i;
+    for (i = 0; i < total; i++) out.push(new Date(CAL.y, CAL.m, 1 - dow + i));
+    return out;
+  }
+  function loadRange() {
+    var days = gridDays(), a = isoD(days[0]), b = isoD(days[days.length - 1]), tasks = [], key = a + '_' + b, tick = function () { clearTimeout(CAL.t); CAL.t = setTimeout(renderGrid, 120); };
+    if (!CAL.mv[key]) {
+      CAL.mv[key] = 1;
+      [1, 2, 3, 4, 5, 6].forEach(function (p) {
+        tasks.push(function () {
+          return tmdb('/discover/movie', 'sort_by=popularity.desc&include_adult=false&primary_release_date.gte=' + a + '&primary_release_date.lte=' + b + '&page=' + p).then(function (r) {
+            (r.results || []).forEach(function (x) { if (!x.release_date) return; var d = dayOf(x.release_date), it = mk(x, 'film'); if (!d.movies.some(function (m) { return m.title === it.title; })) d.movies.push(it); });
+          }).catch(function () { CAL.mv[key] = 0; });
+        });
+      });
+    }
+    days.forEach(function (d) {
+      var ds = isoD(d); if (CAL.tv[ds]) return; CAL.tv[ds] = 1;
+      tasks.push(function () {
+        return tmdb('/discover/tv', 'sort_by=popularity.desc&air_date.gte=' + ds + '&air_date.lte=' + ds + '&page=1').then(function (r) {
+          dayOf(ds).tv = (r.results || []).slice(0, 14).map(function (s) { return mk(s, (s.genre_ids || []).indexOf(16) > -1 && s.original_language === 'ja' ? 'anime' : 'serie'); });
+        }).catch(function () { CAL.tv[ds] = 0; });
+      });
     });
+    if (!tasks.length) return renderGrid();
+    var qi = 0, worker = function () { if (qi >= tasks.length) return Promise.resolve(); var t = tasks[qi++]; CAL.pend++; return t().then(function () { CAL.pend--; tick(); return worker(); }); };
+    var w = [], k; for (k = 0; k < 6; k++) w.push(worker());
+    Promise.all(w).then(function () { CAL.pend = 0; renderGrid(); });
+    renderGrid();
+  }
+  function itemsOf(ds, all) {
+    var d = CAL.data[ds]; if (!d) return [];
+    var l = d.movies.concat(d.tv).filter(function (x) {
+      return (all || ((CAL.kind === 'all' || x.kind === CAL.kind) && (!CAL.cat || x.cat) && (!CAL.q || norm(x.title).indexOf(norm(CAL.q)) > -1)));
+    });
+    return l.sort(function (a, b) { return (b.cat ? 1 : 0) - (a.cat ? 1 : 0); });
+  }
+  function renderGrid() {
+    var g = $('fxc-grid'); if (!g) return;
+    var days = gridDays(), today = isoD(new Date()), html = '', wd = ['LUN.', 'MAR.', 'MER.', 'JEU.', 'VEN.', 'SAM.', 'DIM.'];
+    wd.forEach(function (w) { html += '<div class="fxc-wd">' + w + '</div>'; });
+    var monthN = 0, weekN = 0, todayN = 0, now = new Date(), ws = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7)), wsI = isoD(ws), weI = isoD(new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6));
+    days.forEach(function (d) {
+      var ds = isoD(d), all = itemsOf(ds, true), l = itemsOf(ds, false), out = d.getMonth() !== CAL.m;
+      if (!out) monthN += all.length; if (ds >= wsI && ds <= weI) weekN += all.length; if (ds === today) todayN = all.length;
+      html += '<div class="fxc-cell' + (out ? ' out' : '') + (ds === today ? ' today' : '') + '" data-d="' + ds + '"><span class="fxc-n">' + d.getDate() + '</span>' +
+        l.slice(0, 3).map(function (x) { return '<div class="fxc-chip k-' + x.kind + (x.cat ? ' cat' : '') + '" title="' + esc(x.title) + '">' + esc(x.title) + '</div>'; }).join('') +
+        (l.length > 3 ? '<div class="fxc-more">+' + (l.length - 3) + ' autres</div>' : '') +
+        (l.length ? '<div class="fxc-dots">' + l.slice(0, 4).map(function (x) { return '<i class="d-' + x.kind + '"></i>'; }).join('') + '</div><div class="fxc-cnt">' + l.length + '</div>' : '') + '</div>';
+    });
+    g.innerHTML = html;
+    $('fxc-s1').textContent = todayN; $('fxc-s2').textContent = weekN; $('fxc-s3').textContent = monthN;
+    $('fxc-sub').textContent = monthN + ' sortie' + (monthN > 1 ? 's' : '') + ' ce mois-ci';
+    $('fxc-month').textContent = new Date(CAL.y, CAL.m, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    $('fxc-load').style.opacity = CAL.pend > 0 ? 1 : 0;
+    g.querySelectorAll('.fxc-cell').forEach(function (c) { c.onclick = function () { openDay(c.dataset.d); }; });
+  }
+  function openDay(ds) {
+    var o = $('fxc-day'), l = itemsOf(ds, false), d = new Date(ds + 'T12:00:00');
+    $('fxc-dt').textContent = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    $('fxc-dl').innerHTML = l.length ? l.map(function (x, i) {
+      return '<div class="fxc-r"><div class="fxc-rp" style="background-image:url(\'' + esc(x.poster) + '\')"></div><div class="fxc-rb"><div class="fxc-rt">' + esc(x.title) + '</div>' +
+        '<div class="fxc-rm"><span class="fxc-tag k-' + x.kind + '">' + KIND[x.kind] + '</span>' + (x.year ? ' ' + x.year : '') + (x.rating ? ' · ★ ' + x.rating.toFixed(1) : '') + '</div>' +
+        (x.over ? '<div class="fxc-ro">' + esc(x.over) + '</div>' : '') +
+        (x.cat ? '<button class="fxc-watch" data-id="' + esc(x.cat) + '"><i class="fas fa-play"></i> Regarder</button>' : '<span class="fxc-no">Pas encore au catalogue</span>') + '</div></div>';
+    }).join('') : '<div class="fx-empty">🎬<br>Aucune sortie ce jour-là.</div>';
+    $('fxc-dl').querySelectorAll('.fxc-watch').forEach(function (b) { b.onclick = function () { closeCal(); try { openP(b.dataset.id); } catch (e) {} }; });
+    o.classList.add('on');
+  }
+  function shiftMonth(n) { CAL.m += n; if (CAL.m < 0) { CAL.m = 11; CAL.y--; } if (CAL.m > 11) { CAL.m = 0; CAL.y++; } loadRange(); }
+  function openCal() {
+    try { if (typeof closeProfilePage === 'function') closeProfilePage(); } catch (e) {}
+    var o = $('fx-calpage');
+    if (!o) {
+      o = document.createElement('div'); o.id = 'fx-calpage';
+      o.innerHTML = '<div class="fxc"><div class="fxc-top"><button class="fxc-back" id="fxc-back" aria-label="Retour"><i class="fas fa-arrow-left"></i></button><div class="fxc-ico"><i class="fas fa-calendar-alt"></i></div><div><h2>Calendrier</h2><small id="fxc-sub">…</small></div></div>' +
+        '<div class="fxc-stats"><div><b id="fxc-s1">0</b><span>Aujourd\'hui</span></div><div><b id="fxc-s2">0</b><span>Cette semaine</span></div><div><b id="fxc-s3">0</b><span>Ce mois-ci</span></div></div>' +
+        '<div class="fxc-bar"><button class="fxc-btn" id="fxc-prev"><i class="fas fa-chevron-left"></i></button><div class="fxc-month" id="fxc-month"></div><button class="fxc-btn" id="fxc-next"><i class="fas fa-chevron-right"></i></button><button class="fxc-btn" id="fxc-today">Aujourd\'hui</button>' +
+        '<label class="fxc-search"><i class="fas fa-search"></i><input id="fxc-q" type="text" placeholder="Rechercher dans le calendrier…"></label>' +
+        '<div class="fxc-seg" id="fxc-seg"><button data-k="all" class="on">Tout</button><button data-k="film">Films</button><button data-k="serie">Séries</button><button data-k="anime">Animés</button></div>' +
+        '<button class="fxc-btn" id="fxc-cat"><i class="fas fa-check-circle"></i> Au catalogue</button></div>' +
+        '<div class="fxc-load" id="fxc-load"></div><div class="fxc-grid" id="fxc-grid"></div>' +
+        '<div class="fxc-legend"><span><i class="d-film"></i>Films</span><span><i class="d-serie"></i>Séries</span><span><i class="d-anime"></i>Animés</span><span><i class="d-cat"></i>Disponible sur LK10</span><span class="fxc-src">Données TMDB</span></div></div>' +
+        '<div id="fxc-day"><div class="fxc-dp"><button class="fxc-x" id="fxc-dx">✕</button><h3 id="fxc-dt"></h3><div id="fxc-dl"></div></div></div>';
+      document.body.appendChild(o);
+      $('fxc-back').onclick = closeCal;
+      $('fxc-prev').onclick = function () { shiftMonth(-1); }; $('fxc-next').onclick = function () { shiftMonth(1); };
+      $('fxc-today').onclick = function () { var n = new Date(); CAL.y = n.getFullYear(); CAL.m = n.getMonth(); loadRange(); };
+      $('fxc-q').oninput = function () { CAL.q = this.value; renderGrid(); };
+      $('fxc-seg').querySelectorAll('button').forEach(function (b) { b.onclick = function () { CAL.kind = b.dataset.k; $('fxc-seg').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderGrid(); }; });
+      $('fxc-cat').onclick = function () { CAL.cat = !CAL.cat; this.classList.toggle('on', CAL.cat); renderGrid(); };
+      $('fxc-dx').onclick = function () { $('fxc-day').classList.remove('on'); };
+      $('fxc-day').onclick = function (e) { if (e.target === this) this.classList.remove('on'); };
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('fx-calpage').classList.contains('on')) { if ($('fxc-day').classList.contains('on')) $('fxc-day').classList.remove('on'); else closeCal(); } });
+    }
+    o.classList.add('on'); document.body.classList.add('no-scroll'); o.scrollTop = 0; loadRange();
+  }
+  function closeCal() { var o = $('fx-calpage'); if (o) o.classList.remove('on'); var d = $('fxc-day'); if (d) d.classList.remove('on'); document.body.classList.remove('no-scroll'); }
+  function addNavCal() {
+    var w = $('nav-wishboard'), li = w && w.closest('li'); if (!li || $('nav-calendar')) return;
+    var n = document.createElement('li'); n.className = 'nav-item';
+    n.innerHTML = '<a id="nav-calendar" class="nav-link" href="#"><i class="fas fa-calendar-alt"></i> CALENDRIER</a>';
+    li.after(n);
+    $('nav-calendar').onclick = function (e) { e.preventDefault(); try { if (window.innerWidth <= 992 && typeof toggleMobileMenu === 'function') toggleMobileMenu(); } catch (x) {} openCal(); };
   }
 
   /* ---------- Fenêtre flottante ---------- */
@@ -599,6 +692,7 @@
   var oOp = window.openP; if (typeof oOp === 'function') window.openP = function () { floatOff(); return oOp.apply(this, arguments); };
   var oSet = $('settings-overlay'); if (oSet) new MutationObserver(function () { if (oSet.style.display === 'flex') { patchSettings2(); fillSettings(); } }).observe(oSet, { attributes: true, attributeFilter: ['style'] });
 
+  try { addNavCal(); } catch (e) { console.warn('cine-cal', e); }
   try { addListBtn(); floatBtn(); addTabs(); } catch (e) {}
   whenUser(function () { applyAccent(cu().accent); resumeReminder(); });
   fromUrl();
