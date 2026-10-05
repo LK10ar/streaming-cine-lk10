@@ -524,11 +524,16 @@
   }
 
   /* ---------- Rappel pour reprendre ---------- */
+  /* attend que la page « Press start » soit fermée avant d'afficher quoi que ce soit */
+  function afterCover(cb) {
+    var c = $('cover-page'), gone = function () { return !c || !c.isConnected || getComputedStyle(c).display === 'none'; };
+    if (gone()) return cb();
+    var i = setInterval(function () { if (gone()) { clearInterval(i); cb(); } }, 400);
+  }
   function resumeReminder() {
-    var u = cu(); if (!u || sessionStorage.getItem('fxResume')) return; if ((u.notif || {}).resume === false) return;
+    var u = cu(); if (!u || sessionStorage.getItem('fxResume2')) return; if ((u.notif || {}).resume === false) return;
     var h = (u.history || []).filter(function (x) { return x && typeof x === 'object'; }).sort(function (a, b) { return new Date(b.watchedAt || 0) - new Date(a.watchedAt || 0); })[0]; if (!h) return;
-    sessionStorage.setItem('fxResume', '1');
-    setTimeout(function () { toast('Reprendre « ' + h.title + ' »' + (typeof h.episodeIndex === 'number' ? ' — épisode ' + (h.episodeIndex + 1) : '') + ' ?', function () { try { openP(h.id, typeof h.episodeIndex === 'number' ? h.episodeIndex : null); } catch (e) {} }, '▶ Reprendre'); }, 3500);
+    afterCover(function () { setTimeout(function () { try { sessionStorage.setItem('fxResume2', '1'); } catch (e) {} toast('Reprendre « ' + h.title + ' »' + (typeof h.episodeIndex === 'number' ? ' — épisode ' + (h.episodeIndex + 1) : '') + ' ?', function () { try { openP(h.id, typeof h.episodeIndex === 'number' ? h.episodeIndex : null); } catch (e) {} }, '▶ Reprendre'); }, 1500); });
   }
 
   /* ---------- Calendrier des sorties : page à part, dans le menu à côté de Wishboard ---------- */
