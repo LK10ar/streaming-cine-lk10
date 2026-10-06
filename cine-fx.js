@@ -565,16 +565,37 @@
     var w = [], k; for (k = 0; k < Math.min(n, tasks.length); k++) w.push(next());
     return Promise.all(w).then(function () { return out; });
   }
+  /* Un titre est « au catalogue » seulement si le NOM, le TYPE (film / série-animé) et l'ANNÉE (±1) correspondent.
+     Les noms vides (titres en japonais, chinois… une fois nettoyés) sont ignorés : c'était la cause des faux « Regarder ». */
   function catIndex() {
     if (CAL.idx && CAL.idxN === DB().length) return CAL.idx;
     CAL.idx = {}; CAL.idxN = DB().length;
-    DB().forEach(function (m) { if (m.type !== 'saga' && m.title) CAL.idx[norm(m.title)] = m.id; });
+    DB().forEach(function (m) {
+      if (!m || m.type === 'saga' || !m.title || m.id == null) return;
+      var k = norm(m.title); if (!k) return;
+      (CAL.idx[k] = CAL.idx[k] || []).push({ id: m.id, type: m.type, year: parseInt(m.year, 10) || 0 });
+    });
     return CAL.idx;
   }
+  function matchCat(it) {
+    var n = DB().length; if (it._n === n) return it._c;
+    var ix = catIndex(), tv = it.kind !== 'film', y = parseInt(it.year, 10) || 0, seen = {}, res = null;
+    it.mt.forEach(function (k) {
+      if (!k) return;
+      (ix[k] || []).forEach(function (m) {
+        if (res || seen[m.id]) return; seen[m.id] = 1;
+        if (tv ? m.type === 'film' : m.type !== 'film') return;
+        if (y && m.year && Math.abs(m.year - y) > 1) return;
+        res = m.id;
+      });
+    });
+    it._n = n; it._c = res; return res;
+  }
   function mk(x, kind) {
-    var t = x.title || x.name || '', ix = catIndex();
+    var t = x.title || x.name || '';
     return { kind: kind, title: t, poster: x.poster_path ? 'https://image.tmdb.org/t/p/w154' + x.poster_path : '', rating: x.vote_average || 0, pop: x.popularity || 0,
-      over: x.overview || '', year: (x.release_date || x.first_air_date || '').slice(0, 4), cat: ix[norm(t)] || ix[norm(x.original_title || x.original_name)] || null };
+      over: x.overview || '', year: (x.release_date || x.first_air_date || '').slice(0, 4), mt: [norm(t), norm(x.original_title || x.original_name)],
+      get cat() { return matchCat(this); } };
   }
   var dayOf = function (ds) { return CAL.data[ds] || (CAL.data[ds] = { movies: [], tv: [] }); };
   function gridDays() {
@@ -701,7 +722,7 @@
         ((x.epOver || x.over) ? '<div class="fxc-ro">' + esc(x.epOver || x.over) + '</div>' : '') +
         (x.cat ? '<button class="fxc-watch" data-id="' + esc(x.cat) + '"><i class="fas fa-play"></i> Regarder</button>' : '<span class="fxc-no">Pas encore au catalogue</span>') + '</div></div>';
     }).join('') : '<div class="fx-empty">🎬<br>Aucune sortie ce jour-là.</div>';
-    $('fxc-dl').querySelectorAll('.fxc-watch').forEach(function (b) { b.onclick = function () { closeCal(); try { openP(b.dataset.id); } catch (e) {} }; });
+    $('fxc-dl').querySelectorAll('.fxc-watch').forEach(function (b) { b.onclick = function () { var id = b.dataset.id; if (!DB().some(function (m) { return String(m.id) === String(id); })) return; closeCal(); try { openP(id); } catch (e) {} }; });
     o.classList.add('on');
   }
   function shiftMonth(n) { CAL.m += n; if (CAL.m < 0) { CAL.m = 11; CAL.y--; } if (CAL.m > 11) { CAL.m = 0; CAL.y++; } loadRange(); }
