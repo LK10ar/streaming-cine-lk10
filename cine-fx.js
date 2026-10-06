@@ -621,7 +621,10 @@
     });
     return Object.keys(set).map(Number).sort(function (x, y) { return y - x; }).slice(0, 2);
   }
+  var MAX_SEASONS = 15;                    /* séries et animés avec plus de saisons : retirés du calendrier (mets 999 pour tout garder) */
+  var seasonCount = function (show) { var n = (show.seasons || []).filter(function (s) { return s.season_number >= 1; }).length; return Math.max(n, show.number_of_seasons || 0); };
   function addShow(show, a, b, anime) {
+    if (seasonCount(show) > MAX_SEASONS) return Promise.resolve();
     return Promise.all(seasonsFor(show, a, b).map(function (n) { return seasonDet(show.id, n); })).then(function (res) {
       var groups = {};
       res.forEach(function (sd) {
