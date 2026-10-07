@@ -798,4 +798,164 @@
   try { addListBtn(); floatBtn(); addTabs(); } catch (e) {}
   whenUser(function () { applyAccent(cu().accent); resumeReminder(); });
   fromUrl();
+  /* ============================================================================================
+     TENDANCES RÉELLES (TMDB) : les rangées « tendance » du site suivent maintenant ce qui est
+     vraiment populaire sur internet, filtré sur ce que TU as au catalogue (même nom + même type + année ±1).
+     ============================================================================================ */
+  var TR = { raw: null, lists: null, p: null };
+  var TR_MAP = { 'tendances-slider': 'mix', 'series-tendance-slider': 'tv', 'films-tendance-slider': 'film', 'films-animes-tendance-slider': 'fa', 'series-animes-tendance-slider': 'sa' };
+  var TR_MIN = 6;                       /* en dessous de ce nombre de titres trouvés, on garde l'ancienne rangée */
+  function trPages(path, params, pages) {
+    var a = []; for (var p = 1; p <= pages; p++) a.push(tmdb(path, (params ? params + '&' : '') + 'page=' + p).then(function (r) { return r.results || []; }).catch(function () { return []; }));
+    return Promise.all(a).then(function (rs) { return [].concat.apply([], rs); });
+  }
+  function slim(x, kind) { return { m: kind || (x.media_type === 'tv' ? 'tv' : 'film'), t: x.title || x.name || '', o: x.original_title || x.original_name || '', y: (x.release_date || x.first_air_date || '').slice(0, 4) }; }
+  function loadTrending() {
+    if (TR.p) return TR.p;
+    var c = null; try { c = JSON.parse(sessionStorage.getItem('fx_trend2')); } catch (e) {}
+    if (c && Date.now() - c.t < 6 * 3600e3) { TR.raw = c.d; return (TR.p = Promise.resolve()); }
+    var an = 'with_genres=16&with_original_language=ja&sort_by=popularity.desc';
+    TR.p = Promise.all([trPages('/trending/all/week', '', 3), trPages('/trending/movie/week', '', 5), trPages('/trending/tv/week', '', 5), trPages('/trending/all/day', '', 2), trPages('/discover/tv', an, 4), trPages('/discover/movie', an, 4)]).then(function (r) {
+      TR.raw = { aw: r[0].map(function (x) { return slim(x); }), mw: r[1].map(function (x) { return slim(x, 'film'); }), tw: r[2].map(function (x) { return slim(x, 'tv'); }), ad: r[3].map(function (x) { return slim(x); }), at: r[4].map(function (x) { return slim(x, 'tv'); }), am: r[5].map(function (x) { return slim(x, 'film'); }) };
+      try { sessionStorage.setItem('fx_trend2', JSON.stringify({ t: Date.now(), d: TR.raw })); } catch (e) {}
+    }).catch(function () { TR.p = null; });
+    return TR.p;
+  }
+  function trLists() {
+    var R = TR.raw; if (!R || !DB().length) return null;
+    var byId = {}; DB().forEach(function (m) { byId[m.id] = m; });
+    var isAn = function (m) { return !!(m.genre && m.genre.includes && m.genre.includes('Anime')); };
+    var notHP = function (m) { return (m.title || '').toLowerCase().indexOf('harry potter') < 0; };
+    var isTv = function (m) { return m.type === 'serie'; };
+    var match = function () {
+      var seen = {}, out = [];
+      [].slice.call(arguments).forEach(function (l) { l.forEach(function (x) {
+        var id = matchCat({ kind: x.m === 'tv' ? 'serie' : 'film', year: x.y, mt: [norm(x.t), norm(x.o)] });
+        if (id == null || seen[id] || !byId[id] || byId[id].type === 'saga') return; seen[id] = 1; out.push(byId[id]);
+      }); });
+      return out;
+    };
+    var plainTv = function (m) { try { return isTv(m) && !isAnimeMovie(m); } catch (e) { return isTv(m) && !isAn(m); } };
+    return {
+      mix: match(R.aw, R.mw, R.tw).filter(notHP).slice(0, 30),
+      tv: match(R.tw, R.aw).filter(plainTv).slice(0, 30),
+      film: match(R.mw, R.aw).filter(function (m) { return m.type === 'film' && notHP(m); }).slice(0, 30),
+      fa: match(R.mw, R.am).filter(function (m) { return m.type === 'film' && isAn(m); }).slice(0, 30),
+      sa: match(R.tw, R.at).filter(function (m) { return isTv(m) && isAn(m); }).slice(0, 30),
+      top: match(R.ad, R.aw).slice(0, 10)
+    };
+  }
+  function applyTrending() {
+    var L = trLists(); if (!L) return; TR.lists = L;
+    Object.keys(TR_MAP).forEach(function (id) { if ($(id) && L[TR_MAP[id]].length >= TR_MIN && typeof window.buildStandardSlider === 'function') window.buildStandardSlider(id, L[TR_MAP[id]]); });
+    if ($('top10-slider') && L.top.length >= 5 && typeof window.buildTop10Slider === 'function') window.buildTop10Slider('top10-slider', L.top);
+  }
+  (function hookTrending() {
+    var oStd = window.buildStandardSlider, oTop = window.buildTop10Slider, oHome = window.buildNetflixHome;
+    if (typeof oStd === 'function') window.buildStandardSlider = function (id, list) {
+      var k = TR_MAP[id], L = TR.lists; if (k && L && L[k].length >= TR_MIN) list = L[k]; return oStd.call(this, id, list);
+    };
+    if (typeof oTop === 'function') window.buildTop10Slider = function (id, list) {   /* écrase aussi le résultat tardif de /api/trending */
+      var L = TR.lists; if (id === 'top10-slider' && L && L.top.length >= 5) list = L.top; return oTop.call(this, id, list);
+    };
+    if (typeof oHome === 'function') window.buildNetflixHome = function () { var r = oHome.apply(this, arguments); loadTrending().then(applyTrending); return r; };
+    loadTrending().then(applyTrending);
+  })();
+
+  /* ============================================================================================
+     TABLEAU DE BORD : sections, navigation, cartes repliables, statistiques avancées
+     ============================================================================================ */
+  var SEC = [['overview', 'fa-gauge-high', "Vue d'ensemble"], ['community', 'fa-users', 'Communauté'], ['activity', 'fa-chart-line', 'Activité'], ['catalogue', 'fa-database', 'Catalogue'], ['tools', 'fa-screwdriver-wrench', 'Outils admin']];
+  var tokenOf = function () { return localStorage.getItem('monBadgeCineLK10') || ''; };
+  var dashSt = function (k, v) { try { if (v === undefined) return localStorage.getItem('fxd:' + k); localStorage.setItem('fxd:' + k, v); } catch (e) {} };
+
+  function secHead(el, id, ico, label) {
+    if (!el || el.dataset.fxsec) return; el.dataset.fxsec = id;
+    var h = document.createElement('div'); h.className = 'fxd-sec'; h.id = 'fxd-' + id; h.innerHTML = '<i class="fas ' + ico + '"></i><span>' + label + '</span>';
+    el.parentNode.insertBefore(h, el);
+  }
+  function collapsible(card, defOpen) {
+    if (!card || card.dataset.fxc) return;
+    var h = card.querySelector(':scope > h3') || card.querySelector('h3'); if (!h) return;
+    card.dataset.fxc = '1'; card.classList.add('fxd-card');
+    var key = (h.textContent || '').trim().slice(0, 40), saved = dashSt(key), open = saved == null ? defOpen : saved === '1';
+    h.classList.add('fxd-h'); h.insertAdjacentHTML('beforeend', '<i class="fas fa-chevron-down fxd-chev"></i>');
+    card.classList.toggle('fxd-closed', !open);
+    h.onclick = function (e) { if (e.target.closest('button,input,select,a')) return; var c = card.classList.toggle('fxd-closed'); dashSt(key, c ? '0' : '1'); };
+  }
+  function allToggle(open) { document.querySelectorAll('#analytics-overlay .fxd-card').forEach(function (c) { c.classList.toggle('fxd-closed', !open); var h = c.querySelector('.fxd-h'); if (h) dashSt((h.textContent || '').trim().slice(0, 40), open ? '1' : '0'); }); }
+
+  function organizeDash() {
+    var m = document.querySelector('#analytics-overlay .analytics-modal'); if (!m) return;
+    if (!$('fxd-nav')) {
+      var nav = document.createElement('div'); nav.id = 'fxd-nav';
+      nav.innerHTML = SEC.map(function (s) { return '<button type="button" data-s="' + s[0] + '"><i class="fas ' + s[1] + '"></i><span>' + s[2] + '</span></button>'; }).join('') +
+        '<button type="button" class="fxd-all" data-a="close" title="Tout replier"><i class="fas fa-compress-alt"></i></button><button type="button" class="fxd-all" data-a="open" title="Tout déplier"><i class="fas fa-expand-alt"></i></button>';
+      var head = m.querySelector('.analytics-header'); head.after(nav);
+      nav.onclick = function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.a) return allToggle(b.dataset.a === 'open');
+        var t = $('fxd-' + b.dataset.s); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+    }
+    var cards = m.querySelector('.stat-cards'), com = m.querySelector('.users-list-container') && m.querySelector('.users-list-container').parentNode,
+        grids = m.querySelectorAll('.charts-grid'), sub = [].slice.call(m.querySelectorAll(':scope > h3')).filter(function (h) { return /catalogue/i.test(h.textContent); })[0];
+    secHead(cards, 'overview', SEC[0][1], SEC[0][2]);
+    if (com && com !== m) { secHead(com, 'community', SEC[1][1], SEC[1][2]); com.classList.add('fxd-community'); }
+    secHead(grids[0], 'activity', SEC[2][1], SEC[2][2]);
+    secHead(sub || grids[1], 'catalogue', SEC[3][1], SEC[3][2]); if (sub) sub.style.display = 'none';
+    secHead($('sg-card') || $('bn-card'), 'tools', SEC[4][1], SEC[4][2]);
+    m.querySelectorAll('.users-list-container, .chart-box').forEach(function (c) { collapsible(c, c.id === 'bn-card' ? false : true); });
+    addAdvanced(m);
+  }
+
+  /* ---- Statistiques avancées ---- */
+  var ADV = { box: null, t: 0 };
+  var fmtH = function (min) { return min >= 60 ? (Math.round(min / 6) / 10) + ' h' : Math.round(min) + ' min'; };
+  var kpi = function (ico, val, lab, hint) { return '<div class="fxd-k"><i class="fas ' + ico + '"></i><b>' + val + '</b><span>' + lab + '</span>' + (hint ? '<small>' + hint + '</small>' : '') + '</div>'; };
+  function catQuality() {
+    var db = DB().filter(function (m) { return m.type !== 'saga'; }), no = function (f) { return db.filter(f).length; }, pct = function (n) { return db.length ? Math.round(n / db.length * 100) : 0; };
+    var nPoster = no(function (m) { return !m.poster; }), nRate = no(function (m) { return !m.rating; }), nDesc = no(function (m) { return !(m.description || m.desc || m.synopsis); }), nGenre = no(function (m) { return !m.genre || !String(m.genre).length; });
+    var months = {}, dated = 0; db.forEach(function (m) { var t = String(m.id || '').match(/(1[6-9]\d{11})/); if (t) { var d = new Date(+t[1]), k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); months[k] = (months[k] || 0) + 1; dated++; } });
+    var ks = Object.keys(months).sort().slice(-6), mx = Math.max.apply(null, ks.map(function (k) { return months[k]; }).concat([1]));
+    var bars = dated > db.length * .2 ? '<div class="fxd-t">Ajouts au catalogue (6 derniers mois)</div><div class="fxd-bars">' + ks.map(function (k) { return '<div class="fxd-b"><i style="height:calc((100% - 38px) * ' + Math.max(.06, months[k] / mx).toFixed(3) + ')"></i><em>' + months[k] + '</em><span>' + k.slice(5) + '/' + k.slice(2, 4) + '</span></div>'; }).join('') + '</div>' : '';
+    var q = function (lab, n) { return '<div class="fxd-q"><span>' + lab + '</span><div><i style="width:' + pct(n) + '%"></i></div><b>' + n + '</b></div>'; };
+    return '<div class="fxd-t">Qualité du catalogue (fiches incomplètes)</div>' + q('Sans affiche', nPoster) + q('Sans note', nRate) + q('Sans description', nDesc) + q('Sans genre', nGenre) + bars;
+  }
+  function renderAdv(d) {
+    var wk = d.weekly || [], mx = Math.max.apply(null, wk.map(function (w) { return w.n; }).concat([1]));
+    var w = d.wishes || {}, conv = (w.total ? Math.round((w.added || 0) / w.total * 100) : 0);
+    ADV.box.querySelector('.fxd-body').innerHTML =
+      '<div class="fxd-ks">' +
+      kpi('fa-user-plus', d.new7, 'Nouveaux (7 jours)', d.new30 + ' sur 30 jours') + kpi('fa-gem', d.vip, 'Membres VIP', d.total ? Math.round(d.vip / d.total * 100) + ' % des membres' : '') +
+      kpi('fa-clock', fmtH(d.watchMin), 'Temps regardé (estim.)', 'moy. ' + fmtH(d.total ? d.watchMin / d.total : 0) + ' / membre') + kpi('fa-heart', d.avgFav.toFixed(1), 'Favoris par membre', d.totalHist + ' visionnages') +
+      kpi('fa-globe', d.publicProfiles, 'Profils publics', d.follows + ' abonnements') + kpi('fa-list', d.lists, 'Listes créées', '') +
+      kpi('fa-comments', d.comments, 'Avis publiés', '') + kpi('fa-flag', d.reportsPending, 'Signalements en attente', '') +
+      kpi('fa-star', (w.pending || 0) + ' / ' + (w.added || 0), 'Demandes : à traiter / ajoutées', conv + ' % ajoutées') + kpi('fa-lightbulb', d.suggestions, 'Suggestions reçues', '') + '</div>' +
+      '<div class="fxd-two"><div><div class="fxd-t">Inscriptions par semaine (12 semaines)</div><div class="fxd-bars">' +
+      wk.map(function (x) { return '<div class="fxd-b"><i style="height:calc((100% - 38px) * ' + Math.max(.06, x.n / mx).toFixed(3) + ')"></i><em>' + x.n + '</em><span>' + x.l + '</span></div>'; }).join('') + '</div>' +
+      '<div class="fxd-t" style="margin-top:18px">Membres les plus actifs (temps regardé)</div>' +
+      ((d.topWatchers || []).map(function (u, i) { return '<div class="fxd-r"><b>' + (i + 1) + '</b><span>' + esc(u.username) + '</span><em>' + fmtH(u.min) + '</em></div>'; }).join('') || '<div class="fxd-n">Pas encore de données.</div>') + '</div>' +
+      '<div>' + catQuality() + '</div></div>';
+  }
+  function addAdvanced(m) {
+    if ($('fxd-adv') || !m.querySelector('.stat-cards')) return;
+    var c = document.createElement('div'); c.id = 'fxd-adv'; c.className = 'users-list-container';
+    c.innerHTML = '<h3><i class="fas fa-chart-column" style="color:var(--primary)"></i> Statistiques avancées</h3><div class="fxd-body"><div class="fxd-n">Chargement…</div></div>';
+    m.querySelector('.stat-cards').after(c); ADV.box = c; collapsible(c, true);
+    fetch(API_URL + '/api/admin/stats-plus', { headers: { authorization: tokenOf() } }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.success) throw new Error(d.message || 'Erreur'); renderAdv(d);
+    }).catch(function (e) { c.querySelector('.fxd-body').innerHTML = '<div class="fxd-n">Statistiques indisponibles (' + esc(e.message || 'erreur') + ') — le serveur doit être mis à jour (server.js).</div>'; });
+  }
+  (function hookDash() {
+    var o = window.openAnalytics;
+    if (typeof o === 'function') window.openAnalytics = async function () {
+      var r = o.apply(this, arguments); var f = $('fxd-adv'); if (f) f.remove(); ADV.box = null;
+      try { organizeDash(); } catch (e) { console.warn('cine-dash', e); }
+      return r;
+    };
+    var ov = $('analytics-overlay'), busy = false;
+    if (ov) new MutationObserver(function () { if (busy) return; busy = true; setTimeout(function () { busy = false; try { organizeDash(); } catch (e) {} }, 250); }).observe(ov, { childList: true, subtree: true });
+  })();
+
 })();
