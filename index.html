@@ -4187,7 +4187,7 @@ function updatePlayerInterface() {
     let linkP = "", linkV = "", linkU = "";
 
     // Détection automatique : Animé (Voiranime) vs Classique (FilmoFlix)
-    const isAnime = currentMovie.dir === 'Voiranime' || currentMovie.id?.startsWith('voir_anime');
+   const isAnime = currentMovie.dir === 'Voiranime' || currentMovie.id?.startsWith('voir_anime') || currentMovie.id?.startsWith('cinelk10_');
 
     if (isAnime) {
         // Mode Animé : Masque les boutons classiques et active le bouton unique "REGARDER"
