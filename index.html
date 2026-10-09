@@ -4187,7 +4187,13 @@ function updatePlayerInterface() {
     let linkP = "", linkV = "", linkU = "";
 
     // Détection automatique : Animé (Voiranime) vs Classique (FilmoFlix)
-   const isAnime = currentMovie.dir === 'Voiranime' || currentMovie.id?.startsWith('voir_anime') || currentMovie.id?.startsWith('cinelk10_');
+const VOIRANIME_HOSTS = /vidmoly|voembed/i;
+const fromVoiranime = (o) => !!o && (VOIRANIME_HOSTS.test(o.iframe_uqload || '') || VOIRANIME_HOSTS.test(o.iframe_uqload_vostfr || ''));
+const isAnime = currentMovie.dir === 'Voiranime'
+    || currentMovie.id?.startsWith('voir_anime')
+    || (currentMovie.type === 'serie'
+        ? !!currentMovie.episodes?.some(fromVoiranime)
+        : fromVoiranime(currentMovie));
 
     if (isAnime) {
         // Mode Animé : Masque les boutons classiques et active le bouton unique "REGARDER"
