@@ -515,3 +515,17 @@ header{z-index:1060!important}
  .fxd-ks{grid-template-columns:repeat(2,1fr)}.fxd-k b{font-size:21px}
  .fxd-q{grid-template-columns:90px 1fr 32px}
 }
+
+/* ===== Fiche façon Netflix : barre d'action, bande-annonce ===== */
+.video-box{position:relative}
+#fx-actions{display:none;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;background:linear-gradient(180deg,#0e0e0e,#141414);border-bottom:1px solid #1f1f1f}
+.fx-lecture{display:inline-flex;align-items:center;gap:10px;background:#fff;color:#000;border:0;border-radius:8px;padding:11px 28px;font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s,background .2s}
+.fx-lecture:hover{background:#e3e3e3;transform:scale(1.03)}
+.fx-lecture i{font-size:14px}
+.fx-sub{color:#e5e5e5;font-size:13px;font-weight:600}
+.fx-hint{color:#8a8a8a;font-size:12px;margin-left:auto}
+.fx-tchip{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.65);color:#fff;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;pointer-events:none}
+.fx-nt{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:#ddd;background:#0b0b0b center/cover no-repeat;position:relative}
+.fx-nt::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.62)}
+.fx-nt>div{position:relative}.fx-nt p{margin:0 0 14px;font-size:13px;color:#bbb}
+@media (max-width:600px){#fx-actions{padding:12px;gap:10px}.fx-lecture{padding:10px 20px;font-size:14px}.fx-hint{margin-left:0;flex-basis:100%}}
