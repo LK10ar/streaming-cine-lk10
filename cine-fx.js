@@ -815,22 +815,30 @@
   function slim(x, kind) { return { m: kind || (x.media_type === 'tv' ? 'tv' : 'film'), t: x.title || x.name || '', o: x.original_title || x.original_name || '', y: (x.release_date || x.first_air_date || '').slice(0, 4) }; }
   function loadTrending() {
     if (TR.p) return TR.p;
-    var c = null; try { c = JSON.parse(sessionStorage.getItem('fx_trend3')); } catch (e) {}
+    var c = null; try { c = JSON.parse(sessionStorage.getItem('fx_trend4')); } catch (e) {}
     if (c && Date.now() - c.t < 3 * 3600e3) { TR.raw = c.d; return (TR.p = Promise.resolve()); }
-    var an = 'with_genres=16&with_original_language=ja&sort_by=popularity.desc', f = function (k) { return function (r) { return r.map(function (x) { return slim(x, k); }); }; };
+    var an = 'with_genres=16&with_original_language=ja&sort_by=popularity.desc', dsc = 'sort_by=popularity.desc&include_adult=false', f = function (k) { return function (r) { return r.map(function (x) { return slim(x, k); }); }; };
     TR.p = Promise.all([
       trPages('/trending/movie/day', '', 3), trPages('/trending/tv/day', '', 3),
       trPages('/trending/movie/week', '', 4), trPages('/trending/tv/week', '', 4),
       trPages('/movie/popular', '', 4), trPages('/tv/popular', '', 4),
-      trPages('/discover/tv', an, 3), trPages('/discover/movie', an, 3)
+      trPages('/discover/tv', an, 3), trPages('/discover/movie', an, 3),
+      trPages('/discover/movie', dsc, 6), trPages('/discover/tv', dsc, 6)
     ]).then(function (r) {
-      TR.raw = { md: f('film')(r[0]), td: f('tv')(r[1]), mw: f('film')(r[2]), tw: f('tv')(r[3]), pm: f('film')(r[4]), pt: f('tv')(r[5]), at: f('tv')(r[6]), am: f('film')(r[7]) };
-      try { sessionStorage.setItem('fx_trend3', JSON.stringify({ t: Date.now(), d: TR.raw })); } catch (e) {}
+      TR.raw = { md: f('film')(r[0]), td: f('tv')(r[1]), mw: f('film')(r[2]), tw: f('tv')(r[3]), pm: f('film')(r[4]), pt: f('tv')(r[5]), at: f('tv')(r[6]), am: f('film')(r[7]), dm: f('film')(r[8]), dt: f('tv')(r[9]) };
+      try { sessionStorage.setItem('fx_trend4', JSON.stringify({ t: Date.now(), d: TR.raw })); } catch (e) {}
     }).catch(function () { TR.p = null; });
     return TR.p;
   }
   var isAnimeItem = function (m) { return !!(m && m.genre && String(m.genre).indexOf('Anime') > -1); };
   var notHP = function (m) { return (m.title || '').toLowerCase().indexOf('harry potter') < 0; };
+  /* Complète un Top 10 jusqu'à 10 : d'abord la popularité TMDB, puis (en dernier recours) les mieux notés du catalogue */
+  function fillTop(list, type, used) {
+    var have = {}; list.forEach(function (m) { have[m.id] = 1; });
+    var rest = DB().filter(function (m) { return m.type === type && !have[m.id] && !used[m.id] && notHP(m) && m.poster; })
+      .sort(function (a, b) { return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0); });
+    return list.concat(rest.slice(0, Math.max(0, 10 - list.length)));
+  }
   function trLists() {
     var R = TR.raw; if (!R || !DB().length) return null;
     var byId = {}; DB().forEach(function (m) { byId[m.id] = m; });
@@ -843,18 +851,21 @@
       return out;
     };
     var film = function (m) { return m.type === 'film'; }, serie = function (m) { return m.type === 'serie'; };
-    var top = match(R.md, R.mw, R.pm).filter(film).slice(0, 10);
-    var topTv = match(R.td, R.tw, R.pt).filter(serie).slice(0, 10);
+    /* Top 10 : tendance du jour, puis de la semaine, puis populaires ; toujours 10 titres */
+    var top = match(R.md, R.mw, R.pm, R.dm).filter(film).slice(0, 10);
+    var topTv = match(R.td, R.tw, R.pt, R.dt).filter(serie).slice(0, 10);
     var used = {}; top.concat(topTv).forEach(function (m) { used[m.id] = 1; });
+    var tf = fillTop(top, 'film', {}), ts = fillTop(topTv, 'serie', {});
+    tf.concat(ts).forEach(function (m) { used[m.id] = 1; });
     var free = function (m) { return !used[m.id]; };
-    /* Tendances du mois d'abord (films et séries en alternance), puis Séries tendance sans répéter ce qui est déjà affiché plus haut */
+    /* Tendances du mois (films et séries en alternance), puis Séries tendance : sans répéter ce qui est déjà affiché plus haut */
     var pf = match(R.pm).filter(film).filter(free).filter(notHP), ps = match(R.pt).filter(serie).filter(free).filter(function (m) { return !isAnimeItem(m); });
     var mix = [], i = 0; while (mix.length < 30 && (i < pf.length || i < ps.length)) { if (pf[i]) mix.push(pf[i]); if (ps[i] && mix.length < 30) mix.push(ps[i]); i++; }
     mix.forEach(function (m) { used[m.id] = 1; });
     var tv = match(R.tw, R.pt).filter(serie).filter(function (m) { return !isAnimeItem(m); }).filter(free).slice(0, 30);
     tv.forEach(function (m) { used[m.id] = 1; });
     return {
-      top: top, topTv: topTv, mix: mix, tv: tv,
+      top: tf, topTv: ts, mix: mix, tv: tv,
       fa: match(R.mw, R.am).filter(film).filter(isAnimeItem).filter(free).slice(0, 30),
       sa: match(R.tw, R.at).filter(serie).filter(isAnimeItem).filter(free).slice(0, 30)
     };
@@ -895,32 +906,80 @@
     io.observe(c);
   }
 
-  /* ---- Rangées personnelles : Ma liste + « Parce que vous avez regardé » ---- */
+  /* ---- Rangées personnelles : Ma liste (= « À voir ») + « Parce que vous avez regardé… » + « Sélection pour vous » ---- */
+  var genresOf = function (m) { return String((m && m.genre) || '').toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(function (x) { return x && x !== 'anime'; }); };
+  var words = function (t) { return norm(String(t || '').replace(/\s+S\d+\b.*$/i, '')).split(' ').filter(function (w) { return w.length > 2; }); };
+  var franchise = function (m) { return words(m.title).slice(0, 2).join(' '); };
+  var RC = { data: {}, asked: {} };      /* recommandations TMDB par titre source */
+  function fetchRecs(m) {
+    if (RC.asked[m.id]) return RC.asked[m.id];
+    var key = 'fxrec2:' + m.id, c = null; try { c = JSON.parse(sessionStorage.getItem(key)); } catch (e) {}
+    if (c && Date.now() - c.t < 6 * 3600e3) { RC.data[m.id] = c.l; return (RC.asked[m.id] = Promise.resolve(c.l)); }
+    var kind = m.type === 'film' ? 'movie' : 'tv', name = String(m.title).replace(/\s+S\d+\b.*$/i, '').trim();
+    return (RC.asked[m.id] = tmdb('/search/' + kind, 'query=' + encodeURIComponent(name) + (kind === 'movie' && m.year ? '&year=' + m.year : '')).then(function (r) {
+      var hit = (r.results || [])[0]; if (!hit) return [];
+      return Promise.all([tmdb('/' + kind + '/' + hit.id + '/recommendations', 'page=1'), tmdb('/' + kind + '/' + hit.id + '/recommendations', 'page=2'), tmdb('/' + kind + '/' + hit.id + '/similar', 'page=1')]).then(function (rs) {
+        var l = [].concat.apply([], rs.map(function (x) { return x.results || []; })).map(function (x) { return slim(x, kind === 'movie' ? 'film' : 'tv'); });
+        try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), l: l })); } catch (e) {}
+        return l;
+      });
+    }).catch(function () { return []; }).then(function (l) { RC.data[m.id] = l; return l; }));
+  }
+  function becauseList(m, watched, used, byId) {
+    var out = [], seen = {}, an = isAnimeItem(m);
+    var add = function (x) { if (!x || seen[x.id] || used[x.id] || watched[x.id] || x.id === m.id || x.type === 'saga' || !notHP(x) && !/harry/i.test(m.title)) return; seen[x.id] = 1; out.push(x); };
+    // 1) recommandations TMDB (le vrai « les spectateurs ont aussi aimé »), dans l'ordre de TMDB
+    (RC.data[m.id] || []).forEach(function (x) { var id = matchCat({ kind: x.m === 'tv' ? 'serie' : 'film', year: x.y, mt: [norm(x.t), norm(x.o)] }); if (id != null) add(byId[id]); });
+    // 2) complété par une similarité locale : genres rares pondérés, même type, même univers, même époque, qualité
+    if (out.length < 14) {
+      var g = genresOf(m), fr = franchise(m), my = parseInt(m.year, 10) || 0;
+      DB().filter(function (x) { return x.type !== 'saga' && !seen[x.id] && !used[x.id] && !watched[x.id] && x.id !== m.id && isAnimeItem(x) === an; }).map(function (x) {
+        var xg = genresOf(x), sh = g.filter(function (y) { return xg.indexOf(y) > -1; }), yr = parseInt(x.year, 10) || 0;
+        var s = sh.reduce(function (a, y) { return a + (GIDF[y] || 1); }, 0) + (x.type === m.type ? 1 : 0) + (fr && franchise(x) === fr ? 3 : 0) + (my && yr && Math.abs(my - yr) <= 4 ? .6 : 0) + (parseFloat(x.rating) || 0) / 10;
+        return { x: x, s: sh.length ? s : 0 };
+      }).filter(function (o) { return o.s > 0; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 24 - out.length).forEach(function (o) { add(o.x); });
+    }
+    return out.slice(0, 24);
+  }
+  var GIDF = {};
+  function idf() {
+    var n = 0, c = {}; DB().forEach(function (m) { if (m.type === 'saga') return; n++; genresOf(m).forEach(function (g) { c[g] = (c[g] || 0) + 1; }); });
+    Object.keys(c).forEach(function (g) { GIDF[g] = Math.log(1 + n / c[g]); });
+  }
+  var findCont = function () {
+    return $('continue-watching-section') || [].slice.call(document.querySelectorAll('#home-page .slider-section')).filter(function (s) { var h = s.querySelector('.slider-title'); return h && /CONTINUER/i.test(h.textContent); })[0] || null;
+  };
   function personalRows() {
-    var u = homeUser(), cont = $('continue-watching-section'), top = secOf('top10-slider'), byId = {};
-    DB().forEach(function (m) { byId[m.id] = m; });
-    var anchor = cont || top;
-    // Ma liste = favoris (films + séries), les plus récents d'abord
-    var favs = u && u.favorites ? u.favorites.map(idOf).map(function (i) { return byId[i]; }).filter(Boolean).reverse().slice(0, 30) : [];
-    var sl = ensureSection('ma-liste-slider', 'MA LISTE', 'after', cont || (top && top.previousElementSibling) || top, false, 'fa-heart');
-    if (sl) { sl.style.display = favs.length ? '' : 'none'; if (favs.length) window.buildStandardSlider('ma-liste-slider', favs); }
-    // Parce que vous avez regardé X (2 derniers titres différents)
-    var hist = u && u.history ? u.history.map(function (h) { return byId[idOf(h)]; }).filter(Boolean) : [], seen = {}, srcs = [];
-    hist.forEach(function (m) { if (!seen[m.id] && srcs.length < 2) { seen[m.id] = 1; srcs.push(m); } });
-    var watched = {}; hist.forEach(function (m) { watched[m.id] = 1; });
-    var sagas = secOf('home-sagas-slider'), after = sagas || secOf('tendances-slider');
-    [0, 1].forEach(function (k) {
+    var u = homeUser(), top = secOf('top10-slider'), byId = {}; DB().forEach(function (m) { byId[m.id] = m; });
+    if (!Object.keys(GIDF).length) idf();
+    /* Ma liste = les titres marqués « À voir » (l'horloge), les derniers ajoutés en premier ; visible même vide */
+    var cont = findCont(), anchor = cont || (top && top.previousElementSibling) || top;
+    var sl = ensureSection('ma-liste-slider', 'MA LISTE', cont || !top ? 'after' : 'before', cont || top, false, 'fa-clock');
+    if (sl) {
+      var list = u && u.watchlater ? u.watchlater.map(idOf).map(function (i) { return byId[i]; }).filter(Boolean).reverse().slice(0, 40) : [];
+      sl.style.display = u ? '' : 'none'; sl.classList.toggle('fx-empty-sec', !!u && !list.length);
+      var box = $('ma-liste-slider');
+      if (u && list.length) window.buildStandardSlider('ma-liste-slider', list);
+      else if (u) box.innerHTML = '<div class="fx-liste-empty"><i class="fas fa-clock"></i><div><b>Votre liste est vide</b><span>Commencez à en ajouter : touchez le bouton « À voir » (l\'horloge) sur une affiche ou une fiche.</span></div></div>';
+    }
+    /* Parce que vous avez regardé (jusqu'à 3 univers différents) + sélection pour vous */
+    var hist = u && u.history ? u.history.map(function (h) { return byId[idOf(h)]; }).filter(Boolean) : [], seenF = {}, srcs = [], watched = {}, used = {};
+    hist.forEach(function (m) { watched[m.id] = 1; var f = franchise(m); if (!seenF[f] && srcs.length < 3) { seenF[f] = 1; srcs.push(m); } });
+    var sagas = secOf('home-sagas-slider'), prev = sagas || secOf('tendances-slider');
+    [0, 1, 2].forEach(function (k) {
       var id = 'because-' + k + '-slider', m = srcs[k], list = [];
-      if (m) {
-        var g = String(m.genre || '').toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(function (x) { return x && x !== 'anime'; }), an = isAnimeItem(m);
-        list = DB().filter(function (x) { return x.type !== 'saga' && x.id !== m.id && !watched[x.id] && isAnimeItem(x) === an && notHP(x); }).map(function (x) {
-          var xg = String(x.genre || '').toLowerCase().split(',').map(function (y) { return y.trim(); }), sh = g.filter(function (y) { return xg.indexOf(y) > -1; }).length;
-          return { x: x, s: sh * 2 + (x.type === m.type ? 1.5 : 0) + (parseFloat(x.rating) || 0) / 10 };
-        }).filter(function (o) { return o.s >= 2; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 24).map(function (o) { return o.x; });
-      }
-      var s = ensureSection(id, m ? 'PARCE QUE VOUS AVEZ REGARDÉ ' + esc(m.title).toUpperCase() : '', 'after', k === 0 ? after : $('fxs-because-0-slider'), false);
-      if (s) { s.style.display = list.length >= 5 ? '' : 'none'; if (list.length >= 5) window.buildStandardSlider(id, list); }
+      if (m) { list = becauseList(m, watched, used, byId); list.forEach(function (x) { used[x.id] = 1; }); if (!RC.data[m.id]) fetchRecs(m).then(function () { try { personalRows(); } catch (e) {} }); }
+      var s = ensureSection(id, m ? 'PARCE QUE VOUS AVEZ REGARDÉ ' + esc(String(m.title).replace(/\s+S\d+\b.*$/i, '')).toUpperCase() : '', 'after', prev, false);
+      if (s) { s.style.display = list.length >= 4 ? '' : 'none'; if (list.length >= 4) window.buildStandardSlider(id, list); prev = s; }
     });
+    // Sélection pour vous : genres préférés sur tout l'historique (les titres récents comptent plus)
+    var gw = {}; hist.slice(0, 40).forEach(function (m, i) { genresOf(m).forEach(function (g) { gw[g] = (gw[g] || 0) + 1 / (1 + i / 12); }); });
+    var fav = Object.keys(gw).sort(function (a, b) { return gw[b] - gw[a]; }).slice(0, 4), anyAnime = hist.slice(0, 15).filter(isAnimeItem).length > 7;
+    var pick = fav.length < 2 || hist.length < 3 ? [] : DB().filter(function (x) { return x.type !== 'saga' && !watched[x.id] && !used[x.id] && notHP(x) && (anyAnime || !isAnimeItem(x)); }).map(function (x) {
+      var sh = genresOf(x).filter(function (y) { return fav.indexOf(y) > -1; }); return { x: x, s: sh.reduce(function (a, y) { return a + gw[y]; }, 0) + (parseFloat(x.rating) || 0) / 5 };
+    }).filter(function (o) { return o.s > 1.2; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 24).map(function (o) { return o.x; });
+    var fy = ensureSection('for-you-slider', 'SÉLECTION POUR VOUS', 'after', prev, false, 'fa-wand-magic-sparkles');
+    if (fy) { fy.style.display = pick.length >= 6 ? '' : 'none'; if (pick.length >= 6) window.buildStandardSlider('for-you-slider', pick); }
   }
 
   /* ---- Rangées par genre (films puis séries) ---- */
@@ -1007,13 +1066,31 @@
     var nx = (typeof h === 'object' && typeof h.episodeIndex === 'number' ? h.episodeIndex : 0) + 1;
     return nx < eps.length ? { index: nx, label: 'Ép. suivant', sub: eps[nx].title } : { index: 0, label: 'Revoir', sub: eps[0].title };
   }
+  function fitTrailer(box) {
+    var f = box && box.querySelector('iframe.fx-yt'); if (!f) return;
+    var W = box.clientWidth || 0, H = box.clientHeight || (W * 9 / 16);
+    if (!W) return;
+    /* Le lecteur YouTube est créé en 1920×1080 puis mis à l'échelle : il choisit donc la meilleure qualité (1080p).
+       +14 % de zoom pour rogner le bandeau de titre et les logos sur les bords. */
+    f.style.transform = 'translate(-50%,-50%) scale(' + (Math.max(W / 1920, H / 1080) * 1.14).toFixed(4) + ')';
+  }
   function showTrailerIn(m) {
     var box = $('video-container'); if (!box) return;
     try { if (adTimer) clearInterval(adTimer); } catch (e) {}
     var id = null; try { id = typeof extractYoutubeId === 'function' ? extractYoutubeId(m.trailer_iframe) : null; } catch (e) {}
-    FX.mode = 'trailer';
-    if (id) box.innerHTML = '<iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&mute=1&rel=0&playsinline=1&modestbranding=1" title="Bande-annonce" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen style="width:100%;height:100%;border:0"></iframe><div class="fx-tchip"><i class="fas fa-film"></i> Bande-annonce</div>';
-    else {
+    FX.mode = 'trailer'; FX.muted = true; if (FX.ro) { FX.ro.disconnect(); FX.ro = null; }
+    if (id) {
+      box.innerHTML = '<div class="fx-trailer"><iframe class="fx-yt" title="" allow="autoplay; encrypted-media" tabindex="-1" src="https://www.youtube.com/embed/' + id +
+        '?autoplay=1&mute=1&controls=0&enablejsapi=1&loop=1&playlist=' + id + '&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&vq=hd1080&origin=' + encodeURIComponent(location.origin) + '"></iframe></div>' +
+        '<div class="hero-sound-btn fx-sound" title="Activer / couper le son"><i class="fas fa-volume-mute"></i></div>';
+      var sb = box.querySelector('.fx-sound');
+      sb.onclick = function (e) {
+        e.stopPropagation(); FX.muted = !FX.muted; sb.innerHTML = '<i class="fas fa-volume-' + (FX.muted ? 'mute' : 'up') + '"></i>';
+        var fr = box.querySelector('iframe.fx-yt'); if (fr && fr.contentWindow) fr.contentWindow.postMessage(JSON.stringify({ event: 'command', func: FX.muted ? 'mute' : 'unMute', args: [] }), '*');
+      };
+      fitTrailer(box); setTimeout(function () { fitTrailer(box); }, 350);
+      if (window.ResizeObserver) { FX.ro = new ResizeObserver(function () { fitTrailer(box); }); FX.ro.observe(box); }
+    } else {
       box.innerHTML = '<div class="fx-nt" style="background-image:url(\'' + esc(m.backdrop || m.poster || '') + '\')"><div><p>Bande-annonce indisponible</p><button type="button" class="fx-lecture" id="fx-bigplay"><i class="fas fa-play"></i> ' + target(m).label + '</button></div></div>';
       var b = $('fx-bigplay'); if (b) b.onclick = fxPlay;
     }
@@ -1023,7 +1100,7 @@
     var m = curMovie(); if (!m) return;
     var t = typeof idx === 'number' ? { index: idx } : target(m);
     try { currentEpisodeIndex = t.index; } catch (e) {}
-    FX.mode = 'play'; FX.noLog = false;
+    FX.mode = 'play'; FX.noLog = false; if (FX.ro) { FX.ro.disconnect(); FX.ro = null; }
     window.updatePlayerInterface();
     if (homeUser()) window.logHistoryEntry(m, m.type === 'serie' ? t.index : null);
     refreshBar();
@@ -1060,7 +1137,7 @@
         FX.pending = false; FX.suppress = true; var r; try { r = oUpd.apply(this, arguments); } finally { FX.suppress = false; }
         var m = curMovie(); if (m) showTrailerIn(m); return r;
       }
-      if (FX.mode === 'trailer') FX.mode = 'play';                                /* langue / serveur / épisode choisi : la lecture démarre */
+      if (FX.mode === 'trailer') { FX.mode = 'play'; if (FX.ro) { FX.ro.disconnect(); FX.ro = null; } }                                /* langue / serveur / épisode choisi : la lecture démarre */
       var r2 = oUpd.apply(this, arguments); try { refreshBar(); } catch (e) {} return r2;
     };
     window.setVideoContent = function (c) { if (FX.suppress) return; return oSet.apply(this, arguments); };
@@ -1075,6 +1152,42 @@
       if (!m.trailer_iframe) return alert('Aucune bande-annonce disponible pour ce titre.');
       showTrailerIn(m); var b = $('video-container'); if (b && b.scrollIntoView) b.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
+  })();
+
+  /* ============================================================================================
+     « À voir » → Ma liste à jour tout de suite ; bouton « Effacer l'historique » dans le profil
+     ============================================================================================ */
+  (function hookListAndHistory() {
+    var oWl = window.toggleWatchlater;
+    if (typeof oWl === 'function') window.toggleWatchlater = function () {
+      var r = oWl.apply(this, arguments);
+      Promise.resolve(r).then(function () { try { if ($('top10-slider')) personalRows(); } catch (e) {} });
+      return r;
+    };
+    var tabNow = function () { try { return currentProfTab; } catch (e) { return ''; } };
+    function histBar() {
+      var g = $('profile-grid'), old = $('fx-hist-bar'); if (!g) return;
+      if (tabNow() !== 'history') { if (old) old.remove(); return; }
+      var u = homeUser(), n = u && u.history ? u.history.length : 0;
+      if (!old) {
+        old = document.createElement('div'); old.id = 'fx-hist-bar'; g.parentNode.insertBefore(old, g);
+        old.onclick = function (e) {
+          if (!e.target.closest('#fx-hist-clear')) return;
+          if (!confirm("Effacer tout ton historique de visionnage ?\nCette action est définitive.")) return;
+          fetch(API_URL + '/api/user/clear-history', { method: 'POST', headers: { 'Content-Type': 'application/json', authorization: localStorage.getItem('monBadgeCineLK10') || '' } })
+            .then(function (r) { return r.json(); }).then(function (d) {
+              if (!d.success) return alert(d.message || 'Erreur');
+              var cu2 = homeUser(); if (cu2) cu2.history = [];
+              try { if (typeof window.updateProfileGrid === 'function') window.updateProfileGrid(); } catch (x) {}
+              try { if (typeof window.buildContinueWatchingRow === 'function') window.buildContinueWatchingRow(); personalRows(); } catch (x) {}
+              try { toast("Historique effacé."); } catch (x) {}
+            }).catch(function () { alert('Erreur de connexion.'); });
+        };
+      }
+      old.innerHTML = '<span><i class="fas fa-eye"></i> ' + n + ' titre' + (n > 1 ? 's' : '') + ' dans ton historique</span>' + (n ? '<button type="button" id="fx-hist-clear" class="fx-btn"><i class="fas fa-trash"></i> Effacer l\'historique</button>' : '');
+    }
+    var oUpd = window.updateProfileGrid;
+    if (typeof oUpd === 'function') window.updateProfileGrid = function () { var r = oUpd.apply(this, arguments); try { histBar(); } catch (e) {} return r; };
   })();
 
   /* ============================================================================================
