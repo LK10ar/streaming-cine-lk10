@@ -27,7 +27,8 @@
     /* ------------------------------------------------------------------
        1) HOOK POUR LA GRILLE PRINCIPALE
        Regroupe les saisons ordonnées d'une même série à l'endroit où la
-       première apparaît, puis les classe selon sortOrder.
+       première apparaît, puis les classe selon sortOrder, le plus grand en
+       premier (sortOrder 1 = saison la plus ancienne = tout en bas).
        ------------------------------------------------------------------ */
     window.applySeriesOrder = function (list) {
         if (!Array.isArray(list)) return list;
@@ -48,7 +49,7 @@
                 const k = keyOf(m);
                 if (done.has(k)) return;
                 done.add(k);
-                out.push(...groups.get(k).sort((a, b) => a.sortOrder - b.sortOrder));
+                out.push(...groups.get(k).sort((a, b) => b.sortOrder - a.sortOrder)); // récent en haut, ancien en bas
             } else {
                 out.push(m);
             }
@@ -102,12 +103,12 @@
     const root = document.createElement('div');
     root.id = 'so-root';
     root.innerHTML = `
-        <p class="so-intro">Range dans l'ordre les saisons / arcs d'une même série (ex : tous les « Bleach - ... »). La grille du catalogue les affichera ensuite dans cet ordre.</p>
+        <p class="so-intro">Range dans l'ordre les saisons / arcs d'une même série (ex : tous les « Bleach - ... »). La grille du catalogue les affichera ensuite du plus récent (en haut) au plus ancien (en bas).</p>
         <div class="so-pick">
           <input type="text" id="so-search" placeholder="Filtrer les séries...">
           <select id="so-select"></select>
         </div>
-        <p class="so-hint">Glisse les lignes, utilise ▲ ▼ ou tape un numéro de position. ⚠ = pas encore classée, ✓ = déjà classée.</p>
+        <p class="so-hint">Le plus récent en haut, le plus ancien en bas (n° 1). Glisse les lignes, utilise ▲ ▼ ou tape un n° de saison. ⚠ = pas encore classée, ✓ = déjà classée.</p>
         <div class="so-list" id="so-list"></div>
         <div class="so-actions">
           <button class="so-primary" id="so-save">Enregistrer l'ordre</button>
@@ -116,7 +117,7 @@
         </div>
         <div class="so-status" id="so-status"></div>
         <details class="so-paste">
-          <summary>Coller une liste ordonnée (un nom d'arc par ligne, ou la liste Python avec "name")</summary>
+          <summary>Coller la liste dans l'ordre chronologique, saison 1 d'abord (un nom d'arc par ligne, ou la liste Python avec "name")</summary>
           <textarea id="so-paste-text" placeholder='Arc Shinigami remplaçant&#10;Arc Soul Society : 1ère Partie&#10;...&#10;ou : {"season_number": 1, "name": "Arc Shinigami remplaçant", ...}'></textarea>
           <div class="so-actions" style="margin-top:8px"><button class="so-ghost" id="so-apply-paste">Appliquer cet ordre</button></div>
         </details>`;
@@ -150,10 +151,10 @@
     const groupDone = g => g.items.every(hasOrder);
 
     function initialOrder(g) {
-        const ordered = g.items.filter(hasOrder).sort((a, b) => a.sortOrder - b.sortOrder);
+        const ordered = g.items.filter(hasOrder).sort((a, b) => b.sortOrder - a.sortOrder);
         const rest = g.items.filter(m => !hasOrder(m)).sort((a, b) =>
-            (parseInt(a.year) || 0) - (parseInt(b.year) || 0) ||
-            String(a.title || '').localeCompare(String(b.title || ''), 'fr', { numeric: true }));
+            (parseInt(b.year) || 0) - (parseInt(a.year) || 0) ||
+            String(b.title || '').localeCompare(String(a.title || ''), 'fr', { numeric: true }));
         return [...ordered, ...rest];
     }
 
@@ -215,21 +216,21 @@
             row.draggable = true;
             const poster = String(m.poster || '').split('|||')[0];
             row.innerHTML = `
-                <div class="so-num">${i + 1}</div>
+                <div class="so-num">${cur.length - i}</div>
                 <div class="so-thumb" style="background-image:url('${esc(poster)}')"></div>
                 <div class="so-title">${esc(m.title)}<small>${esc(m.year || '')}${hasOrder(m) ? '' : ' · non classée'}</small></div>
                 <div class="so-ctrl">
-                    <input class="so-pos" type="number" min="1" max="${cur.length}" value="${i + 1}" title="Position">
-                    <button class="so-btn" data-a="up" ${i === 0 ? 'disabled' : ''} title="Monter">▲</button>
-                    <button class="so-btn" data-a="down" ${i === cur.length - 1 ? 'disabled' : ''} title="Descendre">▼</button>
+                    <input class="so-pos" type="number" min="1" max="${cur.length}" value="${cur.length - i}" title="N° de saison (1 = la plus ancienne)">
+                    <button class="so-btn" data-a="up" ${i === 0 ? 'disabled' : ''} title="Plus récent (vers le haut)">▲</button>
+                    <button class="so-btn" data-a="down" ${i === cur.length - 1 ? 'disabled' : ''} title="Plus ancien (vers le bas)">▼</button>
                 </div>`;
             row.querySelector('[data-a="up"]').onclick = () => move(i, i - 1);
             row.querySelector('[data-a="down"]').onclick = () => move(i, i + 1);
             const pos = row.querySelector('.so-pos');
             pos.draggable = false;
             pos.addEventListener('change', () => {
-                const n = Math.min(cur.length, Math.max(1, parseInt(pos.value) || i + 1));
-                move(i, n - 1);
+                const n = Math.min(cur.length, Math.max(1, parseInt(pos.value) || (cur.length - i)));
+                move(i, cur.length - n);
             });
             row.addEventListener('dragstart', e => {
                 dragIdx = i;
@@ -274,9 +275,9 @@
         const btn = $('so-save');
         btn.disabled = true; status('Enregistrement...', '');
         try {
-            const orders = cur.map((m, i) => ({ id: m.id, sortOrder: i + 1 }));
+            const orders = cur.map((m, i) => ({ id: m.id, sortOrder: cur.length - i }));
             await sendOrders(orders);
-            cur.forEach((m, i) => { m.sortOrder = i + 1; });
+            cur.forEach((m, i) => { m.sortOrder = cur.length - i; });
             dirty = false;
             status('✅ Ordre enregistré (' + cur.length + ' saisons).', 'ok');
             fillSelect(current.key);
@@ -337,7 +338,7 @@
             if (idx < 0) missing.push(name);
             else placed.push(pool.splice(idx, 1)[0]);
         });
-        cur = [...placed, ...pool];
+        cur = [...placed.reverse(), ...pool]; // la liste collée va du plus ancien au plus récent
         dirty = true;
         render();
         let msg = `${placed.length}/${names.length} arcs reconnus.`;
