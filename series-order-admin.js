@@ -1,8 +1,9 @@
 /* =====================================================================
    CINÉ LK10 — ADMIN : ORDRE DES SAISONS / ARCS D'UNE SÉRIE
    ---------------------------------------------------------------------
-   - Ajoute un bouton (visible en mode admin) dans le header.
-   - Ouvre un panneau où l'on classe les saisons d'une même série
+   - Ajoute une carte « Ordre des saisons » dans le Tableau de bord analytique
+     (section « Outils admin »).
+   - Dans cette carte, on classe les saisons d'une même série
      (ex : tous les "Bleach - ..."), par glisser-déposer, flèches ▲▼,
      numéro de position, ou en collant une liste ordonnée.
    - Enregistre un champ `sortOrder` sur chaque fiche (route serveur
@@ -60,13 +61,7 @@
        ------------------------------------------------------------------ */
     const css = document.createElement('style');
     css.textContent = `
-    #so-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:6500; justify-content:center; align-items:flex-start; overflow-y:auto; padding:20px 0; }
-    #so-overlay.open { display:flex; }
-    .so-modal { background:#1a1b26; width:720px; max-width:95%; border-radius:10px; padding:20px; border:1px solid #333; color:#ccc; box-shadow:0 0 30px rgba(0,0,0,.6); }
-    .so-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
-    .so-head h2 { margin:0; font-size:18px; color:#fff; }
-    .so-close { background:none; border:none; color:#aaa; font-size:28px; cursor:pointer; line-height:1; }
-    .so-close:hover { color:#fff; }
+    #so-card .so-intro { font-size:12px; color:#888; margin:0 0 12px; }
     .so-pick { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
     .so-pick input, .so-pick select, .so-paste textarea { background:#0f0f14; border:1px solid #333; color:#eee; border-radius:6px; padding:9px 10px; font-size:14px; font-family:inherit; }
     .so-pick input { flex:1; min-width:140px; }
@@ -97,21 +92,17 @@
     .so-paste summary { cursor:pointer; color:#aaa; font-size:13px; margin-bottom:8px; }
     .so-paste textarea { width:100%; min-height:130px; resize:vertical; box-sizing:border-box; font-family:monospace; font-size:12px; }
     .so-empty { color:#888; padding:20px; text-align:center; }
-    @media (max-width:520px) { .so-modal { padding:14px; } .so-pos { display:none; } .so-thumb { display:none; } }
+    @media (max-width:520px) { .so-pos { display:none; } .so-thumb { display:none; } }
     `;
     document.head.appendChild(css);
 
     /* ------------------------------------------------------------------
        3) MARKUP
        ------------------------------------------------------------------ */
-    const overlay = document.createElement('div');
-    overlay.id = 'so-overlay';
-    overlay.innerHTML = `
-      <div class="so-modal">
-        <div class="so-head">
-          <h2><i class="fas fa-list-ol"></i> Ordre des saisons / arcs</h2>
-          <button class="so-close" id="so-close" title="Fermer">×</button>
-        </div>
+    const root = document.createElement('div');
+    root.id = 'so-root';
+    root.innerHTML = `
+        <p class="so-intro">Range dans l'ordre les saisons / arcs d'une même série (ex : tous les « Bleach - ... »). La grille du catalogue les affichera ensuite dans cet ordre.</p>
         <div class="so-pick">
           <input type="text" id="so-search" placeholder="Filtrer les séries...">
           <select id="so-select"></select>
@@ -128,11 +119,9 @@
           <summary>Coller une liste ordonnée (un nom d'arc par ligne, ou la liste Python avec "name")</summary>
           <textarea id="so-paste-text" placeholder='Arc Shinigami remplaçant&#10;Arc Soul Society : 1ère Partie&#10;...&#10;ou : {"season_number": 1, "name": "Arc Shinigami remplaçant", ...}'></textarea>
           <div class="so-actions" style="margin-top:8px"><button class="so-ghost" id="so-apply-paste">Appliquer cet ordre</button></div>
-        </details>
-      </div>`;
-    document.body.appendChild(overlay);
+        </details>`;
 
-    const $ = id => document.getElementById(id);
+    const $ = id => root.querySelector('#' + id);
     const elSelect = $('so-select'), elSearch = $('so-search'), elList = $('so-list'), elStatus = $('so-status');
 
     /* ------------------------------------------------------------------
@@ -359,39 +348,52 @@
     };
 
     /* ------------------------------------------------------------------
-       7) OUVERTURE / FERMETURE + BOUTON HEADER
+       7) MONTAGE DANS LE TABLEAU DE BORD ANALYTIQUE
        ------------------------------------------------------------------ */
-    function close() {
-        if (dirty && !confirm('Des changements ne sont pas enregistrés. Fermer quand même ?')) return;
-        overlay.classList.remove('open');
-        dirty = false;
+    function refresh() {
+        if (dirty) return;
+        buildGroups();
+        fillSelect(current && current.key);
     }
 
-    window.openSeriesOrder = function (e) {
-        if (e && e.stopPropagation) e.stopPropagation();
-        buildGroups();
-        elSearch.value = '';
-        overlay.classList.add('open');
-        fillSelect(current && current.key);
-    };
+    function mount() {
+        const modal = document.querySelector('#analytics-overlay .analytics-modal');
+        if (!modal) return;
+        let card = document.getElementById('so-card');
+        if (!card) {
+            card = document.createElement('div');
+            card.id = 'so-card';
+            card.className = 'users-list-container';
+            card.innerHTML = '<h3><i class="fas fa-list-ol" style="color:var(--primary)"></i> Ordre des saisons (séries &amp; animés)</h3>';
+            card.appendChild(root);
+            const anchor = document.getElementById('bn-card') || document.getElementById('sg-card');
+            if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(card, anchor.nextSibling);
+            else modal.appendChild(card);
+            refresh();
+        }
+    }
 
-    $('so-close').onclick = close;
-    overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
+    // Reconstruit les groupes à chaque ouverture du tableau de bord
+    (function hook() {
+        const o = window.openAnalytics;
+        if (typeof o === 'function') {
+            window.openAnalytics = async function () {
+                const r = await o.apply(this, arguments);
+                try { mount(); setTimeout(refresh, 400); } catch (e) { console.warn('series-order', e); }
+                return r;
+            };
+        }
+        const ov = document.getElementById('analytics-overlay');
+        if (ov) {
+            let busy = false;
+            new MutationObserver(() => {
+                if (busy) return; busy = true;
+                setTimeout(() => { busy = false; try { mount(); } catch (e) {} }, 300);
+            }).observe(ov, { childList: true, subtree: true });
+        }
+        try { mount(); } catch (e) {}
+    })();
+
     elSelect.onchange = () => selectGroup(elSelect.value);
     elSearch.oninput = () => { if (dirty) return; fillSelect(current && current.key); };
-
-    function injectButton() {
-        if (document.getElementById('so-header-btn')) return;
-        const ref = document.querySelector('.add-btn-header.admin-btn');
-        if (!ref) return false;
-        const b = document.createElement('button');
-        b.id = 'so-header-btn';
-        b.className = 'add-btn-header admin-btn';
-        b.title = 'Ordre des saisons';
-        b.innerHTML = '<i class="fas fa-list-ol"></i>';
-        b.onclick = window.openSeriesOrder;
-        ref.parentNode.insertBefore(b, ref);
-        return true;
-    }
-    if (!injectButton()) document.addEventListener('DOMContentLoaded', injectButton);
 })();
