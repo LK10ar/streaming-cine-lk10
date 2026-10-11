@@ -530,9 +530,11 @@ header{z-index:1060!important}
 .fx-nt>div{position:relative}.fx-nt p{margin:0 0 14px;font-size:13px;color:#bbb}
 @media (max-width:600px){#fx-actions{padding:12px;gap:10px}.fx-lecture{padding:10px 20px;font-size:14px}.fx-hint{margin-left:0;flex-basis:100%}}
 
-/* ===== Bande-annonce de la fiche : intégrée, sans commandes YouTube, avec bouton de son ===== */
-.fx-trailer{position:absolute;inset:0;overflow:hidden;background:#000;pointer-events:none}
-.fx-yt{position:absolute;left:50%;top:50%;width:1920px;height:1080px;border:0;pointer-events:none;transform-origin:center center}
+/* ===== Bande-annonce de la fiche : plein cadre, sans interface YouTube, avec bouton de son ===== */
+/* Le site force « .video-box iframe {100% !important} » : on le contre avec une règle plus précise, sinon le lecteur est rétréci */
+.video-box .fx-trailer{position:absolute;inset:0;overflow:hidden;background:#000;display:block}
+.video-box .fx-trailer iframe.fx-yt{position:absolute!important;left:50%!important;top:50%!important;width:1920px!important;height:1080px!important;max-width:none!important;max-height:none!important;border:0!important;pointer-events:none!important;transform-origin:center center}
+.video-box .fx-shield{position:absolute;inset:0;z-index:2;background:transparent}
 .fx-sound{display:flex!important;z-index:6;cursor:pointer;top:auto!important;bottom:18px;right:18px}
 .fx-tchip{display:none}
 
