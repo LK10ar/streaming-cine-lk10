@@ -1071,8 +1071,8 @@
     var W = box.clientWidth || 0, H = box.clientHeight || (W * 9 / 16);
     if (!W) return;
     /* Le lecteur YouTube est créé en 1920×1080 puis mis à l'échelle : il choisit donc la meilleure qualité (1080p).
-       +14 % de zoom pour rogner le bandeau de titre et les logos sur les bords. */
-    f.style.transform = 'translate(-50%,-50%) scale(' + (Math.max(W / 1920, H / 1080) * 1.14).toFixed(4) + ')';
+       +24 % de zoom pour rogner le bandeau de titre, les icônes et le logo sur les bords. */
+    f.style.transform = 'translate(-50%,-50%) scale(' + (Math.max(W / 1920, H / 1080) * 1.24).toFixed(4) + ')';
   }
   function showTrailerIn(m) {
     var box = $('video-container'); if (!box) return;
@@ -1081,7 +1081,7 @@
     FX.mode = 'trailer'; FX.muted = true; if (FX.ro) { FX.ro.disconnect(); FX.ro = null; }
     if (id) {
       box.innerHTML = '<div class="fx-trailer"><iframe class="fx-yt" title="" allow="autoplay; encrypted-media" tabindex="-1" src="https://www.youtube.com/embed/' + id +
-        '?autoplay=1&mute=1&controls=0&enablejsapi=1&loop=1&playlist=' + id + '&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&vq=hd1080&origin=' + encodeURIComponent(location.origin) + '"></iframe></div>' +
+        '?autoplay=1&mute=1&controls=0&enablejsapi=1&loop=1&playlist=' + id + '&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&vq=hd1080&origin=' + encodeURIComponent(location.origin) + '"></iframe><div class="fx-shield"></div></div>' +
         '<div class="hero-sound-btn fx-sound" title="Activer / couper le son"><i class="fas fa-volume-mute"></i></div>';
       var sb = box.querySelector('.fx-sound');
       sb.onclick = function (e) {
