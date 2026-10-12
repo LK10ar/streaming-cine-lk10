@@ -472,7 +472,7 @@
         });
       }; render();
     };
-    d.appendChild(b);
+    var tb = $('btn-trailer'); (tb && tb.parentNode === d) ? d.insertBefore(b, tb) : d.appendChild(b);   /* entre les boutons (top / partager / signaler) et BANDE ANNONCE */
   }
 
   /* ---------- Réglages : pseudo, avatars, couleur, confidentialité, notifications, suppression ---------- */
