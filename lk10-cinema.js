@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v12)
+/* Ciné LK10 — lk10-cinema.js (v13)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -45,6 +45,11 @@
     'html.lk10-cinema #player-overlay{overflow:hidden!important}' +
     'html.lk10-cinema #video-container{display:block!important}' +
     'html.lk10-cinema #video-container iframe,html.lk10-cinema #video-container video{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;display:block!important;transform:none!important}' +
+    /* v13 : plus de contour (bleu / jaune) autour de la vidéo en cinéma */
+    'html.lk10-cinema #video-container,html.lk10-cinema #video-container:focus,html.lk10-cinema #video-container:focus-visible,html.lk10-cinema #video-container iframe,html.lk10-cinema #video-container iframe:focus,html.lk10-cinema #video-container iframe:focus-visible,html.lk10-cinema #player-overlay:focus,html.lk10-cinema .player-content:focus{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important}' +
+    /* télé : l'iframe déborde de 4 px de chaque côté (le cadre est en overflow:hidden) -> un éventuel liseré de focus interne au lecteur est rogné */
+    'html.lk10-tv.lk10-cinema #video-container iframe{top:-4px!important;left:-4px!important;right:auto!important;bottom:auto!important;width:calc(100% + 8px)!important;height:calc(100% + 8px)!important}' +
+    '#lk10-sink{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;outline:none!important}' +
     /* petits boutons (souris / tactile) : quitter + épisode suivant */
     '#lk10-cine-ui{display:none;position:fixed;top:8px;left:8px;z-index:2147483001;gap:6px;pointer-events:none;transition:opacity .4s}' +
     'html.lk10-cinema #lk10-cine-ui{display:flex}' +
@@ -95,40 +100,6 @@
     wantCine = true; keepVideoInView();
     setTimeout(function () { if (hasPlayer()) enterCinema(); }, 350);
   }
-  /* TÉLÉ : pas de bande-annonce dans la fiche (lourd, inutile, et rien ne se lançait) -> image + gros bouton Lecture */
-  function tvNoTrailer() {
-    return;   /* v9 : la fiche garde sa bande-annonce sur télé (on ne la remplace plus par l'image) */
-    if (!isTV()) return;
-    var vc = $('video-container'); if (!vc || !vc.querySelector('iframe.fx-yt')) return;
-    var m = null; try { m = currentMovie; } catch (e) {}
-    var bg = (m && (m.backdrop || m.poster)) || '';
-    vc.innerHTML = '<div class="fx-nt"><div><button type="button" class="fx-lecture" id="lk10-tv-play"><i class="fas fa-play"></i> Lecture</button><div class="lk10-pick" id="lk10-pick"></div></div></div>';
-    var nt = vc.querySelector('.fx-nt'); if (nt && bg) nt.style.backgroundImage = 'url("' + String(bg).replace(/"/g, '%22') + '")';
-    buildPick();
-    var b = $('lk10-tv-play'); if (b) { b.onclick = startPlay; try { b.focus({ preventScroll: true }); } catch (e) {} }
-  }
-  /* Choix de la langue et du lecteur directement sur l'image (les vrais boutons sont sous la vidéo, hors de l'écran sur télé) */
-  var SRV = [['btn-server-prem', 'Premium'], ['btn-server-vidzy', 'Vidzy'], ['btn-server-uql', 'Uqload'], ['btn-server-regarder', 'Regarder']];
-  function buildPick() {
-    var box = $('lk10-pick'); if (!box) return;
-    var h = '', sel = $('language-select');
-    if (sel && sel.options.length > 1) h += '<button type="button" class="lk10-chip" id="lk10-pick-lang"><i class="fas fa-language"></i><span>' + sel.options[sel.selectedIndex].text + '</span></button>';
-    SRV.forEach(function (x) {
-      var r = $(x[0]); if (!r || r.offsetParent === null) return;       // seulement les lecteurs réellement disponibles
-      h += '<button type="button" class="lk10-chip' + (r.classList.contains('active') ? ' lk10-cur' : '') + '" data-srv="' + x[0] + '"><i class="fas fa-play-circle"></i><span>' + x[1] + '</span></button>';
-    });
-    box.innerHTML = h;
-    var l = $('lk10-pick-lang');
-    if (l) l.onclick = function () {                                     // change la langue SANS lancer la lecture
-      var s2 = $('language-select'); if (!s2) return;
-      s2.selectedIndex = (s2.selectedIndex + 1) % s2.options.length;
-      try { currentLanguage = s2.value || 'vf'; } catch (e) {}
-      l.querySelector('span').textContent = s2.options[s2.selectedIndex].text;
-    };
-    box.querySelectorAll('[data-srv]').forEach(function (b) {
-      b.onclick = function () { var r = $(b.dataset.srv); if (r) r.click(); };   // = clic sur le vrai bouton : lecteur choisi, lecture, plein écran
-    });
-  }
   /* Télé : le focus de la télécommande fait défiler la fiche vers « Lecture » / les lecteurs -> la vidéo se retrouve coupée en haut.
      On remet la fiche en haut au lancement (et un instant après, pour passer APRÈS le défilement automatique du focus). */
   function topScroll() { var o = $('player-overlay'); if (o) o.scrollTop = 0; try { window.scrollTo(0, 0); } catch (e) {} }
@@ -142,8 +113,8 @@
     [60, 400, 1200].forEach(function (t) {
       setTimeout(function () {
         var f = playerFrame(); if (!f) return;
-        f.style.setProperty('height', 'calc(100% - 1px)', 'important');
-        setTimeout(function () { try { f.style.removeProperty('height'); } catch (e) {} }, 70);
+        f.style.setProperty('height', 'calc(100% - 2px)', 'important'); f.style.setProperty('width', 'calc(100% - 2px)', 'important');
+        setTimeout(function () { try { f.style.removeProperty('height'); f.style.removeProperty('width'); } catch (e) {} }, 80);
       }, t);
     });
   }
@@ -156,20 +127,58 @@
     try { history.pushState({ lk10cine: 1 }, ''); } catch (e) {}  // le bouton Retour de la télé = on quitte le cinéma
     refreshUi(); showUi();
     if (hasPlayer()) nudge();
+    if (isTV()) { setTimeout(bounce, 500); setTimeout(bounce, 1800); }
     setTimeout(function () {
       var vc = $('video-container'); if (!vc) return;
-      var f = vc.querySelector('iframe'), s = $('skip-ad-btn');
-      try { if (f) { f.setAttribute('tabindex', '0'); f.focus(); } else if (s) s.focus(); } catch (e) {}
+      var f = playerFrame(), s = $('skip-ad-btn');
+      try {
+        if (f && isOwnPlayer(f)) sinkFocus();            // v13 : Premium / Vidzy -> la PAGE garde le focus (sinon les touches partent dans l'iframe et on ne peut plus sortir)
+        else if (f) { f.setAttribute('tabindex', '0'); f.focus(); }
+        else if (s) s.focus();
+      } catch (e) {}
     }, 250);
   }
+  /* v13 : focus « invisible » sur la page */
+  function sinkFocus() {
+    var s = $('lk10-sink');
+    if (!s) { s = document.createElement('div'); s.id = 'lk10-sink'; s.tabIndex = -1; de.appendChild(s); }
+    try { s.focus({ preventScroll: true }); } catch (e) {}
+  }
+  /* v13 : « rebond » du cinéma = ce que tu faisais à la main (fermer / rouvrir le plein écran) pour que l'image se replace */
+  var bounceT = null;
+  function bounce() {
+    if (!active || !isTV()) return;
+    clearTimeout(bounceT);
+    de.classList.remove('lk10-cinema'); void de.offsetWidth;
+    bounceT = setTimeout(function () { if (active) { de.classList.add('lk10-cinema'); nudge(); } }, 140);
+  }
+  /* v13 (télé) : à chaque nouveau lecteur, on le « secoue » même hors plein écran (écran noir sans plein écran auto) */
+  function refit() { if (!isTV()) return; nudge(); if (active) bounce(); }
+  (function () {
+    var vc = $('video-container'), seen = null; if (!vc) return;
+    new MutationObserver(function () {
+      if (!isTV()) return;
+      var f = playerFrame(); if (!f) { seen = null; return; }
+      if (f === seen) return; seen = f;
+      f.addEventListener('load', function () { refit(); });
+      setTimeout(refit, 900); setTimeout(refit, 2200);
+    }).observe(vc, { childList: true });
+  })();
+  /* v13 : garde-focus — si le focus tombe dans l'iframe du lecteur maison (ou de la bande-annonce), on le rend à la page */
+  setInterval(function () {
+    if (!isTV() || !shown('player-overlay')) return;
+    var a = document.activeElement; if (!a || a.tagName !== 'IFRAME') return;
+    if (isOwnPlayer(a) || (a.classList && a.classList.contains('fx-yt'))) sinkFocus();
+  }, 700);
   var hideT = null;
   function showUi() { var u = $('lk10-cine-ui'); if (!u) return; u.classList.remove('hide'); clearTimeout(hideT); hideT = setTimeout(function () { u.classList.add('hide'); }, 4000); }
   ['mousemove', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, function () { if (active) showUi(); }, true); });
   function exitCinema(fromPop) {
-    if (!active) return;
+    if (!active && !de.classList.contains('lk10-cinema')) return;
+    clearTimeout(bounceT);
     active = false; de.classList.remove('lk10-cinema');
     if (!fromPop) { try { if (history.state && history.state.lk10cine) { popping = true; history.back(); } } catch (e) {} }
-    var vc = $('video-container'); try { (document.querySelector('#lk10-opts button') || vc).focus({ preventScroll: true }); } catch (e) {}
+    var vc = $('video-container'); try { ($('fx-go') || document.querySelector('#lk10-opts button') || vc).focus({ preventScroll: true }); } catch (e) {}
     keepVideoInView(); nudge();
   }
   window.addEventListener('popstate', function () {
@@ -223,22 +232,52 @@
     }
   });
   var DIRK = { 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown' }, lastOk = 0;
+  /* v13 : touches de SORTIE DE SECOURS (télé) : 0, Menu, bouton rouge */
+  var EXIT_K = { 48: 1, 96: 1, 82: 1, 93: 1, 403: 1 };
+  function isExitKey(e) { return !!EXIT_K[e.keyCode] || e.key === 'ContextMenu' || e.key === 'Menu' || e.key === 'ColorF0Red' || e.key === 'Red'; }
+  function isOk(k) { return k === 13 || k === 23 || k === 66; }
   window.addEventListener('keydown', function (e) {
-    if (!active || e.ctrlKey || e.altKey || e.metaKey) return;
-    var a = document.activeElement; if (a && a.closest && a.closest('#lk10-cine-ui')) return;
-    if (!isOwnPlayer(playerFrame())) return;                                   // lecteur tiers : touches natives   // boutons ✕ / suivant : OK = cliquer
-    var k = e.keyCode;
-    var sub = (k === 48 || k === 96) ? 'fss_sub_toggle' : (k === 49 || k === 97) ? 'fss_sub_cycle' : (k === 50 || k === 98) ? 'fss_audio' : null;
-    if (sub) { toPlayer({ action: sub }); return; }
-    var key = DIRK[k] || ((k === 13 || k === 23 || k === 66) ? 'Enter' : null);
-    if (!key) return;
-    if (key === 'Enter') {
-      var n = Date.now();
-      if (lastOk && n - lastOk < 500) { lastOk = 0; e.preventDefault(); e.stopImmediatePropagation(); exitCinema(); return; }
-      lastOk = n;
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    var k = e.keyCode, f;
+    if (active) {
+      if (isTV() && isExitKey(e)) { e.preventDefault(); e.stopImmediatePropagation(); exitCinema(); return; }
+      var a = document.activeElement; if (a && a.closest && a.closest('#lk10-cine-ui')) return;   // boutons ✕ / suivant : OK = cliquer
+      f = playerFrame();
+      if (!isOwnPlayer(f)) {
+        /* lecteur tiers (Uqload / Voe / Filmoon) : touches natives. Si une touche arrive à la page, c'est que le focus s'est échappé : on le rend à l'iframe */
+        if (f && (DIRK[k] || isOk(k)) && (!a || a.tagName !== 'IFRAME')) { e.preventDefault(); e.stopImmediatePropagation(); try { f.setAttribute('tabindex', '0'); f.focus(); } catch (x) {} }
+        return;
+      }
+      /* lecteur maison : 3 = sous-titres on/off, 1 = langue des sous-titres, 2 = piste audio */
+      var sub = (k === 51 || k === 99) ? 'fss_sub_toggle' : (k === 49 || k === 97) ? 'fss_sub_cycle' : (k === 50 || k === 98) ? 'fss_audio' : null;
+      if (sub) { e.preventDefault(); e.stopImmediatePropagation(); toPlayer({ action: sub }); return; }
+      var key = DIRK[k] || (isOk(k) ? 'Enter' : null);
+      if (!key) return;
+      if (key === 'Enter') {
+        var n = Date.now();
+        if (lastOk && n - lastOk < 500) { lastOk = 0; e.preventDefault(); e.stopImmediatePropagation(); exitCinema(); return; }
+        lastOk = n;
+      }
+      toPlayer({ action: 'fss_key', key: key });
+      e.preventDefault(); e.stopImmediatePropagation();
+      return;
     }
-    toPlayer({ action: 'fss_key', key: key });
-    e.preventDefault(); e.stopImmediatePropagation();
+    /* ----- fiche ouverte, hors plein écran (télé uniquement) ----- */
+    if (!isTV() || !shown('player-overlay')) return;
+    var ae = document.activeElement, tag = ae && ae.tagName;
+    if (isOk(k) && ae && ae.id === 'video-container') {
+      /* v13 : OK sur le cadre vidéo = lancer / plein écran (avant, ça donnait le focus à l'iframe : les touches étaient perdues, fiche bloquée en haut) */
+      e.preventDefault(); e.stopImmediatePropagation(); hasPlayer() ? enterCinema() : startPlay(); return;
+    }
+    if ((k === 38 || k === 40) && tag !== 'SELECT' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+      /* v13 : si ↓ / ↑ ne déplace plus le curseur (fin de ligne, rien en dessous), on fait défiler la fiche */
+      var ov = $('player-overlay'), r0 = ae && ae.getBoundingClientRect ? ae.getBoundingClientRect().top : null, s0 = ov ? ov.scrollTop : 0, dir = k === 40 ? 1 : -1;
+      setTimeout(function () {
+        if (!ov) return;
+        var a2 = document.activeElement, r1 = a2 && a2.getBoundingClientRect ? a2.getBoundingClientRect().top : null;
+        if (a2 === ae && r1 === r0 && ov.scrollTop === s0) ov.scrollTop = s0 + dir * Math.round(window.innerHeight * 0.6);
+      }, 40);
+    }
   }, true);
 
   /* TÉLÉ, lecteurs Premium / Vidzy : French Stream charge « embed-xxx.html?autoplay=1 » et réécrit les vieux domaines vidzy.org/.cc/.live
@@ -291,13 +330,14 @@
   function refreshChips() {
     var a = $('lk10-opt-cine'), n = $('lk10-opt-next');
     if (a) { var o1 = opt(K_CINE); a.classList.toggle('lk10-on', o1); a.classList.toggle('lk10-off', !o1); a.querySelector('span').textContent = 'Plein écran auto : ' + (o1 ? 'OUI' : 'NON'); }
+    refreshEps();
     if (n) { var o2 = opt(K_NEXT); n.classList.toggle('lk10-on', o2); n.classList.toggle('lk10-off', !o2); n.querySelector('span').textContent = 'Épisode suivant auto : ' + (o2 ? 'OUI' : 'NON'); }
   }
   function ensureChips() {
     var bar = $('lk10-bar'); if (!bar || $('lk10-opts')) return;
     var box = document.createElement('div'); box.id = 'lk10-opts';
     /* options visibles sur TOUS les appareils ; « Lancer sur la télé » seulement hors télé (et caché tant que la télé n'est pas en ligne) */
-    box.innerHTML = chip('lk10-cine-go', 'fa-expand', 'Cinéma', 'lk10-primary') + chip('lk10-opt-cine', 'fa-expand-arrows-alt', '') + chip('lk10-opt-next', 'fa-forward', '') +
+    box.innerHTML = (isTV() ? chip('lk10-eps', 'fa-list-ul', 'Épisodes', 'lk10-primary') : '') + chip('lk10-cine-go', 'fa-expand', 'Cinéma', 'lk10-primary') + chip('lk10-opt-cine', 'fa-expand-arrows-alt', '') + chip('lk10-opt-next', 'fa-forward', '') +
       (isTV() ? '' : chip('lk10-cast', 'fa-tv', 'Lancer sur la télé', 'lk10-primary'));
     var cc = box.querySelector('#lk10-cast'); if (cc) cc.style.display = tvOnline ? '' : 'none';
     bar.appendChild(box);
@@ -305,10 +345,21 @@
     var a = $('lk10-opt-cine'); if (a) a.onclick = function () { setOpt(K_CINE, !opt(K_CINE)); refreshChips(); };
     var n = $('lk10-opt-next'); if (n) n.onclick = function () { setOpt(K_NEXT, !opt(K_NEXT)); refreshChips(); };
     var c = $('lk10-cast'); if (c) c.onclick = castNow;
+    var ep = $('lk10-eps'); if (ep) ep.onclick = openEpisodes;
     refreshChips();
   }
-  wrap('openP', function (o, a) { if (typeof a[1] === 'number' || a[1] === 'play') intent(); var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); if (isTV()) { var g = $('fx-go'); try { if (g && shown('player-overlay')) g.focus({ preventScroll: true }); } catch (e) {} } }, 80); } catch (e) {} return r; });
-  wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); if (isTV()) kick(); } catch (e) {} return r; });
+  /* v13 (télé) : puce « Épisodes » = ouvre la liste et met le curseur sur l'épisode en cours (plus besoin de descendre jusqu'au bouton) */
+  function isSerie() { try { return !!currentMovie && currentMovie.type === 'serie'; } catch (e) { return false; } }
+  function refreshEps() { var b = $('lk10-eps'); if (b) b.style.display = isTV() && isSerie() ? '' : 'none'; }
+  function openEpisodes() {
+    try { var l = $('ep-list-container'); if (l && l.style.display === 'none') toggleEpisodes(); } catch (e) {}
+    setTimeout(function () {
+      var it = document.querySelector('#ep-items-wrapper .ep-item.active') || document.querySelector('#ep-items-wrapper .ep-item'); if (!it) return;
+      try { it.setAttribute('tabindex', '0'); it.focus({ preventScroll: true }); it.scrollIntoView({ block: 'center' }); } catch (e) {}
+    }, 80);
+  }
+  wrap('openP', function (o, a) { if (typeof a[1] === 'number' || a[1] === 'play') intent(); var r = o.apply(this, a); try { setTimeout(function () { ensureChips(); checkTv(); if (isTV()) { var g = $('fx-go'); try { if (g && shown('player-overlay')) g.focus({ preventScroll: true }); } catch (e) {} } }, 80); } catch (e) {} return r; });
+  wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshEps(); refreshUi(); if (isTV()) kick(); } catch (e) {} return r; });
 
   /* ---------- Téléphone / PC : la télé est-elle en ligne ? bouton « Lancer sur la télé » ---------- */
   
@@ -374,7 +425,7 @@
     } catch (e) { console.warn('lk10 cast', e); }
     keepVideoInView();
     var used = ''; try { used = currentServer; } catch (e) {}
-    toast('Lancement (v4) : ' + m.title + ' [' + (cmd.server || 'aucun lecteur reçu') + ' → ' + used + ']');
+    toast('Lancement (v13) : ' + m.title + ' [' + (cmd.server || 'aucun lecteur reçu') + ' → ' + used + ']');
     /* 3) plein écran (la lecture elle-même ne se recharge plus) */
     setTimeout(function () { if (seq === castSeq && !active) enterCinema(); }, 300);
   }
