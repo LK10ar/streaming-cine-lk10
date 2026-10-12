@@ -9,7 +9,16 @@
 (function () {
   'use strict';
   var de = document.documentElement;
-  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android TV|GoogleTV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV/i;
+  /* Détection télé large : marques de télés / box / sticks (Fire TV, Xiaomi Mi TV / Mi Box / TV Stick, Google TV, Samsung, LG,
+     Sony, Philips, Hisense, TCL, Roku, consoles...) + navigateurs de box (Silk, TV Bro, Puffin TV) + tout Android SANS écran tactile. */
+  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android ?TV|Google ?TV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV|MiTV|Mi ?TV|MiBOX|Mi ?Box|TV ?Bro|Puffin ?TV|Fire ?TV|AmazonWebAppPlatform|NETTV|Vestel|Philips|\bTV\b/i;
+  function detectTV() {
+    var ua = navigator.userAgent || '', touch = navigator.maxTouchPoints || 0;
+    if (UA_TV.test(ua)) return true;
+    if (/Silk\//.test(ua) && !touch) return true;                    // Fire TV en mode « site PC »
+    if (/Android/.test(ua) && !/Mobile/.test(ua) && !touch) return true; // Android sans tactile = télé / box
+    return false;
+  }
 
   /* Même logique que cine-plus.js : réglage manuel (bouton télé / ?tv=1) sinon détection automatique */
   function isTV() {
@@ -19,7 +28,7 @@
       if (s === '1') return true;
       if (s === '0') return false;
     } catch (e) {}
-    return UA_TV.test(navigator.userAgent);
+    return detectTV();
   }
   var $ = function (id) { return document.getElementById(id); };
   function shown(id) { var e = $(id); return !!e && getComputedStyle(e).display !== 'none'; }
@@ -122,6 +131,20 @@
     if (busy) return; busy = true;
     setTimeout(function () { busy = false; try { tvNoVideo(); lightPlatforms(); } catch (e) {} }, 200);
   }).observe(document.body, { childList: true, subtree: true });
+
+  /* ---------- Touches des télécommandes Android TV / Fire TV / Xiaomi ----------
+     OK = DPAD_CENTER (23) ou Entrée (13) ; Retour = 4 (Android) -> traduits en Entrée / Échap pour cine-plus.js */
+  function fake(code, key) {
+    var ev = new KeyboardEvent('keydown', { key: key, bubbles: true, cancelable: true });
+    try { Object.defineProperty(ev, 'keyCode', { get: function () { return code; } }); Object.defineProperty(ev, 'which', { get: function () { return code; } }); } catch (e) {}
+    (document.activeElement || document.body).dispatchEvent(ev);
+  }
+  document.addEventListener('keydown', function (e) {
+    if (!isTV() || !e.isTrusted) return;
+    var k = e.keyCode;
+    if (k === 23 || k === 66) { e.preventDefault(); e.stopImmediatePropagation(); fake(13, 'Enter'); }
+    else if (k === 4 || e.key === 'GoBack' || e.key === 'BrowserBack') { e.preventDefault(); e.stopImmediatePropagation(); fake(27, 'Escape'); }
+  }, true);
 
   /* ---------- 4. Télé : on active le mode "lite" de cine-fx et on coupe tout trailer déjà lancé ---------- */
   function applyTvPerf() {
