@@ -190,7 +190,9 @@
   /* ---------- 4. Télé : on active le mode "lite" de cine-fx et on coupe tout trailer déjà lancé ---------- */
   function applyTvPerf() {
     if (!isTV()) return;
-    de.classList.add('fx-lite');
+    /* IMPORTANT : ne toucher à la classe de <html> que si c'est nécessaire. Réécrire l'attribut « class » (même avec la même valeur)
+       relance l'observateur ci-dessous -> boucle infinie -> la télé se fige sur « Chargement… ». */
+    if (!de.classList.contains('fx-lite')) de.classList.add('fx-lite');
     stopHero(); killPreview(); tvNoVideo(); killHex();
   }
   /* Télé : plus de fond jaune interactif « nid d'abeille » (canvas plein écran de cine-fx.js) */
@@ -201,6 +203,8 @@
     });
   }
   applyTvPerf();
-  new MutationObserver(applyTvPerf).observe(de, { attributes: true, attributeFilter: ['class'] });
+  new MutationObserver(function () {
+    if (isTV() && !de.classList.contains('fx-lite')) applyTvPerf();   // ne se relance jamais tout seul
+  }).observe(de, { attributes: true, attributeFilter: ['class'] });
   window.addEventListener('load', applyTvPerf);
 })();
