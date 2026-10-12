@@ -34,7 +34,7 @@
 
   var box = document.createElement('div'); box.id = 'lk10-cv';
   box.innerHTML = '<img alt="Ciné LK10" src="asset/logolk10.png">' +
-    '<div id="lk10-cv-msg">Appuie sur <b>OK</b> pour entrer</div>' +
+    '<div id="lk10-cv-msg">Chargement…</div>' +
     '<div id="lk10-cv-bar"><i></i></div>';
   cover.appendChild(box);
 
@@ -45,4 +45,12 @@
     var m = document.getElementById('lk10-cv-msg'); if (m) m.textContent = 'Chargement…';
     setTimeout(function () { try { window.finishCover(); } catch (e) { cover.style.display = 'none'; } }, 2300);
   };
+
+  /* 4) Sur télé on n'attend PAS la touche OK (selon les télécommandes elle n'envoie pas toujours « Entrée ») :
+        le chargement démarre tout seul, et n'importe quelle touche / clic le démarre aussi. */
+  var go = function () { try { window.closeCover(); } catch (e) {} };
+  ['keydown', 'keyup', 'click', 'pointerdown', 'touchstart', 'mousedown'].forEach(function (ev) { window.addEventListener(ev, go, true); });
+  setTimeout(go, 700);
+  /* Sécurité finale : quoi qu'il arrive, l'écran d'accueil disparaît après 6 s */
+  setTimeout(function () { try { window.finishCover(); } catch (e) { cover.style.display = 'none'; } }, 6000);
 })();
