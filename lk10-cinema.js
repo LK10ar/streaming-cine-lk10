@@ -163,7 +163,7 @@
     var m = null, ep = 0, lang = 'vf';
     try { m = currentMovie; ep = currentEpisodeIndex | 0; lang = currentLanguage; } catch (e) {}
     if (!m) return;
-    api('/api/tv/cast', { method: 'POST', body: JSON.stringify({ id: m.id, ep: m.type === 'serie' ? ep : 0, lang: lang }) }).then(function (d) {
+    api('/api/tv/cast', { method: 'POST', body: JSON.stringify({ id: m.id, ep: m.type === 'serie' ? ep : 0, lang: lang, server: (function () { try { return currentServer; } catch (e) { return ''; } })() }) }).then(function (d) {
       if (d && d.success) toast('Envoyé sur la télé : ' + m.title);
       else { toast((d && d.message) || 'Impossible de joindre la télé.'); checkTv(); }
     }).catch(function () { toast('Erreur de connexion.'); });
@@ -176,18 +176,22 @@
     if (!m) return toast('Titre introuvable sur la télé.');
     try { if (typeof closeProfilePage === 'function') closeProfilePage(); } catch (e) {}
     exitCinema();
-    toast('Lancement depuis ton téléphone : ' + m.title);
+    toast('Lancement (v3) : ' + m.title);
     openP(m.id, m.type === 'serie' ? (cmd.ep | 0) : 0);   /* un nombre = lecture directe ; null ouvrirait la bande-annonce */
-    setTimeout(function () {
+    function play() {
       try {
         var sel = $('language-select');
         if (sel && cmd.lang && Array.prototype.some.call(sel.options, function (o) { return o.value === cmd.lang; }) && sel.value !== cmd.lang) { sel.value = cmd.lang; changeLanguage(); }
+        if (cmd.server) currentServer = cmd.server;           // le lecteur choisi sur le téléphone (Premium / Vidzy / Uqload)
+        changeServer(currentServer);                           // lance toujours la vraie lecture (jamais la bande-annonce)
         var vc = $('video-container');
-        if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();   /* .fx-yt = bande-annonce : on ne la compte pas */
-        else changeServer(currentServer);
-        setTimeout(function () { if (!active) enterCinema(); }, 400);
+        if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();
       } catch (e) {}
-    }, 400);
+    }
+    setTimeout(play, 400);
+    setTimeout(function () {                                   // sécurité : si la bande-annonce est encore affichée, on force la lecture
+      try { var vc = $('video-container'); if (vc && (vc.querySelector('.fx-yt') || !vc.querySelector('iframe, #skip-ad-btn'))) play(); else if (!active) enterCinema(); } catch (e) {}
+    }, 1500);
   }
   var polling = false;
   setInterval(function () {
