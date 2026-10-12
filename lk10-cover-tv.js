@@ -8,11 +8,12 @@
 
   /* Détection télé large : marques de télés / box / sticks (Fire TV, Xiaomi Mi TV / Mi Box / TV Stick, Google TV, Samsung, LG,
      Sony, Philips, Hisense, TCL, Roku, consoles...) + navigateurs de box (Silk, TV Bro, Puffin TV) + tout Android SANS écran tactile. */
-  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android ?TV|Google ?TV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV|MiTV|Mi ?TV|MiBOX|Mi ?Box|TV ?Bro|Puffin ?TV|Fire ?TV|AmazonWebAppPlatform|NETTV|Vestel|Philips|\bTV\b/i;
+  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android ?TV|Google ?TV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV|MiTV|Mi ?TV|MiBOX|Mi ?Box|TV ?Bro|Puffin ?TV|Fire ?TV|Chromecast|DuneHD|AmazonWebAppPlatform|NETTV|Vestel|Philips|\bTV\b/i;
   function detectTV() {
     var ua = navigator.userAgent || '', touch = navigator.maxTouchPoints || 0;
     if (UA_TV.test(ua)) return true;
     if (/Silk\//.test(ua) && !touch) return true;                    // Fire TV en mode « site PC »
+    if (/;\s*wv[\);]/i.test(ua) && !touch) return true;                // appli WebView (APK) sans tactile
     if (/Android/.test(ua) && !/Mobile/.test(ua) && !touch) return true; // Android sans tactile = télé / box
     return false;
   }
