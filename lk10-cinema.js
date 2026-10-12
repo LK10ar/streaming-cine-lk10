@@ -68,8 +68,31 @@
     try { has = !!m && m.type === 'serie' && m.episodes && currentEpisodeIndex < m.episodes.length - 1; } catch (e) {}
     if (nx) nx.style.display = has ? '' : 'none';
   }
+  /* un VRAI lecteur est affiché (pas la bande-annonce YouTube ni le vide) */
+  function hasPlayer() { var vc = $('video-container'); return !!vc && !!vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn'); }
+  /* lance la vraie lecture (bouton « Lecture » du site), puis le plein écran */
+  function startPlay() {
+    try {
+      if (!hasPlayer()) {
+        var vc = $('video-container'), go = $('fx-go');
+        if (go && vc && (vc.querySelector('.fx-yt') || vc.querySelector('.fx-nt'))) go.click();   // fiche en mode « bande-annonce » -> lecture
+        else changeServer(currentServer);
+      }
+    } catch (e) {}
+    setTimeout(function () { if (isTV() && hasPlayer()) enterCinema(); }, 350);
+  }
+  /* TÉLÉ : pas de bande-annonce dans la fiche (lourd, inutile, et rien ne se lançait) -> image + gros bouton Lecture */
+  function tvNoTrailer() {
+    if (!isTV()) return;
+    var vc = $('video-container'); if (!vc || !vc.querySelector('iframe.fx-yt')) return;
+    var m = null; try { m = currentMovie; } catch (e) {}
+    var bg = (m && (m.backdrop || m.poster)) || '';
+    vc.innerHTML = '<div class="fx-nt"><div><button type="button" class="fx-lecture" id="lk10-tv-play"><i class="fas fa-play"></i> Lecture</button></div></div>';
+    var nt = vc.querySelector('.fx-nt'); if (nt && bg) nt.style.backgroundImage = 'url("' + String(bg).replace(/"/g, '%22') + '")';
+    var b = $('lk10-tv-play'); if (b) { b.onclick = startPlay; try { b.focus({ preventScroll: true }); } catch (e) {} }
+  }
   function enterCinema() {
-    if (active || !$('video-container') || !shown('player-overlay')) return;
+    if (active || !hasPlayer() || !shown('player-overlay')) return;   // jamais de plein écran sur la bande-annonce
     active = true; ui();
     try { document.body.style.zoom = ''; } catch (e) {}      // jamais de zoom en plein écran
     var pill = $('lk10-zoom-reset'); if (pill) pill.style.display = 'none';
@@ -142,13 +165,13 @@
       box.firstChild.style.display = 'none';
     }
     bar.appendChild(box);
-    var g = $('lk10-cine-go'); if (g) g.onclick = function () { enterCinema(); };
+    var g = $('lk10-cine-go'); if (g) g.onclick = function () { hasPlayer() ? enterCinema() : startPlay(); };
     var a = $('lk10-opt-cine'); if (a) a.onclick = function () { setOpt(K_CINE, !opt(K_CINE)); refreshChips(); };
     var n = $('lk10-opt-next'); if (n) n.onclick = function () { setOpt(K_NEXT, !opt(K_NEXT)); refreshChips(); };
     var c = $('lk10-cast'); if (c) c.onclick = castNow;
     refreshChips();
   }
-  wrap('openP', function (o, a) { var r = o.apply(this, a); try { setTimeout(function () { ensureChips(); checkTv(); }, 60); } catch (e) {} return r; });
+  wrap('openP', function (o, a) { var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); tvNoTrailer(); }, 60); } catch (e) {} return r; });
   wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); } catch (e) {} return r; });
 
   /* ---------- Téléphone / PC : la télé est-elle en ligne ? bouton « Lancer sur la télé » ---------- */
@@ -173,28 +196,36 @@
   }
 
   /* ---------- Télé : on reçoit les commandes du téléphone ---------- */
+  /* v4 : UNE SEULE charge du lecteur, directement avec la bonne langue et le bon lecteur.
+     Avant, openP() lançait Premium, puis 400 ms plus tard on rechargeait, puis une 3e fois (sécurité) :
+     le lecteur redémarrait en boucle (sous-titres sans image, vidéo décalée, mauvais lecteur). */
+  var castGuard = false, castSeq = 0;
+  (function () {
+    var oSet = window.setVideoContent;
+    if (typeof oSet === 'function') window.setVideoContent = function () { if (castGuard) return; return oSet.apply(this, arguments); };
+  })();
   function onCast(cmd) {
     var list = []; try { list = moviesDB || []; } catch (e) {}
     var m = list.find(function (x) { return x.id === cmd.id; });
     if (!m) return toast('Titre introuvable sur la télé.');
+    var seq = ++castSeq;
     try { if (typeof closeProfilePage === 'function') closeProfilePage(); } catch (e) {}
     exitCinema();
-    toast('Lancement (v3) : ' + m.title);
-    openP(m.id, m.type === 'serie' ? (cmd.ep | 0) : 0);   /* un nombre = lecture directe ; null ouvrirait la bande-annonce */
-    function play() {
-      try {
-        var sel = $('language-select');
-        if (sel && cmd.lang && Array.prototype.some.call(sel.options, function (o) { return o.value === cmd.lang; }) && sel.value !== cmd.lang) { sel.value = cmd.lang; changeLanguage(); }
-        if (cmd.server) currentServer = cmd.server;           // le lecteur choisi sur le téléphone (Premium / Vidzy / Uqload)
-        changeServer(currentServer);                           // lance toujours la vraie lecture (jamais la bande-annonce)
-        var vc = $('video-container');
-        if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();
-      } catch (e) {}
-    }
-    setTimeout(play, 400);
-    setTimeout(function () {                                   // sécurité : si la bande-annonce est encore affichée, on force la lecture
-      try { var vc = $('video-container'); if (vc && (vc.querySelector('.fx-yt') || !vc.querySelector('iframe, #skip-ad-btn'))) play(); else if (!active) enterCinema(); } catch (e) {}
-    }, 1500);
+    /* 1) on prépare la fiche SANS charger de lecteur (openP voudrait lancer Premium) */
+    castGuard = true;
+    try { openP(m.id, m.type === 'serie' ? (cmd.ep | 0) : 0); } catch (e) {} finally { castGuard = false; }
+    /* 2) langue + lecteur choisis sur le téléphone, puis UNE seule lecture */
+    try {
+      var sel = $('language-select');
+      if (sel && cmd.lang && Array.prototype.some.call(sel.options, function (o) { return o.value === cmd.lang; })) sel.value = cmd.lang;
+      if (sel) currentLanguage = sel.value || 'vf';
+      currentServer = cmd.server || 'premium';
+      changeServer(currentServer);
+    } catch (e) { console.warn('lk10 cast', e); }
+    var used = ''; try { used = currentServer; } catch (e) {}
+    toast('Lancement (v4) : ' + m.title + ' [' + (cmd.server || 'aucun lecteur reçu') + ' → ' + used + ']');
+    /* 3) plein écran (la lecture elle-même ne se recharge plus) */
+    setTimeout(function () { if (seq === castSeq && !active) enterCinema(); }, 300);
   }
   var polling = false;
   setInterval(function () {
