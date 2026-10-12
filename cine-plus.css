@@ -99,3 +99,24 @@ html.lk10-tv .lk10-sim-card { flex-basis: 150px; } html.lk10-tv .lk10-sim-card i
 html.lk10-tv .ublock-box, html.lk10-tv .plat-vid { display: none !important; }
 html.lk10-tv #video-container:focus { outline-offset: -4px; }
 html.lk10-tv .close-corner { width: 56px; height: 56px; font-size: 36px; }
+
+
+/* ---------- PARAMÈTRES : fenêtre plus grande + champ « Lier une télé » lisible ---------- */
+#settings-overlay .settings-modal { width: min(760px, 94vw); max-width: 94vw; padding: 36px 40px; max-height: 92vh; overflow-y: auto; font-size: 16px; }
+#settings-overlay .settings-modal h2 { font-size: 30px; margin-bottom: 26px; }
+#settings-overlay .settings-modal label { font-size: 15px; }
+#settings-overlay .settings-modal input { font-size: 16px; padding: 14px 16px; }
+#settings-overlay .settings-modal button.action-btn, #settings-overlay .settings-modal .fx-btn { font-size: 16px; padding: 14px 16px; }
+.lk10-set-tv small { font-size: 14px; }
+/* le champ du code était écrasé par « input { width:100% } » : on lui donne la place et on garde le bouton à droite */
+#settings-overlay .lk10-set-tv .lk10-row { display: flex; gap: 10px; align-items: stretch; }
+#settings-overlay .lk10-set-tv input { flex: 1 1 60%; width: auto; min-width: 0; margin: 0; font-size: 28px; letter-spacing: 6px; padding: 14px; }
+#settings-overlay .lk10-set-tv button.action-btn { flex: 0 0 140px; width: auto; margin: 0; }
+@media (max-width: 600px) {
+  #settings-overlay .settings-modal { padding: 24px 16px; }
+  #settings-overlay .settings-modal h2 { font-size: 24px; }
+  #settings-overlay .lk10-set-tv input { font-size: 22px; letter-spacing: 4px; }
+  #settings-overlay .lk10-set-tv button.action-btn { flex-basis: 100px; }
+}
+html.lk10-tv #settings-overlay .settings-modal { width: min(900px, 92vw); font-size: 20px; }
+html.lk10-tv #settings-overlay .settings-modal input { font-size: 20px; }
