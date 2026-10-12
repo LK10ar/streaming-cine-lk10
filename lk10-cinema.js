@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v13)
+/* Ciné LK10 — lk10-cinema.js (v14)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -49,6 +49,7 @@
     'html.lk10-cinema #video-container,html.lk10-cinema #video-container:focus,html.lk10-cinema #video-container:focus-visible,html.lk10-cinema #video-container iframe,html.lk10-cinema #video-container iframe:focus,html.lk10-cinema #video-container iframe:focus-visible,html.lk10-cinema #player-overlay:focus,html.lk10-cinema .player-content:focus{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important}' +
     /* télé : l'iframe déborde de 4 px de chaque côté (le cadre est en overflow:hidden) -> un éventuel liseré de focus interne au lecteur est rogné */
     'html.lk10-tv.lk10-cinema #video-container iframe{top:-4px!important;left:-4px!important;right:auto!important;bottom:auto!important;width:calc(100% + 8px)!important;height:calc(100% + 8px)!important}' +
+    '#lk10-cine-recal{display:none}html.lk10-tv #lk10-cine-ui button#lk10-cine-recal{display:block}' +
     '#lk10-sink{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;outline:none!important}' +
     /* petits boutons (souris / tactile) : quitter + épisode suivant */
     '#lk10-cine-ui{display:none;position:fixed;top:8px;left:8px;z-index:2147483001;gap:6px;pointer-events:none;transition:opacity .4s}' +
@@ -72,9 +73,11 @@
     if (!u) {
       u = document.createElement('div'); u.id = 'lk10-cine-ui';
       u.innerHTML = '<button type="button" id="lk10-cine-next" title="Épisode suivant" style="display:none"><i class="fas fa-step-forward"></i></button>' +
+                    '<button type="button" id="lk10-cine-recal" title="Recalibrer la vidéo (touche 5)"><i class="fas fa-crosshairs"></i></button>' +
                     '<button type="button" id="lk10-cine-x" title="Quitter le mode cinéma"><i class="fas fa-times"></i></button>';
       de.appendChild(u);                                    // sur <html> : le zoom éventuel du body ne l'affecte pas
       $('lk10-cine-x').onclick = function () { exitCinema(); };
+      $('lk10-cine-recal').onclick = function () { recalibrate(); };
       $('lk10-cine-next').onclick = function () { var n = $('lk10-next'); if (n && !n.disabled) n.click(); };
     }
     return u;
@@ -151,6 +154,19 @@
     clearTimeout(bounceT);
     de.classList.remove('lk10-cinema'); void de.offsetWidth;
     bounceT = setTimeout(function () { if (active) { de.classList.add('lk10-cinema'); nudge(); } }, 140);
+  }
+  /* v14 : RECALIBRAGE manuel (bouton ⌖ en plein écran, puce « Recalibrer » sous la vidéo, touche 5 ou bouton vert) :
+     rebond du plein écran + secousse de l'iframe + événement resize, deux fois de suite, pour que l'image se remette en place */
+  var recalT = null;
+  function recalibrate() {
+    if (!isTV() || !shown('player-overlay') || !playerFrame()) return;
+    clearTimeout(recalT); toast('Recalibrage de la vidéo…');
+    var pass = function () {
+      try { window.dispatchEvent(new Event('resize')); } catch (e) {}
+      if (active) bounce(); else nudge();
+      nudge();
+    };
+    pass(); recalT = setTimeout(pass, 700);
   }
   /* v13 (télé) : à chaque nouveau lecteur, on le « secoue » même hors plein écran (écran noir sans plein écran auto) */
   function refit() { if (!isTV()) return; nudge(); if (active) bounce(); }
@@ -235,12 +251,14 @@
   /* v13 : touches de SORTIE DE SECOURS (télé) : 0, Menu, bouton rouge */
   var EXIT_K = { 48: 1, 96: 1, 82: 1, 93: 1, 403: 1 };
   function isExitKey(e) { return !!EXIT_K[e.keyCode] || e.key === 'ContextMenu' || e.key === 'Menu' || e.key === 'ColorF0Red' || e.key === 'Red'; }
+  function isRecalKey(e) { return e.keyCode === 53 || e.keyCode === 101 || e.keyCode === 404 || e.key === 'ColorF1Green' || e.key === 'Green'; }
   function isOk(k) { return k === 13 || k === 23 || k === 66; }
   window.addEventListener('keydown', function (e) {
     if (e.ctrlKey || e.altKey || e.metaKey) return;
     var k = e.keyCode, f;
     if (active) {
       if (isTV() && isExitKey(e)) { e.preventDefault(); e.stopImmediatePropagation(); exitCinema(); return; }
+      if (isTV() && isRecalKey(e)) { e.preventDefault(); e.stopImmediatePropagation(); recalibrate(); return; }
       var a = document.activeElement; if (a && a.closest && a.closest('#lk10-cine-ui')) return;   // boutons ✕ / suivant : OK = cliquer
       f = playerFrame();
       if (!isOwnPlayer(f)) {
@@ -265,6 +283,7 @@
     /* ----- fiche ouverte, hors plein écran (télé uniquement) ----- */
     if (!isTV() || !shown('player-overlay')) return;
     var ae = document.activeElement, tag = ae && ae.tagName;
+    if (isRecalKey(e) && tag !== 'INPUT' && tag !== 'TEXTAREA') { e.preventDefault(); e.stopImmediatePropagation(); recalibrate(); return; }
     if (isOk(k) && ae && ae.id === 'video-container') {
       /* v13 : OK sur le cadre vidéo = lancer / plein écran (avant, ça donnait le focus à l'iframe : les touches étaient perdues, fiche bloquée en haut) */
       e.preventDefault(); e.stopImmediatePropagation(); hasPlayer() ? enterCinema() : startPlay(); return;
@@ -337,7 +356,7 @@
     var bar = $('lk10-bar'); if (!bar || $('lk10-opts')) return;
     var box = document.createElement('div'); box.id = 'lk10-opts';
     /* options visibles sur TOUS les appareils ; « Lancer sur la télé » seulement hors télé (et caché tant que la télé n'est pas en ligne) */
-    box.innerHTML = (isTV() ? chip('lk10-eps', 'fa-list-ul', 'Épisodes', 'lk10-primary') : '') + chip('lk10-cine-go', 'fa-expand', 'Cinéma', 'lk10-primary') + chip('lk10-opt-cine', 'fa-expand-arrows-alt', '') + chip('lk10-opt-next', 'fa-forward', '') +
+    box.innerHTML = (isTV() ? chip('lk10-eps', 'fa-list-ul', 'Épisodes', 'lk10-primary') : '') + chip('lk10-cine-go', 'fa-expand', 'Cinéma', 'lk10-primary') + (isTV() ? chip('lk10-recal', 'fa-crosshairs', 'Recalibrer', '') : '') + chip('lk10-opt-cine', 'fa-expand-arrows-alt', '') + chip('lk10-opt-next', 'fa-forward', '') +
       (isTV() ? '' : chip('lk10-cast', 'fa-tv', 'Lancer sur la télé', 'lk10-primary'));
     var cc = box.querySelector('#lk10-cast'); if (cc) cc.style.display = tvOnline ? '' : 'none';
     bar.appendChild(box);
@@ -346,6 +365,7 @@
     var n = $('lk10-opt-next'); if (n) n.onclick = function () { setOpt(K_NEXT, !opt(K_NEXT)); refreshChips(); };
     var c = $('lk10-cast'); if (c) c.onclick = castNow;
     var ep = $('lk10-eps'); if (ep) ep.onclick = openEpisodes;
+    var rc = $('lk10-recal'); if (rc) rc.onclick = recalibrate;
     refreshChips();
   }
   /* v13 (télé) : puce « Épisodes » = ouvre la liste et met le curseur sur l'épisode en cours (plus besoin de descendre jusqu'au bouton) */
