@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v11)
+/* Ciné LK10 — lk10-cinema.js (v12)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -36,6 +36,8 @@
   var st = document.createElement('style');
   st.textContent =
     'html.lk10-cinema,html.lk10-cinema body{overflow:hidden!important}' +
+    'html.lk10-tv #video-container{border-radius:0!important;overflow:visible!important;box-shadow:none!important;filter:none!important;transform:none!important;will-change:auto!important}' +
+    'html.lk10-tv .player-content{border-radius:0!important;animation:none!important;transform:none!important;filter:none!important;will-change:auto!important}' +
     'html.lk10-tv:not(.lk10-cinema) #video-container{width:min(100%,86vh)!important;margin-left:auto!important;margin-right:auto!important}' +
     /* la vidéo prend tout l'écran ; on neutralise les transformations des parents (sinon « fixed » reste coincé dans le cadre) */
     'html.lk10-cinema .player-content,html.lk10-cinema #player-overlay{transform:none!important;animation:none!important;filter:none!important;perspective:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;will-change:auto!important;contain:none!important}' +
@@ -82,6 +84,7 @@
   function hasPlayer() { var vc = $('video-container'); return !!vc && !!vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn'); }
   /* lance la vraie lecture (bouton « Lecture » du site), puis le plein écran */
   function startPlay() {
+    intent();
     try {
       if (!hasPlayer()) {
         var vc = $('video-container'), go = $('fx-go');
@@ -133,14 +136,26 @@
     if (!isTV()) return;
     [0, 250, 700, 1500].forEach(function (t) { setTimeout(function () { if (!active && shown('player-overlay')) topScroll(); }, t); });
   }
-  function enterCinema() {
-    if (active || !hasPlayer() || !shown('player-overlay')) return;   // jamais de plein écran sur la bande-annonce
+  /* « Secoue » l'iframe (1 px de hauteur en moins puis retour) : force le lecteur à recalculer la taille / position de l'image
+     après un changement de taille (cause du décalage de la vidéo en haut à gauche) */
+  function nudge() {
+    [60, 400, 1200].forEach(function (t) {
+      setTimeout(function () {
+        var f = playerFrame(); if (!f) return;
+        f.style.setProperty('height', 'calc(100% - 1px)', 'important');
+        setTimeout(function () { try { f.style.removeProperty('height'); } catch (e) {} }, 70);
+      }, t);
+    });
+  }
+  function enterCinema(force) {
+    if (active || !shown('player-overlay') || (force !== true && !hasPlayer())) return;   // jamais de plein écran sur la bande-annonce (sauf si on s'apprête à charger le lecteur)
     active = true; ui(); topScroll();
     try { document.body.style.zoom = ''; } catch (e) {}      // jamais de zoom en plein écran
     var pill = $('lk10-zoom-reset'); if (pill) pill.style.display = 'none';
     de.classList.add('lk10-cinema');
     try { history.pushState({ lk10cine: 1 }, ''); } catch (e) {}  // le bouton Retour de la télé = on quitte le cinéma
     refreshUi(); showUi();
+    if (hasPlayer()) nudge();
     setTimeout(function () {
       var vc = $('video-container'); if (!vc) return;
       var f = vc.querySelector('iframe'), s = $('skip-ad-btn');
@@ -155,7 +170,7 @@
     active = false; de.classList.remove('lk10-cinema');
     if (!fromPop) { try { if (history.state && history.state.lk10cine) { popping = true; history.back(); } } catch (e) {} }
     var vc = $('video-container'); try { (document.querySelector('#lk10-opts button') || vc).focus({ preventScroll: true }); } catch (e) {}
-    keepVideoInView();
+    keepVideoInView(); nudge();
   }
   window.addEventListener('popstate', function () {
     if (popping) { popping = false; return; }
@@ -248,6 +263,7 @@
 
   /* ---------- Déclenchement automatique : quand on choisit un lecteur ---------- */
   wrap('changeServer', function (o, a) {
+    intent();
     var r = o.apply(this, a);
     try {
       if (isTV()) keepVideoInView();
@@ -291,7 +307,7 @@
     var c = $('lk10-cast'); if (c) c.onclick = castNow;
     refreshChips();
   }
-  wrap('openP', function (o, a) { var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); if (isTV()) { var g = $('fx-go'); try { if (g && shown('player-overlay')) g.focus({ preventScroll: true }); } catch (e) {} } }, 80); } catch (e) {} return r; });
+  wrap('openP', function (o, a) { if (typeof a[1] === 'number' || a[1] === 'play') intent(); var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); if (isTV()) { var g = $('fx-go'); try { if (g && shown('player-overlay')) g.focus({ preventScroll: true }); } catch (e) {} } }, 80); } catch (e) {} return r; });
   wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); if (isTV()) kick(); } catch (e) {} return r; });
 
   /* ---------- Téléphone / PC : la télé est-elle en ligne ? bouton « Lancer sur la télé » ---------- */
@@ -320,15 +336,29 @@
      Avant, openP() lançait Premium, puis 400 ms plus tard on rechargeait, puis une 3e fois (sécurité) :
      le lecteur redémarrait en boucle (sous-titres sans image, vidéo décalée, mauvais lecteur). */
   var castGuard = false, castSeq = 0;
+  /* Le plein écran « avant chargement » ne doit se faire que si on lance VRAIMENT une lecture (pas à l'ouverture de la fiche,
+     où le site prépare aussi un lecteur qu'il n'affiche pas). */
+  var playIntent = 0;
+  function intent() { playIntent = Date.now(); }
+  document.addEventListener('click', function (e) {
+    try { if (isTV() && e.target && e.target.closest && e.target.closest('#fx-go,.fx-lecture,.ep-item,#lk10-next,#lk10-prev,#lk10-cine-next,#lk10-cine-go,.server-btn,#language-select')) intent(); } catch (x) {}
+  }, true);
   (function () {
     var oSet = window.setVideoContent;
-    if (typeof oSet === 'function') window.setVideoContent = function () { if (castGuard) return; return oSet.apply(this, arguments); };
+    if (typeof oSet === 'function') window.setVideoContent = function (c) {
+      if (castGuard) return;
+      try {
+        /* v12 : sur télé, on passe en plein écran AVANT de charger le lecteur, pour qu'il se mette à la bonne taille dès le départ */
+        if (isTV() && !active && Date.now() - playIntent < 2000 && opt(K_CINE) && typeof c === 'string' && /<iframe/i.test(c) && shown('player-overlay')) { wantCine = true; enterCinema(true); }
+      } catch (e) {}
+      return oSet.apply(this, arguments);
+    };
   })();
   function onCast(cmd) {
     var list = []; try { list = moviesDB || []; } catch (e) {}
     var m = list.find(function (x) { return x.id === cmd.id; });
     if (!m) return toast('Titre introuvable sur la télé.');
-    var seq = ++castSeq;
+    var seq = ++castSeq; intent();
     try { if (typeof closeProfilePage === 'function') closeProfilePage(); } catch (e) {}
     exitCinema();
     /* 1) on prépare la fiche SANS charger de lecteur (openP voudrait lancer Premium) */
