@@ -1,5 +1,5 @@
 /* Ciné LK10 — lk10-perf.js : anti-crash
-   • TÉLÉ (mode télé / user-agent télé) : plus AUCUNE bande-annonce automatique (grand carrousel + survol des films),
+   • TÉLÉ (mode télé / user-agent télé) : plus de fond « nid d'abeille » jaune, plus AUCUNE bande-annonce automatique (grand carrousel + survol des films),
      plus de vidéos de fond (plateformes, bannières vidéo) -> on garde seulement les affiches. Mobile et PC ne changent pas.
    • PC / mobile : on allège sans rien enlever de visible :
        - le trailer du grand carrousel s'arrête quand on ouvre un film, quand l'onglet est caché ou quand le carrousel n'est plus à l'écran ;
@@ -27,6 +27,7 @@
   /* ---------- CSS ---------- */
   var st = document.createElement('style');
   st.textContent =
+    'html.lk10-tv .fx-hexc{display:none!important}' +
     'html.lk10-tv .hero-sound-btn,html.lk10-tv .hero-slide-trailer,html.lk10-tv .netflix-preview-popup{display:none!important}' +
     /* la télé n'a pas besoin des effets coûteux : on réutilise le mode "lite" de cine-fx */
     'html.lk10-tv *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}';
@@ -126,7 +127,14 @@
   function applyTvPerf() {
     if (!isTV()) return;
     de.classList.add('fx-lite');
-    stopHero(); killPreview(); tvNoVideo();
+    stopHero(); killPreview(); tvNoVideo(); killHex();
+  }
+  /* Télé : plus de fond jaune interactif « nid d'abeille » (canvas plein écran de cine-fx.js) */
+  function killHex() {
+    document.querySelectorAll('canvas.fx-hexc').forEach(function (c) {
+      try { c.width = 1; c.height = 1; } catch (e) {}   // l'animation continue de dessiner, mais sur 1 pixel
+      c.remove();
+    });
   }
   applyTvPerf();
   new MutationObserver(applyTvPerf).observe(de, { attributes: true, attributeFilter: ['class'] });
