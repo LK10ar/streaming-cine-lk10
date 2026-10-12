@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v7)
+/* Ciné LK10 — lk10-cinema.js (v8)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -25,7 +25,10 @@
     window[name] = function () { return fn.call(this, o, arguments); };
   }
   /* options mémorisées (par défaut : OUI) */
-  function opt(k) { try { return LS.getItem(k) !== '0'; } catch (e) { return true; } }
+  function opt(k) {
+    try { var v = LS.getItem(k); if (v === '1') return true; if (v === '0') return false; } catch (e) {}
+    return isTV();            // jamais réglé : OUI sur télé, NON sur PC / mobile (rien ne change tant qu'on n'active pas l'option)
+  }
   function setOpt(k, v) { try { LS.setItem(k, v ? '1' : '0'); } catch (e) {} }
   var K_CINE = 'lk10_auto_cinema', K_NEXT = 'lk10_auto_next';
 
@@ -45,7 +48,11 @@
     '#lk10-cine-ui button:hover,#lk10-cine-ui button:focus{opacity:1;border-color:#ffde00;outline:none}' +
     '#lk10-opts{display:flex;align-items:center;flex-wrap:wrap;gap:8px}' +
     '.lk10-chip.lk10-on{border-color:#2ecc71}.lk10-chip.lk10-on i{color:#2ecc71}' +
-    '.lk10-chip.lk10-off{opacity:.75}.lk10-chip.lk10-off i{color:#e74c3c}';
+    '.lk10-chip.lk10-off{opacity:.75}.lk10-chip.lk10-off i{color:#e74c3c}' +
+    '.lk10-pick{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;margin-top:20px;max-width:90%}' +
+    '.lk10-pick .lk10-chip{background:rgba(0,0,0,.7)}' +
+    '.lk10-pick .lk10-chip.lk10-cur{background:var(--primary,#ffde00);color:#000;border-color:var(--primary,#ffde00)}' +
+    '.lk10-pick-t{width:100%;font-size:13px;color:#ccc;letter-spacing:1px;text-transform:uppercase}';
   document.head.appendChild(st);
 
   /* ---------- Interface du mode cinéma ---------- */
@@ -80,7 +87,7 @@
       }
     } catch (e) {}
     wantCine = true;
-    setTimeout(function () { if (isTV() && hasPlayer()) enterCinema(); }, 350);
+    setTimeout(function () { if (hasPlayer()) enterCinema(); }, 350);
   }
   /* TÉLÉ : pas de bande-annonce dans la fiche (lourd, inutile, et rien ne se lançait) -> image + gros bouton Lecture */
   function tvNoTrailer() {
@@ -88,9 +95,32 @@
     var vc = $('video-container'); if (!vc || !vc.querySelector('iframe.fx-yt')) return;
     var m = null; try { m = currentMovie; } catch (e) {}
     var bg = (m && (m.backdrop || m.poster)) || '';
-    vc.innerHTML = '<div class="fx-nt"><div><button type="button" class="fx-lecture" id="lk10-tv-play"><i class="fas fa-play"></i> Lecture</button></div></div>';
+    vc.innerHTML = '<div class="fx-nt"><div><button type="button" class="fx-lecture" id="lk10-tv-play"><i class="fas fa-play"></i> Lecture</button><div class="lk10-pick" id="lk10-pick"></div></div></div>';
     var nt = vc.querySelector('.fx-nt'); if (nt && bg) nt.style.backgroundImage = 'url("' + String(bg).replace(/"/g, '%22') + '")';
+    buildPick();
     var b = $('lk10-tv-play'); if (b) { b.onclick = startPlay; try { b.focus({ preventScroll: true }); } catch (e) {} }
+  }
+  /* Choix de la langue et du lecteur directement sur l'image (les vrais boutons sont sous la vidéo, hors de l'écran sur télé) */
+  var SRV = [['btn-server-prem', 'Premium'], ['btn-server-vidzy', 'Vidzy'], ['btn-server-uql', 'Uqload'], ['btn-server-regarder', 'Regarder']];
+  function buildPick() {
+    var box = $('lk10-pick'); if (!box) return;
+    var h = '', sel = $('language-select');
+    if (sel && sel.options.length > 1) h += '<button type="button" class="lk10-chip" id="lk10-pick-lang"><i class="fas fa-language"></i><span>' + sel.options[sel.selectedIndex].text + '</span></button>';
+    SRV.forEach(function (x) {
+      var r = $(x[0]); if (!r || r.offsetParent === null) return;       // seulement les lecteurs réellement disponibles
+      h += '<button type="button" class="lk10-chip' + (r.classList.contains('active') ? ' lk10-cur' : '') + '" data-srv="' + x[0] + '"><i class="fas fa-play-circle"></i><span>' + x[1] + '</span></button>';
+    });
+    box.innerHTML = h;
+    var l = $('lk10-pick-lang');
+    if (l) l.onclick = function () {                                     // change la langue SANS lancer la lecture
+      var s2 = $('language-select'); if (!s2) return;
+      s2.selectedIndex = (s2.selectedIndex + 1) % s2.options.length;
+      try { currentLanguage = s2.value || 'vf'; } catch (e) {}
+      l.querySelector('span').textContent = s2.options[s2.selectedIndex].text;
+    };
+    box.querySelectorAll('[data-srv]').forEach(function (b) {
+      b.onclick = function () { var r = $(b.dataset.srv); if (r) r.click(); };   // = clic sur le vrai bouton : lecteur choisi, lecture, plein écran
+    });
   }
   function enterCinema() {
     if (active || !hasPlayer() || !shown('player-overlay')) return;   // jamais de plein écran sur la bande-annonce
@@ -154,7 +184,7 @@
     if (d.action === 'playerReady') { try { e.source.postMessage({ action: 'play' }, '*'); } catch (x) {} }
     else if (d.action === 'fss_playing') {
       playing = true; clearInterval(kickT);
-      if (isTV() && wantCine && !active && opt(K_CINE)) { wantCine = false; setTimeout(function () { if (hasPlayer()) enterCinema(); }, 800); }   // comme French Stream : plein écran dès que ça joue
+      if (wantCine && !active && opt(K_CINE)) { wantCine = false; setTimeout(function () { if (hasPlayer()) enterCinema(); }, 800); }   // comme French Stream : plein écran dès que ça joue
     }
   });
   var DIRK = { 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown' }, lastOk = 0;
@@ -200,7 +230,7 @@
   wrap('changeServer', function (o, a) {
     var r = o.apply(this, a);
     try {
-      if (isTV() && opt(K_CINE)) {
+      if (opt(K_CINE)) {
         wantCine = true;
         var vc = $('video-container');
         if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();
@@ -212,12 +242,13 @@
 
   /* « Épisode suivant » : OUI = on enchaîne directement en plein écran ; NON = on revient à la page du lecteur */
   document.addEventListener('click', function (e) {
-    if (!isTV() || !e.target || !e.target.closest || !e.target.closest('#lk10-next, #lk10-cine-next')) return;
+    if (!e.target || !e.target.closest || !e.target.closest('#lk10-next, #lk10-cine-next')) return;
     setTimeout(function () {
       if (opt(K_NEXT)) { enterCinema(); refreshUi(); } else exitCinema();
     }, 80);
   }, true);
 
+  var tvOnline = false, lastCheck = 0;
   /* ---------- Options + bouton « Lancer sur la télé » dans la barre sous la vidéo ---------- */
   function chip(id, icon, html, cls) { return '<button type="button" id="' + id + '" class="lk10-chip ' + (cls || '') + '"><i class="fas ' + icon + '"></i><span>' + html + '</span></button>'; }
   function refreshChips() {
@@ -228,12 +259,10 @@
   function ensureChips() {
     var bar = $('lk10-bar'); if (!bar || $('lk10-opts')) return;
     var box = document.createElement('div'); box.id = 'lk10-opts';
-    if (isTV()) {
-      box.innerHTML = chip('lk10-cine-go', 'fa-expand', 'Cinéma', 'lk10-primary') + chip('lk10-opt-cine', 'fa-expand-arrows-alt', '') + chip('lk10-opt-next', 'fa-forward', '');
-    } else {
-      box.innerHTML = chip('lk10-cast', 'fa-tv', 'Lancer sur la télé', 'lk10-primary');
-      box.firstChild.style.display = 'none';
-    }
+    /* options visibles sur TOUS les appareils ; « Lancer sur la télé » seulement hors télé (et caché tant que la télé n'est pas en ligne) */
+    box.innerHTML = chip('lk10-cine-go', 'fa-expand', 'Cinéma', 'lk10-primary') + chip('lk10-opt-cine', 'fa-expand-arrows-alt', '') + chip('lk10-opt-next', 'fa-forward', '') +
+      (isTV() ? '' : chip('lk10-cast', 'fa-tv', 'Lancer sur la télé', 'lk10-primary'));
+    var cc = box.querySelector('#lk10-cast'); if (cc) cc.style.display = tvOnline ? '' : 'none';
     bar.appendChild(box);
     var g = $('lk10-cine-go'); if (g) g.onclick = function () { hasPlayer() ? enterCinema() : startPlay(); };
     var a = $('lk10-opt-cine'); if (a) a.onclick = function () { setOpt(K_CINE, !opt(K_CINE)); refreshChips(); };
@@ -245,7 +274,7 @@
   wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); if (isTV()) kick(); } catch (e) {} return r; });
 
   /* ---------- Téléphone / PC : la télé est-elle en ligne ? bouton « Lancer sur la télé » ---------- */
-  var tvOnline = false, lastCheck = 0;
+  
   function checkTv() {
     if (isTV() || !tok() || !shown('player-overlay')) return;
     if (Date.now() - lastCheck < 3000) return; lastCheck = Date.now();
