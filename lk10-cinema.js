@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v9)
+/* Ciné LK10 — lk10-cinema.js (v10)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -132,6 +132,7 @@
     de.classList.add('lk10-cinema');
     try { history.pushState({ lk10cine: 1 }, ''); } catch (e) {}  // le bouton Retour de la télé = on quitte le cinéma
     refreshUi(); showUi();
+    try { if (isOwnPlayer(playerFrame())) toPlayer({ action: 'enter_fullscreen' }); } catch (e) {}
     setTimeout(function () {
       var vc = $('video-container'); if (!vc) return;
       var f = vc.querySelector('iframe'), s = $('skip-ad-btn');
@@ -144,6 +145,7 @@
   function exitCinema(fromPop) {
     if (!active) return;
     active = false; de.classList.remove('lk10-cinema');
+    try { if (isOwnPlayer(playerFrame())) toPlayer({ action: 'exit_fullscreen' }); } catch (e) {}
     if (!fromPop) { try { if (history.state && history.state.lk10cine) { popping = true; history.back(); } } catch (e) {} }
     var vc = $('video-container'); try { (document.querySelector('#lk10-opts button') || vc).focus({ preventScroll: true }); } catch (e) {}
   }
@@ -183,10 +185,18 @@
   window.addEventListener('message', function (e) {
     var d = e.data; if (!d || typeof d !== 'object') return;
     var f = playerFrame(); if (!f || e.source !== f.contentWindow) return;     // seulement notre lecteur
-    if (d.action === 'playerReady') { try { e.source.postMessage({ action: 'play' }, '*'); } catch (x) {} }
-    else if (d.action === 'fss_playing') {
+    var a = d.action || d.type;
+    if (a === 'playerReady') { try { e.source.postMessage({ action: 'play' }, '*'); } catch (x) {} return; }
+    /* le lecteur dit « ça joue » : fss_playing, ou (comme chez French Stream) play / playing / timeupdate / temps > 0 */
+    var ct = typeof d.currentTime === 'number' ? d.currentTime : (typeof d.time === 'number' ? d.time : (typeof d.position === 'number' ? d.position : 0));
+    var isPlaying = a === 'fss_playing' || a === 'play' || a === 'playing' || a === 'timeupdate' || a === 'currentTime' || d.event === 'play' || d.playing === true || d.paused === false || ct > 0.3;
+    if (isPlaying) {
       playing = true; clearInterval(kickT);
-      if (wantCine && !active && opt(K_CINE)) { wantCine = false; setTimeout(function () { if (hasPlayer()) enterCinema(); }, 800); }   // comme French Stream : plein écran dès que ça joue
+      if (wantCine && !active && opt(K_CINE)) { wantCine = false; setTimeout(function () { if (hasPlayer()) enterCinema(); }, 800); }   // plein écran dès que ça joue
+    } else if (isTV() && (a === 'fss_css_fs' || a === 'fss_fs_enter')) {
+      if (hasPlayer()) enterCinema();                                          // le bouton plein écran DU lecteur = notre mode cinéma
+    } else if (a === 'exit_fullscreen' || a === 'iframe_exited_fullscreen' || a === 'fss_exit_fs') {
+      exitCinema();
     }
   });
   var DIRK = { 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown' }, lastOk = 0;
