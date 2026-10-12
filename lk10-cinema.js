@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v8)
+/* Ciné LK10 — lk10-cinema.js (v9)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -36,6 +36,7 @@
   var st = document.createElement('style');
   st.textContent =
     'html.lk10-cinema,html.lk10-cinema body{overflow:hidden!important}' +
+    'html.lk10-tv:not(.lk10-cinema) #video-container{width:min(100%,86vh)!important;margin-left:auto!important;margin-right:auto!important}' +
     /* la vidéo prend tout l'écran ; on neutralise les transformations des parents (sinon « fixed » reste coincé dans le cadre) */
     'html.lk10-cinema .player-content,html.lk10-cinema #player-overlay{transform:none!important;animation:none!important;filter:none!important;perspective:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;will-change:auto!important;contain:none!important}' +
     'html.lk10-cinema #video-container{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;min-height:0!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border-radius:0!important;aspect-ratio:auto!important;overflow:hidden!important;z-index:2147483000!important;background:#000!important}' +
@@ -91,6 +92,7 @@
   }
   /* TÉLÉ : pas de bande-annonce dans la fiche (lourd, inutile, et rien ne se lançait) -> image + gros bouton Lecture */
   function tvNoTrailer() {
+    return;   /* v9 : la fiche garde sa bande-annonce sur télé (on ne la remplace plus par l'image) */
     if (!isTV()) return;
     var vc = $('video-container'); if (!vc || !vc.querySelector('iframe.fx-yt')) return;
     var m = null; try { m = currentMovie; } catch (e) {}
@@ -270,7 +272,7 @@
     var c = $('lk10-cast'); if (c) c.onclick = castNow;
     refreshChips();
   }
-  wrap('openP', function (o, a) { var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); tvNoTrailer(); }, 60); } catch (e) {} return r; });
+  wrap('openP', function (o, a) { var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); if (isTV()) { var g = $('fx-go'); try { if (g && shown('player-overlay')) g.focus({ preventScroll: true }); } catch (e) {} } }, 80); } catch (e) {} return r; });
   wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); if (isTV()) kick(); } catch (e) {} return r; });
 
   /* ---------- Téléphone / PC : la télé est-elle en ligne ? bouton « Lancer sur la télé » ---------- */
