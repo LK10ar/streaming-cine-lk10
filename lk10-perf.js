@@ -1,6 +1,7 @@
 /* Ciné LK10 — lk10-perf.js : anti-crash
    • TÉLÉ (mode télé / user-agent télé) : plus de fond « nid d'abeille » jaune, plus AUCUNE bande-annonce automatique (grand carrousel + survol des films),
      plus de vidéos de fond (plateformes, bannières vidéo) -> on garde seulement les affiches. Mobile et PC ne changent pas.
+   • Images allégées (bannières TMDB « original » -> w1280 partout ; affiches w300 sur télé) : c'est ce qui fait le plus souvent planter.
    • PC / mobile : on allège sans rien enlever de visible :
        - le trailer du grand carrousel s'arrête quand on ouvre un film, quand l'onglet est caché ou quand le carrousel n'est plus à l'écran ;
        - les 15 vidéos des plateformes ne tournent plus en permanence : elles ne se lancent qu'au survol ;
@@ -11,11 +12,12 @@
   var de = document.documentElement;
   /* Détection télé large : marques de télés / box / sticks (Fire TV, Xiaomi Mi TV / Mi Box / TV Stick, Google TV, Samsung, LG,
      Sony, Philips, Hisense, TCL, Roku, consoles...) + navigateurs de box (Silk, TV Bro, Puffin TV) + tout Android SANS écran tactile. */
-  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android ?TV|Google ?TV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV|MiTV|Mi ?TV|MiBOX|Mi ?Box|TV ?Bro|Puffin ?TV|Fire ?TV|AmazonWebAppPlatform|NETTV|Vestel|Philips|\bTV\b/i;
+  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android ?TV|Google ?TV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV|MiTV|Mi ?TV|MiBOX|Mi ?Box|TV ?Bro|Puffin ?TV|Fire ?TV|Chromecast|DuneHD|AmazonWebAppPlatform|NETTV|Vestel|Philips|\bTV\b/i;
   function detectTV() {
     var ua = navigator.userAgent || '', touch = navigator.maxTouchPoints || 0;
     if (UA_TV.test(ua)) return true;
     if (/Silk\//.test(ua) && !touch) return true;                    // Fire TV en mode « site PC »
+    if (/;\s*wv[\);]/i.test(ua) && !touch) return true;                // appli WebView (APK) sans tactile
     if (/Android/.test(ua) && !/Mobile/.test(ua) && !touch) return true; // Android sans tactile = télé / box
     return false;
   }
@@ -131,6 +133,45 @@
     if (busy) return; busy = true;
     setTimeout(function () { busy = false; try { tvNoVideo(); lightPlatforms(); } catch (e) {} }, 200);
   }).observe(document.body, { childList: true, subtree: true });
+
+
+  /* ---------- 5. IMAGES ALLÉGÉES (cause n°1 de crash mémoire) ----------
+     Les bannières du carrousel sont enregistrées en TMDB « original » (jusqu'à 3840 px = ~30 Mo de mémoire PAR image décodée)
+     et les affiches en w500. French Stream (qui tourne sur télé) charge du w300. On demande donc à TMDB une version plus petite :
+       - tous les appareils : bannières original -> w1280 (net en plein écran 1080p, ~10 fois moins lourd)
+       - télé : bannières w780, affiches w300, 20 titres max par rangée, 4 slides max dans le grand carrousel */
+  var TMDB = /^(https?:\/\/image\.tmdb\.org\/t\/p\/)(original|w\d+)(\/.*)$/i;
+  function px(sz) { return /^original$/i.test(sz) ? 99999 : parseInt(String(sz).slice(1), 10) || 0; }
+  function shrinkUrl(u, target) {
+    if (typeof u !== 'string') return u;
+    var m = TMDB.exec(u); if (!m || px(m[2]) <= px(target)) return u;
+    return m[1] + target + m[3];
+  }
+  function shrinkDB() {
+    var tv = isTV(), pT = tv ? 'w300' : null, bT = tv ? 'w780' : 'w1280';
+    try {
+      moviesDB.forEach(function (m) {
+        if (!m) return;
+        if (pT) m.poster = shrinkUrl(m.poster, pT);
+        m.backdrop = shrinkUrl(m.backdrop, bT);
+        if (m.bg) m.bg = shrinkUrl(m.bg, bT);
+      });
+    } catch (e) {}
+  }
+  var oHome = window.showHome;
+  if (typeof oHome === 'function') window.showHome = function () { shrinkDB(); return oHome.apply(this, arguments); };
+  shrinkDB();
+
+  var oStd = window.buildStandardSlider;
+  if (typeof oStd === 'function') window.buildStandardSlider = function (id, list) {
+    if (isTV() && list && list.length > 20) list = list.slice(0, 20);
+    return oStd.call(this, id, list);
+  };
+  var oHero = window.renderHeroCarousel;
+  if (typeof oHero === 'function') window.renderHeroCarousel = function () {
+    if (isTV()) { try { if (heroMovies.length > 4) heroMovies = heroMovies.slice(0, 4); } catch (e) {} }
+    return oHero.apply(this, arguments);
+  };
 
   /* ---------- Touches des télécommandes Android TV / Fire TV / Xiaomi ----------
      OK = DPAD_CENTER (23) ou Entrée (13) ; Retour = 4 (Android) -> traduits en Entrée / Échap pour cine-plus.js */
