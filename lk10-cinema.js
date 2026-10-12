@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js
+/* Ciné LK10 — lk10-cinema.js (v6)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -127,6 +127,45 @@
     }
   }, true);
 
+  /* ---------- Dialogue avec le lecteur (même principe que French Stream) ----------
+     Le lecteur prévient « playerReady » quand il est prêt -> on lui répond « play » (sinon : sous-titres sans image).
+     Au lancement on renvoie « play » toutes les 900 ms (max 7 fois) tant qu'il n'a pas dit « fss_playing ».
+     En mode cinéma, les flèches / OK de la télécommande sont transmises au lecteur (avance, volume, pause),
+     0 / 1 / 2 = sous-titres / langue des sous-titres / piste audio, double OK = quitter le cinéma. */
+  function playerFrame() { var vc = $('video-container'); return vc ? vc.querySelector('iframe:not(.fx-yt)') : null; }
+  function toPlayer(msg) { var f = playerFrame(); if (f && f.contentWindow) { try { f.contentWindow.postMessage(msg, '*'); } catch (e) {} } }
+  var playing = false, kickT = null;
+  function kick() {
+    clearInterval(kickT); playing = false; var n = 0;
+    kickT = setInterval(function () {
+      n++; if (playing || n > 7 || !playerFrame()) { clearInterval(kickT); return; }
+      toPlayer({ action: 'play' });
+    }, 900);
+  }
+  window.addEventListener('message', function (e) {
+    var d = e.data; if (!d || typeof d !== 'object') return;
+    var f = playerFrame(); if (!f || e.source !== f.contentWindow) return;     // seulement notre lecteur
+    if (d.action === 'playerReady') { try { e.source.postMessage({ action: 'play' }, '*'); } catch (x) {} }
+    else if (d.action === 'fss_playing') { playing = true; clearInterval(kickT); }
+  });
+  var DIRK = { 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown' }, lastOk = 0;
+  window.addEventListener('keydown', function (e) {
+    if (!active || e.ctrlKey || e.altKey || e.metaKey) return;
+    var a = document.activeElement; if (a && a.closest && a.closest('#lk10-cine-ui')) return;   // boutons ✕ / suivant : OK = cliquer
+    var k = e.keyCode;
+    var sub = (k === 48 || k === 96) ? 'fss_sub_toggle' : (k === 49 || k === 97) ? 'fss_sub_cycle' : (k === 50 || k === 98) ? 'fss_audio' : null;
+    if (sub) { toPlayer({ action: sub }); return; }
+    var key = DIRK[k] || ((k === 13 || k === 23 || k === 66) ? 'Enter' : null);
+    if (!key) return;
+    if (key === 'Enter') {
+      var n = Date.now();
+      if (lastOk && n - lastOk < 500) { lastOk = 0; e.preventDefault(); e.stopImmediatePropagation(); exitCinema(); return; }
+      lastOk = n;
+    }
+    toPlayer({ action: 'fss_key', key: key });
+    e.preventDefault(); e.stopImmediatePropagation();
+  }, true);
+
   /* ---------- Déclenchement automatique : quand on choisit un lecteur ---------- */
   wrap('changeServer', function (o, a) {
     var r = o.apply(this, a);
@@ -172,7 +211,7 @@
     refreshChips();
   }
   wrap('openP', function (o, a) { var r = o.apply(this, a); try { tvNoTrailer(); setTimeout(function () { ensureChips(); checkTv(); tvNoTrailer(); }, 60); } catch (e) {} return r; });
-  wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); } catch (e) {} return r; });
+  wrap('updatePlayerInterface', function (o, a) { var r = o.apply(this, a); try { ensureChips(); refreshUi(); if (isTV()) kick(); } catch (e) {} return r; });
 
   /* ---------- Téléphone / PC : la télé est-elle en ligne ? bouton « Lancer sur la télé » ---------- */
   var tvOnline = false, lastCheck = 0;
