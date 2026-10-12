@@ -5,10 +5,26 @@
        <script src="lk10-cover-tv.js"></script>                                                         */
 (function () {
   'use strict';
-  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android TV|GoogleTV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV/i;
+
+  /* Détection télé large : marques de télés / box / sticks (Fire TV, Xiaomi Mi TV / Mi Box / TV Stick, Google TV, Samsung, LG,
+     Sony, Philips, Hisense, TCL, Roku, consoles...) + navigateurs de box (Silk, TV Bro, Puffin TV) + tout Android SANS écran tactile. */
+  var UA_TV = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|HbbTV|VIDAA|Hisense|BRAVIA|AFT[A-Z0-9]+|Android ?TV|Google ?TV|CrKey|Roku|PlayStation|Xbox|AppleTV|Viera|SonyDTV|Opera TV|MiTV|Mi ?TV|MiBOX|Mi ?Box|TV ?Bro|Puffin ?TV|Fire ?TV|AmazonWebAppPlatform|NETTV|Vestel|Philips|\bTV\b/i;
+  function detectTV() {
+    var ua = navigator.userAgent || '', touch = navigator.maxTouchPoints || 0;
+    if (UA_TV.test(ua)) return true;
+    if (/Silk\//.test(ua) && !touch) return true;                    // Fire TV en mode « site PC »
+    if (/Android/.test(ua) && !/Mobile/.test(ua) && !touch) return true; // Android sans tactile = télé / box
+    return false;
+  }
   var tv;
-  try { var s = localStorage.getItem('lk10_tv'); tv = s === '1' ? true : s === '0' ? false : UA_TV.test(navigator.userAgent); }
-  catch (e) { tv = UA_TV.test(navigator.userAgent); }
+  try {
+    var q = new URLSearchParams(location.search).get('tv');
+    if (q === '1' || q === '0') localStorage.setItem('lk10_tv', q);
+    var sv = localStorage.getItem('lk10_tv');
+    tv = sv === '1' ? true : sv === '0' ? false : detectTV();
+    /* on mémorise la détection : cine-plus.js (flèches de la télécommande) s'en sert aussi */
+    if (tv && sv === null) localStorage.setItem('lk10_tv', '1');
+  } catch (e) { tv = detectTV(); }
   if (!tv) return;
 
   var cover = document.getElementById('cover-page'); if (!cover) return;
