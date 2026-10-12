@@ -1397,6 +1397,13 @@
 
         </style>
     <link rel="stylesheet" href="cine-fx.css">
+    <link rel="stylesheet" href="cine-plus.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#111111">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Ciné LK10">
+    <link rel="apple-touch-icon" href="asset/logolk10.png">
 </head>
 <body class="no-scroll">
 
@@ -4076,7 +4083,7 @@ function showCatalogue() {
     function openP(id, resumeEpisodeIndex = null) {
         document.body.classList.add('no-scroll'); 
         const m = moviesDB.find(x => x.id === id); if(!m) return;
-        currentMovie = m; currentEpisodeIndex = (typeof resumeEpisodeIndex === 'number') ? resumeEpisodeIndex : 0; 
+        currentMovie = m; currentEpisodeIndex = (typeof resumeEpisodeIndex === 'number') ? resumeEpisodeIndex : ((window.LK10 && LK10.resumeEp) ? LK10.resumeEp(m) : 0); 
         document.getElementById('dp-img').style.backgroundImage = `url('${m.poster}')`;
         document.getElementById('dp-title').innerText = m.title; 
         document.getElementById('dp-year').innerText = " - " + m.year;
@@ -4143,6 +4150,9 @@ function showCatalogue() {
         let hasVOST = m.type === 'film' ? (m.iframe_premium_vostfr || m.iframe_vidzy_vostfr || m.iframe_uqload_vostfr) : (m.episodes?.some(e => e.iframe_premium_vostfr || e.iframe_vidzy_vostfr || e.iframe_uqload_vostfr));
         if (hasVF) langSelect.add(new Option('VF', 'vf'));
         if (hasVOST) langSelect.add(new Option('VOSTFR', 'vostfr'));
+        // Langue mémorisée (VF / VOSTFR) : celle utilisée la dernière fois sur ce titre, sinon ton dernier choix global
+        const _pl = (window.LK10 && LK10.preferredLang) ? LK10.preferredLang(m) : null;
+        if (_pl && Array.from(langSelect.options).some(o => o.value === _pl)) langSelect.value = _pl;
         currentLanguage = langSelect.value || 'vf'; currentServer = 'premium';
         
         document.getElementById('serie-layout').style.display = m.type === 'serie' ? 'block' : 'none';
@@ -6189,12 +6199,13 @@ function buildNetflixHome() {
                 labelText = history.episodeTitle || `Épisode ${history.episodeIndex + 1}`;
             }
 
+            const _tm = (window.LK10 && LK10.timeLabel) ? LK10.timeLabel(movie.id, resumeEpisode) : '';
             card.onclick = () => openP(movie.id, resumeEpisode);
             card.innerHTML = `
                 <div class="badge-card" data-cattype="${movie.type}" data-isanime="${isAnimeMovie(movie)}" title="Voir tous les ${movie.type === 'film' ? 'films' : 'séries'}">${movie.type.toUpperCase()}</div>
                 <i class="fas fa-play continue-watching-play-overlay"></i>
                 <div class="netflix-poster" style="background-image: url('${movie.poster}')"></div>
-                ${labelText ? `<div class="continue-watching-ep-label">${labelText}</div>` : ''}
+                ${(labelText || _tm) ? `<div class="continue-watching-ep-label">${labelText}${_tm ? (labelText ? ' · ' : '') + _tm : ''}</div>` : ''}
                 ${progressHTML}
             `;
             const typeBadgeElCw = card.querySelector('.badge-card');
@@ -6541,5 +6552,6 @@ function buildNetflixHome() {
     <script src="cine-avatars.js"></script>
     <script src="avatar-banners-admin.js"></script>
     <script src="series-order-admin.js"></script>
+    <script src="cine-plus.js"></script>
 </body>
 </html>

@@ -1,0 +1,101 @@
+/* Ciné LK10 — cine-plus.css : barre de reprise, épisodes vus, titres similaires, mail des demandes, mode télé, confort tactile */
+
+/* ---------- Barre sous la vidéo (chrono de reprise + épisode précédent / suivant) ---------- */
+#lk10-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 20px; background: #0b0b0b; border-bottom: 1px solid #222; box-sizing: border-box; width: 100%; }
+#lk10-bar .lk10-left, #lk10-bar .lk10-right { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.lk10-chip { display: inline-flex; align-items: center; gap: 8px; background: #1a1a1a; color: #ddd; border: 1px solid #333; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; transition: .2s; touch-action: manipulation; font-family: inherit; }
+.lk10-chip:hover, .lk10-chip:focus-visible { border-color: var(--primary, #ffde00); color: #fff; outline: none; }
+.lk10-chip em { font-style: normal; font-size: 10px; font-weight: normal; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+.lk10-chip i { color: var(--primary, #ffde00); }
+.lk10-chip.lk10-paused { opacity: .6; border-style: dashed; }
+.lk10-chip.lk10-ico { padding: 8px 11px; }
+.lk10-chip.lk10-primary { background: var(--primary, #ffde00); color: #000; border-color: var(--primary, #ffde00); }
+.lk10-chip.lk10-primary i { color: #000; }
+.lk10-chip:disabled { opacity: .35; cursor: not-allowed; }
+.lk10-hint { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #bbb; background: rgba(255, 222, 0, .08); border: 1px solid rgba(255, 222, 0, .3); border-radius: 8px; padding: 6px 10px; }
+.lk10-hint b { color: var(--primary, #ffde00); }
+.lk10-hint button { background: transparent; color: var(--primary, #ffde00); border: 1px solid currentColor; border-radius: 999px; padding: 3px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+
+/* ---------- Épisodes déjà vus ---------- */
+.ep-item .lk10-eye { background: transparent; border: 0; color: #666; font-size: 16px; padding: 0 4px 0 12px; cursor: pointer; flex: 0 0 auto; touch-action: manipulation; }
+.ep-item.lk10-seen { opacity: .62; }
+.ep-item.lk10-seen.active { opacity: 1; }
+.ep-item.lk10-seen .lk10-eye { color: #2ecc71; }
+.ep-item .lk10-eye:hover, .ep-item .lk10-eye:focus-visible { color: var(--primary, #ffde00); outline: none; }
+
+/* ---------- Titres similaires ---------- */
+.lk10-similar { padding: 18px 25px 6px; background: #111; border-top: 1px solid #222; box-sizing: border-box; width: 100%; }
+.lk10-similar h3 { margin: 0 0 12px; font-size: 16px; color: #fff; }
+.lk10-similar h3 i { color: var(--primary, #ffde00); margin-right: 6px; }
+.lk10-sim-row { display: flex; gap: 12px; overflow-x: auto; padding: 4px 2px 14px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.lk10-sim-card { flex: 0 0 118px; cursor: pointer; scroll-snap-align: start; border-radius: 6px; transition: transform .2s; outline: none; }
+.lk10-sim-card img { display: block; width: 118px; height: 177px; object-fit: cover; border-radius: 6px; background: #1a1a1a; }
+.lk10-sim-card span { display: block; margin-top: 6px; font-size: 12px; color: #ccc; line-height: 1.25; max-height: 30px; overflow: hidden; }
+@media (hover: hover) { .lk10-sim-card:hover { transform: translateY(-3px); } }
+.lk10-sim-card:focus-visible { box-shadow: 0 0 0 3px var(--primary, #ffde00); }
+@media (max-width: 768px) { .lk10-similar { padding: 14px 15px 4px; } .lk10-sim-card { flex-basis: 104px; } .lk10-sim-card img { width: 104px; height: 156px; } #lk10-bar { padding: 10px; justify-content: center; } }
+
+/* ---------- Wishboard : case « me prévenir par e-mail » ---------- */
+.lk10-wishmail { margin: 4px 0 14px; display: flex; flex-direction: column; gap: 4px; }
+.lk10-chk { display: flex; align-items: center; gap: 10px; color: #ddd; font-size: 14px; cursor: pointer; text-align: left; }
+.lk10-chk input { width: 20px; height: 20px; accent-color: var(--primary, #ffde00); flex: 0 0 auto; }
+.lk10-chk b { color: var(--primary, #ffde00); }
+.lk10-wishmail small { color: #888; font-size: 12px; text-align: left; }
+
+/* ---------- Paramètres : « Lier une télé » ---------- */
+.lk10-set-tv { text-align: left; margin-bottom: 20px; padding: 14px; border: 1px solid #333; border-radius: 10px; background: #151515; }
+.lk10-set-tv label { display: block; color: var(--primary, #ffde00); font-weight: bold; margin-bottom: 6px; }
+.lk10-set-tv small { display: block; color: #999; font-size: 12px; line-height: 1.4; margin-bottom: 10px; }
+.lk10-set-tv .lk10-row { display: flex; gap: 8px; }
+.lk10-set-tv input { flex: 1; min-width: 0; padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 6px; font-size: 18px; letter-spacing: 4px; text-align: center; text-transform: uppercase; }
+
+/* ---------- Bouton « mode télé » dans l'en-tête ---------- */
+#lk10-tv-btn { background: transparent; border: 1px solid #333; color: #888; border-radius: 8px; width: 38px; height: 38px; cursor: pointer; margin-right: 8px; transition: .2s; flex: 0 0 auto; touch-action: manipulation; }
+#lk10-tv-btn:hover, #lk10-tv-btn:focus-visible { color: #fff; border-color: var(--primary, #ffde00); outline: none; }
+#lk10-tv-btn.on { color: #000; background: var(--primary, #ffde00); border-color: var(--primary, #ffde00); }
+@media (max-width: 480px) { #lk10-tv-btn { display: none; } }
+html.lk10-tv #lk10-tv-btn { display: inline-block; }
+
+/* ---------- Connexion par code (écran télé) ---------- */
+#lk10-tvlink { display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(0, 0, 0, .96); align-items: center; justify-content: center; padding: 20px; }
+.lk10-tvbox { max-width: 640px; width: 100%; text-align: center; color: #eee; font-family: inherit; }
+.lk10-tvbox h2 { color: var(--primary, #ffde00); margin: 0 0 14px; font-size: 30px; }
+.lk10-tvbox p { font-size: 18px; line-height: 1.5; color: #ccc; }
+.lk10-tvbox .lk10-sm { font-size: 14px; color: #888; }
+.lk10-tvbox .lk10-code { font-size: 64px; font-weight: bold; letter-spacing: 6px; color: #000; background: var(--primary, #ffde00); border-radius: 14px; padding: 18px 10px; margin: 22px 0; font-family: 'Courier New', monospace; }
+.lk10-tvbox button { margin: 6px; padding: 14px 28px; font-size: 18px; }
+.lk10-tvbox .lk10-alt { background: #222; color: #ddd; }
+@media (max-width: 600px) { .lk10-tvbox .lk10-code { font-size: 38px; letter-spacing: 3px; } }
+
+/* ---------- Confort tactile (tablette / mobile) ---------- */
+@media (pointer: coarse) {
+  .server-btn, .lang-select, .close-corner, .nav-link, .ep-item, .read-more-btn, .detail-action-btn, .wb-btn-submit, .wb-btn-cancel { min-height: 44px; }
+  .close-corner { min-width: 44px; justify-content: center; }
+  button, a, .movie-card, .netflix-card, .nav-link, .ep-item { touch-action: manipulation; -webkit-tap-highlight-color: rgba(255, 222, 0, .15); }
+  /* l'astuce « extension AdBlock » est inutile sur un appareil tactile (celle d'Opera mobile reste affichée) */
+  .controls-bar .ublock-box:nth-of-type(1) { display: none !important; }
+  #player-overlay { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+}
+/* iOS / tablettes : 100vh dépasse l'écran quand la barre d'adresse est visible */
+@supports (height: 100dvh) {
+  #player-overlay { height: 100dvh; }
+  @media (max-width: 992px) { nav { height: calc(100dvh - 60px); } }
+}
+
+/* ---------- MODE TÉLÉ ---------- */
+html.lk10-tv, html.lk10-tv body { cursor: default; }
+html.lk10-tv :focus { outline: 4px solid var(--primary, #ffde00) !important; outline-offset: 3px; }
+html.lk10-tv .movie-card:focus, html.lk10-tv .netflix-card:focus, html.lk10-tv .wish-card:focus, html.lk10-tv .saga-card:focus,
+html.lk10-tv .sagas-page-card:focus, html.lk10-tv .pro-sg-card:focus, html.lk10-tv .platform-card:focus, html.lk10-tv .cast-card:focus,
+html.lk10-tv .lk10-sim-card:focus { transform: scale(1.06); z-index: 30; box-shadow: 0 0 0 6px rgba(255, 222, 0, .28), 0 12px 30px rgba(0, 0, 0, .7); border-radius: 6px; }
+html.lk10-tv .nav-item:focus-within .dropdown-content { display: flex; gap: 30px; }
+html.lk10-tv .nav-link { padding-left: 22px; padding-right: 22px; font-size: 15px; }
+html.lk10-tv .server-btn { padding: 14px 24px; font-size: 16px; }
+html.lk10-tv .lang-select { font-size: 16px; padding: 10px 14px; }
+html.lk10-tv .ep-item { padding: 18px 20px; font-size: 16px; }
+html.lk10-tv .lk10-chip { padding: 12px 20px; font-size: 16px; }
+html.lk10-tv .lk10-hint { font-size: 15px; }
+html.lk10-tv .lk10-sim-card { flex-basis: 150px; } html.lk10-tv .lk10-sim-card img { width: 150px; height: 225px; } html.lk10-tv .lk10-sim-card span { font-size: 15px; max-height: 38px; }
+html.lk10-tv .ublock-box, html.lk10-tv .plat-vid { display: none !important; }
+html.lk10-tv #video-container:focus { outline-offset: -4px; }
+html.lk10-tv .close-corner { width: 56px; height: 56px; font-size: 36px; }
