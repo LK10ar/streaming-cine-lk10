@@ -35,13 +35,13 @@
     'html.lk10-cinema,html.lk10-cinema body{overflow:hidden!important}' +
     /* la vidéo prend tout l'écran ; on neutralise les transformations des parents (sinon « fixed » reste coincé dans le cadre) */
     'html.lk10-cinema .player-content,html.lk10-cinema #player-overlay{transform:none!important;animation:none!important;filter:none!important;perspective:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;will-change:auto!important;contain:none!important}' +
-    'html.lk10-cinema #video-container{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border-radius:0!important;aspect-ratio:auto!important;z-index:2147483000!important;background:#000!important}' +
-    '@supports (height:100dvh){html.lk10-cinema #video-container{height:100dvh!important}}' +
+    'html.lk10-cinema #video-container{position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;height:auto!important;min-height:0!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border-radius:0!important;aspect-ratio:auto!important;overflow:hidden!important;z-index:2147483000!important;background:#000!important}' +
     'html.lk10-cinema #video-container iframe{width:100%!important;height:100%!important;border:0!important}' +
     /* petits boutons (souris / tactile) : quitter + épisode suivant */
-    '#lk10-cine-ui{display:none;position:fixed;top:10px;right:10px;z-index:2147483001;gap:8px}' +
+    '#lk10-cine-ui{display:none;position:fixed;top:8px;left:8px;z-index:2147483001;gap:6px;pointer-events:none;transition:opacity .4s}' +
     'html.lk10-cinema #lk10-cine-ui{display:flex}' +
-    '#lk10-cine-ui button{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:18px;cursor:pointer;opacity:.55;transition:.2s}' +
+    '#lk10-cine-ui.hide{opacity:0}' +
+    '#lk10-cine-ui button{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.55);color:#fff;font-size:16px;cursor:pointer;opacity:.7;transition:.2s}' +
     '#lk10-cine-ui button:hover,#lk10-cine-ui button:focus{opacity:1;border-color:#ffde00;outline:none}' +
     '#lk10-opts{display:flex;align-items:center;flex-wrap:wrap;gap:8px}' +
     '.lk10-chip.lk10-on{border-color:#2ecc71}.lk10-chip.lk10-on i{color:#2ecc71}' +
@@ -75,13 +75,16 @@
     var pill = $('lk10-zoom-reset'); if (pill) pill.style.display = 'none';
     de.classList.add('lk10-cinema');
     try { history.pushState({ lk10cine: 1 }, ''); } catch (e) {}  // le bouton Retour de la télé = on quitte le cinéma
-    refreshUi();
+    refreshUi(); showUi();
     setTimeout(function () {
       var vc = $('video-container'); if (!vc) return;
       var f = vc.querySelector('iframe'), s = $('skip-ad-btn');
       try { if (f) { f.setAttribute('tabindex', '0'); f.focus(); } else if (s) s.focus(); } catch (e) {}
     }, 250);
   }
+  var hideT = null;
+  function showUi() { var u = $('lk10-cine-ui'); if (!u) return; u.classList.remove('hide'); clearTimeout(hideT); hideT = setTimeout(function () { u.classList.add('hide'); }, 4000); }
+  ['mousemove', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, function () { if (active) showUi(); }, true); });
   function exitCinema(fromPop) {
     if (!active) return;
     active = false; de.classList.remove('lk10-cinema');
