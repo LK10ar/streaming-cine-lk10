@@ -107,7 +107,7 @@
     try {
       if (isTV() && opt(K_CINE)) {
         var vc = $('video-container');
-        if (vc && vc.querySelector('iframe, #skip-ad-btn')) enterCinema();
+        if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();
       }
     } catch (e) {}
     return r;
@@ -177,13 +177,13 @@
     try { if (typeof closeProfilePage === 'function') closeProfilePage(); } catch (e) {}
     exitCinema();
     toast('Lancement depuis ton téléphone : ' + m.title);
-    openP(m.id, m.type === 'serie' ? (cmd.ep | 0) : null);
+    openP(m.id, m.type === 'serie' ? (cmd.ep | 0) : 0);   /* un nombre = lecture directe ; null ouvrirait la bande-annonce */
     setTimeout(function () {
       try {
         var sel = $('language-select');
         if (sel && cmd.lang && Array.prototype.some.call(sel.options, function (o) { return o.value === cmd.lang; }) && sel.value !== cmd.lang) { sel.value = cmd.lang; changeLanguage(); }
         var vc = $('video-container');
-        if (vc && vc.querySelector('iframe, #skip-ad-btn')) enterCinema();
+        if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();   /* .fx-yt = bande-annonce : on ne la compte pas */
         else changeServer(currentServer);
         setTimeout(function () { if (!active) enterCinema(); }, 400);
       } catch (e) {}
