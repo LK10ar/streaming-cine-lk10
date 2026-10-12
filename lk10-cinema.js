@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v6)
+/* Ciné LK10 — lk10-cinema.js (v7)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -79,6 +79,7 @@
         else changeServer(currentServer);
       }
     } catch (e) {}
+    wantCine = true;
     setTimeout(function () { if (isTV() && hasPlayer()) enterCinema(); }, 350);
   }
   /* TÉLÉ : pas de bande-annonce dans la fiche (lourd, inutile, et rien ne se lançait) -> image + gros bouton Lecture */
@@ -132,11 +133,16 @@
      Au lancement on renvoie « play » toutes les 900 ms (max 7 fois) tant qu'il n'a pas dit « fss_playing ».
      En mode cinéma, les flèches / OK de la télécommande sont transmises au lecteur (avance, volume, pause),
      0 / 1 / 2 = sous-titres / langue des sous-titres / piste audio, double OK = quitter le cinéma. */
+  /* Lecteurs « maison » (Premium = fsvid, Vidzy) : seuls eux comprennent les messages play / fss_key.
+     Uqload, Voe, Filmoon sont des lecteurs tiers : on ne leur envoie rien et on laisse les touches passer. */
+  var VZ = /(^|\.)(vidzy|fsvid)\.[a-z]{2,6}$/i;
+  function isOwnPlayer(f) { try { return !!f && VZ.test(new URL(f.getAttribute('src') || f.src, location.href).hostname); } catch (e) { return false; } }
   function playerFrame() { var vc = $('video-container'); return vc ? vc.querySelector('iframe:not(.fx-yt)') : null; }
   function toPlayer(msg) { var f = playerFrame(); if (f && f.contentWindow) { try { f.contentWindow.postMessage(msg, '*'); } catch (e) {} } }
-  var playing = false, kickT = null;
+  var playing = false, kickT = null, wantCine = false;
   function kick() {
     clearInterval(kickT); playing = false; var n = 0;
+    if (!isOwnPlayer(playerFrame())) return;
     kickT = setInterval(function () {
       n++; if (playing || n > 7 || !playerFrame()) { clearInterval(kickT); return; }
       toPlayer({ action: 'play' });
@@ -146,12 +152,16 @@
     var d = e.data; if (!d || typeof d !== 'object') return;
     var f = playerFrame(); if (!f || e.source !== f.contentWindow) return;     // seulement notre lecteur
     if (d.action === 'playerReady') { try { e.source.postMessage({ action: 'play' }, '*'); } catch (x) {} }
-    else if (d.action === 'fss_playing') { playing = true; clearInterval(kickT); }
+    else if (d.action === 'fss_playing') {
+      playing = true; clearInterval(kickT);
+      if (isTV() && wantCine && !active && opt(K_CINE)) { wantCine = false; setTimeout(function () { if (hasPlayer()) enterCinema(); }, 800); }   // comme French Stream : plein écran dès que ça joue
+    }
   });
   var DIRK = { 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown' }, lastOk = 0;
   window.addEventListener('keydown', function (e) {
     if (!active || e.ctrlKey || e.altKey || e.metaKey) return;
-    var a = document.activeElement; if (a && a.closest && a.closest('#lk10-cine-ui')) return;   // boutons ✕ / suivant : OK = cliquer
+    var a = document.activeElement; if (a && a.closest && a.closest('#lk10-cine-ui')) return;
+    if (!isOwnPlayer(playerFrame())) return;                                   // lecteur tiers : touches natives   // boutons ✕ / suivant : OK = cliquer
     var k = e.keyCode;
     var sub = (k === 48 || k === 96) ? 'fss_sub_toggle' : (k === 49 || k === 97) ? 'fss_sub_cycle' : (k === 50 || k === 98) ? 'fss_audio' : null;
     if (sub) { toPlayer({ action: sub }); return; }
@@ -166,11 +176,32 @@
     e.preventDefault(); e.stopImmediatePropagation();
   }, true);
 
+  /* TÉLÉ, lecteurs Premium / Vidzy : French Stream charge « embed-xxx.html?autoplay=1 » et réécrit les vieux domaines vidzy.org/.cc/.live
+     en vidzy.lol. Le site retire l'autoplay des liens (sanitizePlayerIframe) : on le remet ici, sur télé et pour ces deux lecteurs seulement. */
+  wrap('sanitizePlayerIframe', function (o, a) {
+    var r = o.apply(this, a);
+    try {
+      if (isTV() && typeof r === 'string' && /<iframe/i.test(r)) {
+        r = r.replace(/(src\s*=\s*)(["'])([^"']*)\2/i, function (m, p, q, url) {
+          try {
+            var u = new URL(url);
+            if (!VZ.test(u.hostname)) return m;
+            if (/^(www\.)?vidzy\.(org|cc|live)$/i.test(u.hostname)) u.hostname = 'vidzy.lol';
+            u.searchParams.set('autoplay', '1');
+            return p + q + u.toString() + q;
+          } catch (e) { return m; }
+        });
+      }
+    } catch (e) {}
+    return r;
+  });
+
   /* ---------- Déclenchement automatique : quand on choisit un lecteur ---------- */
   wrap('changeServer', function (o, a) {
     var r = o.apply(this, a);
     try {
       if (isTV() && opt(K_CINE)) {
+        wantCine = true;
         var vc = $('video-container');
         if (vc && vc.querySelector('iframe:not(.fx-yt), #skip-ad-btn')) enterCinema();
       }
