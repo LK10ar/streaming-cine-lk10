@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v16)
+/* Ciné LK10 — lk10-cinema.js (v17)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -54,6 +54,11 @@
     'html #lk10-bar{justify-content:center!important}html #lk10-bar .lk10-left{display:none!important}html #lk10-bar #lk10-opts{flex:1 1 100%;justify-content:center}html #lk10-bar .lk10-right{justify-content:center}' +
     /* v16 télé : quand la fiche est ouverte, l'arrière-plan ne défile plus */
     'html.lk10-tv.lk10-fiche,html.lk10-tv.lk10-fiche body{overflow:hidden!important}' +
+    /* v17 (télé) : barre de choix d'épisode dans la liste */
+    '#lk10-ep-ctl{display:none;position:sticky;top:0;z-index:6;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;padding:10px;background:#0d0d0d;border-bottom:1px solid #333}' +
+    'html.lk10-tv #lk10-ep-ctl{display:flex}' +
+    '#lk10-ep-ctl .lk10-chip{padding:12px 20px;font-size:16px}' +
+    '.ep-item.lk10-epcur{background:rgba(255,222,0,.18)!important;box-shadow:inset 5px 0 0 var(--primary,#ffde00)}' +
     '#lk10-cine-recal{display:none}html.lk10-tv #lk10-cine-ui button#lk10-cine-recal{display:block}' +
     '#lk10-sink{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;outline:none!important}' +
     /* petits boutons (souris / tactile) : quitter + épisode suivant */
@@ -306,6 +311,11 @@
     lastFiche = el;
   }
   function reveal(el, root) {                    // fait défiler LA FICHE (jamais l'arrière-plan) pour montrer l'élément
+    var lb = el.closest && el.closest('#ep-list-container');          // v17 : et la liste d'épisodes si l'élément est dedans
+    if (lb && lb.scrollHeight > lb.clientHeight + 1) {
+      var rr = el.getBoundingClientRect(), bb = lb.getBoundingClientRect();
+      if (rr.top < bb.top + 60 || rr.bottom > bb.bottom - 20) lb.scrollTop += (rr.top + rr.height / 2) - (bb.top + bb.height / 2);
+    }
     var r = el.getBoundingClientRect(), o = root.getBoundingClientRect();
     if (r.top < o.top + 70 || r.bottom > o.bottom - 70) root.scrollTop += (r.top + r.height / 2) - (o.top + o.height / 2);
   }
@@ -463,13 +473,50 @@
     refreshChips();
   }
   /* v13 (télé) : puce « Épisodes » = ouvre la liste et met le curseur sur l'épisode en cours (plus besoin de descendre jusqu'au bouton) */
+  /* v17 (télé) : dans « Sélectionner un épisode », une barre collée en haut de la liste :
+     ▲▲ -10 · ▲ Monter · ▼ Descendre · ▼▼ +10 · ✔ Choisir. Le curseur jaune se déplace d'épisode en épisode, la liste défile toute seule. */
+  var epCur = -1;
+  function epItems() { return Array.prototype.filter.call(document.querySelectorAll('#ep-items-wrapper .ep-item'), function (it) { return it.style.display !== 'none'; }); }
+  function epMark(i) {
+    var its = epItems(); if (!its.length) return;
+    i = Math.max(0, Math.min(its.length - 1, i)); epCur = i;
+    its.forEach(function (it, j) { it.classList.toggle('lk10-epcur', j === i); });
+    var it = its[i], box = $('ep-list-container');
+    if (box) { var r = it.getBoundingClientRect(), b = box.getBoundingClientRect(); box.scrollTop += (r.top + r.height / 2) - (b.top + b.height / 2); }
+    var p = $('lk10-ep-pick'); if (p) p.querySelector('span').textContent = 'Choisir : ' + it.textContent.replace(/\s+/g, ' ').trim().slice(0, 28);
+  }
+  function epInit() {
+    var its = epItems(), k = -1;
+    its.forEach(function (it, j) { if (k < 0 && it.classList.contains('active')) k = j; });
+    epMark(k >= 0 ? k : 0);
+  }
+  function addEpCtl() {
+    var box = $('ep-list-container'); if (!box || $('lk10-ep-ctl')) return;
+    var d = document.createElement('div'); d.id = 'lk10-ep-ctl';
+    d.innerHTML = chip('lk10-ep-u10', 'fa-angle-double-up', '-10', '') + chip('lk10-ep-up', 'fa-chevron-up', 'Monter', '') +
+      chip('lk10-ep-down', 'fa-chevron-down', 'Descendre', '') + chip('lk10-ep-d10', 'fa-angle-double-down', '+10', '') +
+      chip('lk10-ep-pick', 'fa-check', 'Choisir', 'lk10-primary');
+    box.insertBefore(d, box.firstChild);
+    var go = function (id, fn) { var b = $(id); if (b) b.onclick = function () { if (epCur < 0) epInit(); fn(); }; };
+    go('lk10-ep-u10', function () { epMark(epCur - 10); });
+    go('lk10-ep-up', function () { epMark(epCur - 1); });
+    go('lk10-ep-down', function () { epMark(epCur + 1); });
+    go('lk10-ep-d10', function () { epMark(epCur + 10); });
+    go('lk10-ep-pick', function () { var its = epItems(); if (its[epCur]) its[epCur].click(); });
+    epInit();
+  }
+  wrap('renderEpisodeList', function (o, a) { var r = o.apply(this, a); try { epCur = -1; if (isTV()) addEpCtl(); } catch (e) {} return r; });
+  document.addEventListener('click', function (e) {          // ouverture de la liste : le curseur se place sur l'épisode en cours
+    if (isTV() && e.target && e.target.closest && e.target.closest('.episodes-toggle-btn')) setTimeout(function () { try { addEpCtl(); epInit(); } catch (x) {} }, 80);
+  }, true);
   function isSerie() { try { return !!currentMovie && currentMovie.type === 'serie'; } catch (e) { return false; } }
   function refreshEps() { var b = $('lk10-eps'); if (b) b.style.display = isTV() && isSerie() ? '' : 'none'; }
   function openEpisodes() {
     try { var l = $('ep-list-container'); if (l && l.style.display === 'none') toggleEpisodes(); } catch (e) {}
+    setTimeout(function () { try { addEpCtl(); epInit(); } catch (x) {} }, 60);
     setTimeout(function () {
-      var it = document.querySelector('#ep-items-wrapper .ep-item.active') || document.querySelector('#ep-items-wrapper .ep-item'); if (!it) return;
-      try { it.setAttribute('tabindex', '0'); it.focus({ preventScroll: true }); it.scrollIntoView({ block: 'center' }); } catch (e) {}
+      var b = $('lk10-ep-down'); if (!b) return;
+      try { focusIt(b); var ov = $('player-overlay'); if (ov) reveal(b, ov); } catch (e) {}
     }, 80);
   }
   wrap('openP', function (o, a) { if (typeof a[1] === 'number' || a[1] === 'play') intent(); var r = o.apply(this, a); try { setTimeout(function () { ensureChips(); checkTv(); if (isTV()) { var g = $('fx-go'); try { if (g && shown('player-overlay')) g.focus({ preventScroll: true }); } catch (e) {} } }, 80); } catch (e) {} return r; });
