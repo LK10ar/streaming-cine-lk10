@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v18)
+/* Ciné LK10 — lk10-cinema.js (v19)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -59,6 +59,7 @@
        On le met donc simplement à la taille du cadre, sans zoom ni transformation, et on retire la couche transparente par-dessus. */
     'html.lk10-tv .video-box .fx-trailer iframe.fx-yt{left:0!important;top:0!important;width:100%!important;height:100%!important;transform:none!important;will-change:auto!important}' +
     'html.lk10-tv .video-box .fx-shield{display:none!important}' +
+    'html.lk10-tv .fx-nt.lk10-tvimg::before{background:rgba(0,0,0,.22)}' +
     /* v17 (télé) : barre de choix d'épisode dans la liste */
     '#lk10-ep-ctl{display:none;position:sticky;top:0;z-index:6;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;padding:10px;background:#0d0d0d;border-bottom:1px solid #333}' +
     'html.lk10-tv #lk10-ep-ctl{display:flex}' +
@@ -182,6 +183,22 @@
     };
     pass(); recalT = setTimeout(pass, 700);
   }
+  /* v19 (télé) : la bande-annonce YouTube de la fiche reste un écran uni bleu sur la télé (le décodage vidéo ne s'affiche pas dans l'iframe)
+     -> sur télé on la remplace par l'image du titre (le son ne part plus dans le vide). Lecture / plein écran / lecteurs : inchangés. */
+  (function () {
+    var vc = $('video-container'); if (!vc) return;
+    function swap() {
+      if (!isTV() || active) return;
+      var yt = vc.querySelector('iframe.fx-yt'); if (!yt) return;
+      var m = null; try { m = currentMovie; } catch (e) {}
+      var bg = (m && (m.backdrop || m.poster)) || '';
+      vc.innerHTML = '<div class="fx-nt lk10-tvimg"' + (bg ? ' style="background-image:url(\'' + String(bg).replace(/['"\\]/g, '') + '\')"' : '') + '><div><i class="fas fa-play-circle" style="font-size:96px;color:var(--primary,#ffde00);opacity:.92"></i></div></div>';
+      var h = document.querySelector('#fx-actions .fx-hint');
+      if (h && /Bande-annonce en cours/i.test(h.textContent)) h.textContent = 'Appuie sur OK pour lancer la lecture';
+    }
+    new MutationObserver(swap).observe(vc, { childList: true });
+    swap();
+  })();
   /* v13 (télé) : à chaque nouveau lecteur, on le « secoue » même hors plein écran (écran noir sans plein écran auto) */
   function refit() { if (!isTV()) return; nudge(); if (active) bounce(); }
   (function () {
