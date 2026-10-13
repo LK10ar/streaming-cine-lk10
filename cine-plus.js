@@ -127,7 +127,7 @@
   var LK10 = window.LK10 = {
     resumeEp: function (m) { var o = P[m.id]; return (m.type === 'serie' && o && typeof o.ep === 'number' && m.episodes && o.ep >= 0 && o.ep < m.episodes.length) ? o.ep : 0; },
     preferredLang: function (m) { var o = P[m.id]; return (o && o.lang) || LS.getItem('lk10_lang') || null; },
-    timeLabel: function (id, ep) { var o = P[id]; if (!o || !o.t || o.t < 60) return ''; if (typeof ep === 'number' && o.ep !== ep) return ''; return 'à ' + fmtTime(o.t); }
+    timeLabel: function () { return ''; }
   };
 
   // --- Chrono de lecture ---
@@ -141,11 +141,10 @@
     if (!k) { cur = null; secs = 0; return; }
     var m = gm(), ep = m.type === 'serie' ? ge() : 0, sv = P[m.id];
     cur = { key: k, id: m.id, ep: ep, serie: m.type === 'serie' };
-    secs = (sv && sv.ep === ep) ? (sv.t || 0) : 0;
-    resumeHint = secs >= 60 ? secs : 0; hintOff = false; paused = false; seenMarked = isSeen(m.id, ep);
+    secs = 0; resumeHint = 0; hintOff = true; paused = false; seenMarked = isSeen(m.id, ep);
     refreshBar();
   }
-  function commit() { if (cur && secs >= 5) touch(cur.id, { ep: cur.ep, t: Math.floor(secs), lang: gl() }); }
+  function commit() { if (cur && secs >= 5) touch(cur.id, { ep: cur.ep, lang: gl() }); }
 
   setInterval(function () {
     try {
@@ -168,43 +167,21 @@
     var vc = $('video-container'); if (!vc || !vc.parentNode) return;
     var bar = document.createElement('div'); bar.id = 'lk10-bar';
     bar.innerHTML =
-      '<div class="lk10-left">' +
-        '<button type="button" id="lk10-chip" class="lk10-chip" title="Chrono estimé de ta lecture. Touche-le pour le mettre en pause quand tu mets la vidéo en pause."><i class="fas fa-stopwatch"></i><span id="lk10-tv">0:00</span><em id="lk10-ts">estimé</em></button>' +
-        '<button type="button" id="lk10-edit" class="lk10-chip lk10-ico" title="Régler la minute où tu en es"><i class="fas fa-pen"></i></button>' +
-        '<span id="lk10-hint" class="lk10-hint" style="display:none"></span>' +
-      '</div>' +
+      '<div class="lk10-left"></div>' +
       '<div class="lk10-right" id="lk10-epnav" style="display:none">' +
         '<button type="button" id="lk10-prev" class="lk10-chip"><i class="fas fa-step-backward"></i><span>Précédent</span></button>' +
         '<button type="button" id="lk10-next" class="lk10-chip lk10-primary"><span>Épisode suivant</span><i class="fas fa-step-forward"></i></button>' +
       '</div>';
     vc.parentNode.insertBefore(bar, vc.nextSibling);
-    $('lk10-chip').onclick = function () { paused = !paused; renderTimer(); };
-    $('lk10-edit').onclick = function () {
-      var v = prompt('À quelle minute en es-tu ?\nExemples : 42:10 · 1:12:30 · 42', fmtTime(secs));
-      if (v === null) return; var t = parseTime(v);
-      if (t === null) return toast('Format non reconnu. Exemple : 42:10');
-      secs = t; hintOff = true; if (cur) touch(cur.id, { ep: cur.ep, t: secs, lang: gl() }); refreshBar(); toast('Minute enregistrée : ' + fmtTime(secs));
-    };
     $('lk10-prev').onclick = function () { goEp(ge() - 1); };
     $('lk10-next').onclick = function () { goEp(ge() + 1); };
   }
-  function renderTimer() {
-    var tv = $('lk10-tv'), chip = $('lk10-chip'); if (!tv || !chip) return;
-    tv.textContent = fmtTime(secs); chip.classList.toggle('lk10-paused', paused);
-    $('lk10-ts').textContent = paused ? 'pause' : 'estimé';
-  }
+  function renderTimer() {}   /* chrono estimé supprimé */
   function refreshBar() {
     ensureBar(); var m = gm(); if (!m || !$('lk10-bar')) return;
     var nav = $('lk10-epnav'), ser = m.type === 'serie' && m.episodes && m.episodes.length > 1;
     nav.style.display = ser ? 'flex' : 'none';
     if (ser) { $('lk10-prev').disabled = ge() <= 0; $('lk10-next').disabled = ge() >= m.episodes.length - 1; }
-    var h = $('lk10-hint');
-    if (resumeHint && !hintOff) {
-      h.style.display = 'inline-flex';
-      h.innerHTML = '<span>Tu en étais à <b>' + fmtTime(resumeHint) + '</b> — avance jusque-là dans le lecteur</span><button type="button" id="lk10-restart">Depuis le début</button>';
-      $('lk10-restart').onclick = function () { secs = 0; resumeHint = 0; hintOff = true; if (cur) touch(cur.id, { ep: cur.ep, t: 0 }); refreshBar(); };
-    } else h.style.display = 'none';
-    renderTimer();
   }
   function goEp(i) {
     var m = gm(); if (!m || m.type !== 'serie' || !m.episodes || i < 0 || i >= m.episodes.length) return;
