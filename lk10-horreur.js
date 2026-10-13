@@ -10,7 +10,7 @@
 
   /* ---------- Réglages ---------- */
   var ONLY_OCTOBER = false;      // true = le bandeau d'accueil n'apparaît que du 1er octobre au 2 novembre
-  var BANNER_IMG = '';           // (facultatif) lien d'une image de fond ; vide = fond pris automatiquement sur un titre d'horreur
+  var BANNER_IMG = 'https://m.media-amazon.com/images/S/pv-target-images/0dedbdd7158481ccd4a7987c3fe61b18ad4e57a1a7cc501b49f640583e65ecaa._SX1080_FMjpg_.jpg';           // (facultatif) lien d'une image de fond ; vide = fond pris automatiquement sur un titre d'horreur
   var GRID_STEP = 42;            // nombre de titres ajoutés à chaque clic sur « Voir plus »
   var MIN_ROW = 4;               // une rangée avec moins de titres que ça est cachée
 
