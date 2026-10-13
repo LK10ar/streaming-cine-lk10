@@ -22,13 +22,27 @@
   var yr = function (m) { return parseInt(m.year, 10) || 0; };
   var ts = function (m) { return m.createdAt ? new Date(m.createdAt).getTime() : 0; };
 
-  /* ---------- Qu'est-ce qui est « horreur » ? ---------- */
-  var G_HORROR = /horreur|epouvante|gore|slasher|terreur/;
-  var X_HORROR = /\b(gore|slasher|zombies?|exorcis\w*|poltergeist|demoniaque\w*|massacre\w*|tueur en serie|croque-mitaine|hante[es]?|morts?-vivants?)\b/;
+  /* ---------- Qu'est-ce qui est « horreur » ? ----------
+     Règle stricte : le GENRE du titre doit contenir « Horreur » / « Epouvante-horreur » (ou gore / slasher).
+     Les résumés ne comptent plus (c'était eux qui laissaient passer Willow, Star Wars...). */
+  var G_HORROR = /horreur|epouvante|\bgore\b|slasher/;
+  /* Liste noire : titres jamais affichés, même si leur genre est mal étiqueté (comparé sans accents ni majuscules) */
+  var EXCLUDE = [
+    'derniere chance', 'secret de la plume', 'willow', 'mortal kombat', 'venom', 'batman', 'star wars', 'cite de la peur',
+    'nouveaux mutants', 'new mutants', 'dernier souffle', 'yakuza', 'demon slave', 'demon slayer', 'elusive samurai', 'one piece',
+    'pirates des caraibes', 'sisu', 'doctor on the edge', 'frankelda', 'ligue des justiciers', 'justice league', 'crapaud et le maitre',
+    'gundam', 'iron man', 'sword gai', 'roar', 'mad max', 'freres scott', 'heavy metal'
+  ];
+  /* Liste blanche : titres toujours affichés (ex. : un vrai film d'horreur dont le genre n'est pas renseigné). Ajoute-les ici. */
+  var INCLUDE = [];
+  var has = function (list, t) { for (var i = 0; i < list.length; i++) if (t.indexOf(list[i]) > -1) return true; return false; };
   function text(m) { return norm((m.title || '') + ' ' + (m.desc || '') + ' ' + (m.genre || '')); }
   function isHorror(m) {
     if (!m || m.type === 'saga') return false;
-    return G_HORROR.test(norm(m.genre)) || X_HORROR.test(text(m));
+    var t = norm(m.title);
+    if (has(INCLUDE, t)) return true;
+    if (has(EXCLUDE, t)) return false;
+    return G_HORROR.test(norm(m.genre));
   }
 
   /* ---------- Rangées thématiques (mots-clés cherchés dans titre + résumé + genres) ---------- */
@@ -38,11 +52,11 @@
     { t: 'Les films d\'horreur les mieux notés', f: function (m) { return m.type === 'film' && !isAnime(m); }, sort: 'rating' },
     { t: 'Les séries qui font frissonner', f: function (m) { return m.type === 'serie' && !isAnime(m); }, sort: 'rating' },
     { t: 'Animés d\'horreur et de gore', f: isAnime, sort: 'rating' },
-    { t: 'Cent pour sang slashers', f: kw(/slasher|gore|tueur|massacre|sanglant|\bsang\b|masque|machette|meurtr|boucher|serial killer/), sort: 'rating' },
+    { t: 'Cent pour sang slashers', f: kw(/slasher|\bgore\b|tueur|massacre|sanglant|machette|serial killer|boucher/), sort: 'rating' },
     { t: 'Monstres et créatures', f: kw(/monstre|creature|\bbete\b|requin|kaiju|alien|extraterrestre|mutant|araignee|geant|abomination/), sort: 'rating' },
-    { t: 'Visitez nos maisons hantées', f: kw(/hant|fantome|esprit|poltergeist|spectre|revenant|maison|manoir|medium/), sort: 'rating' },
+    { t: 'Visitez nos maisons hantées', f: kw(/\bhant|fantome|poltergeist|spectre|revenant|manoir/), sort: 'rating' },
     { t: 'Réveillez les morts-vivants', f: kw(/zombie|mort-vivant|morts-vivants|infecte|infection|apocalypse|epidemie|virus|contamin/), sort: 'rating' },
-    { t: 'Mordus de vampires ?', f: kw(/vampire|dracula|nosferatu|loup-garou|lycan|crocs|buveur de sang/), sort: 'rating' },
+    { t: 'Mordus de vampires ?', f: kw(/vampire|dracula|nosferatu|loup-garou|lycan/), sort: 'rating' },
     { t: 'Entrez dans un univers surnaturel', f: kw(/surnaturel|possession|demon|exorcis|satan|occulte|sorcel|sorciere|malediction|rituel|secte|diable|paranormal/), sort: 'rating' },
     { t: 'Plongez dans un chaos mental', f: kw(/psychologi|folie|paranoia|hallucin|cauchemar|obsession|manipul|traumat|trouble|schizo/), sort: 'rating' },
     { t: 'Survivants', f: kw(/surviv|piege|enleve|sequestr|huis clos|traque|isole|cabane|foret|poursuite|fuir|echapper/), sort: 'rating' },
