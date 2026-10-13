@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v17)
+/* Ciné LK10 — lk10-cinema.js (v18)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -54,6 +54,11 @@
     'html #lk10-bar{justify-content:center!important}html #lk10-bar .lk10-left{display:none!important}html #lk10-bar #lk10-opts{flex:1 1 100%;justify-content:center}html #lk10-bar .lk10-right{justify-content:center}' +
     /* v16 télé : quand la fiche est ouverte, l'arrière-plan ne défile plus */
     'html.lk10-tv.lk10-fiche,html.lk10-tv.lk10-fiche body{overflow:hidden!important}' +
+    /* v18 (télé) : bande-annonce de la fiche SANS transformation. Le site crée le lecteur YouTube en 1920x1080 puis le réduit avec
+       transform:scale() : sur télé la vidéo (décodage matériel) ne s'affiche pas -> écran uni bleu avec le son qui tourne.
+       On le met donc simplement à la taille du cadre, sans zoom ni transformation, et on retire la couche transparente par-dessus. */
+    'html.lk10-tv .video-box .fx-trailer iframe.fx-yt{left:0!important;top:0!important;width:100%!important;height:100%!important;transform:none!important;will-change:auto!important}' +
+    'html.lk10-tv .video-box .fx-shield{display:none!important}' +
     /* v17 (télé) : barre de choix d'épisode dans la liste */
     '#lk10-ep-ctl{display:none;position:sticky;top:0;z-index:6;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;padding:10px;background:#0d0d0d;border-bottom:1px solid #333}' +
     'html.lk10-tv #lk10-ep-ctl{display:flex}' +
