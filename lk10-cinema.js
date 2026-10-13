@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v14)
+/* Ciné LK10 — lk10-cinema.js (v15)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -49,6 +49,7 @@
     'html.lk10-cinema #video-container,html.lk10-cinema #video-container:focus,html.lk10-cinema #video-container:focus-visible,html.lk10-cinema #video-container iframe,html.lk10-cinema #video-container iframe:focus,html.lk10-cinema #video-container iframe:focus-visible,html.lk10-cinema #player-overlay:focus,html.lk10-cinema .player-content:focus{outline:none!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important}' +
     /* télé : l'iframe déborde de 4 px de chaque côté (le cadre est en overflow:hidden) -> un éventuel liseré de focus interne au lecteur est rogné */
     'html.lk10-tv.lk10-cinema #video-container iframe{top:-4px!important;left:-4px!important;right:auto!important;bottom:auto!important;width:calc(100% + 8px)!important;height:calc(100% + 8px)!important}' +
+    'html.lk10-tv #video-container iframe,html.lk10-tv #video-container iframe:focus,html.lk10-tv #video-container iframe:focus-visible{outline:none!important;box-shadow:none!important}' +
     '#lk10-cine-recal{display:none}html.lk10-tv #lk10-cine-ui button#lk10-cine-recal{display:block}' +
     '#lk10-sink{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;outline:none!important}' +
     /* petits boutons (souris / tactile) : quitter + épisode suivant */
@@ -135,8 +136,7 @@
       var vc = $('video-container'); if (!vc) return;
       var f = playerFrame(), s = $('skip-ad-btn');
       try {
-        if (f && isOwnPlayer(f)) sinkFocus();            // v13 : Premium / Vidzy -> la PAGE garde le focus (sinon les touches partent dans l'iframe et on ne peut plus sortir)
-        else if (f) { f.setAttribute('tabindex', '0'); f.focus(); }
+        if (f) sinkFocus();            // v15 : TOUS les lecteurs (Premium = Abyss, Vidzy, Uqload...) -> la PAGE garde le focus (sinon les touches partent dans l'iframe : on ne peut plus sortir ni défiler)
         else if (s) s.focus();
       } catch (e) {}
     }, 250);
@@ -180,18 +180,30 @@
       setTimeout(refit, 900); setTimeout(refit, 2200);
     }).observe(vc, { childList: true });
   })();
-  /* v13 : garde-focus — si le focus tombe dans l'iframe du lecteur maison (ou de la bande-annonce), on le rend à la page */
-  setInterval(function () {
+  /* v15 : garde-focus — la PAGE garde le focus, pour tous les lecteurs. Sinon l'iframe (Abyss...) avale les flèches
+     (elles ne font qu'avancer / reculer la vidéo) et la fiche ne défile plus. OK / flèches en plein écran = « prise en main »
+     du lecteur pendant 10 s (flèches = avance, OK = pause), puis le focus revient à la page (0 / 5 / Retour fonctionnent). */
+  var ctrlUntil = 0;
+  function guard() {
     if (!isTV() || !shown('player-overlay')) return;
     var a = document.activeElement; if (!a || a.tagName !== 'IFRAME') return;
-    if (isOwnPlayer(a) || (a.classList && a.classList.contains('fx-yt'))) sinkFocus();
-  }, 700);
+    var mine = isOwnPlayer(a) || (a.classList && a.classList.contains('fx-yt'));
+    if (!mine && Date.now() < ctrlUntil) return;
+    sinkFocus();
+  }
+  setInterval(guard, 400);
+  window.addEventListener('blur', function () { setTimeout(guard, 0); setTimeout(guard, 150); });
+  function handToPlayer(f) {
+    ctrlUntil = Date.now() + 10000;
+    try { f.setAttribute('tabindex', '0'); f.focus(); } catch (e) {}
+    toast('Commandes du lecteur actives 10 s (ensuite : 0 = quitter, 5 = recalibrer)');
+  }
   var hideT = null;
   function showUi() { var u = $('lk10-cine-ui'); if (!u) return; u.classList.remove('hide'); clearTimeout(hideT); hideT = setTimeout(function () { u.classList.add('hide'); }, 4000); }
   ['mousemove', 'pointerdown', 'touchstart', 'keydown'].forEach(function (ev) { window.addEventListener(ev, function () { if (active) showUi(); }, true); });
   function exitCinema(fromPop) {
     if (!active && !de.classList.contains('lk10-cinema')) return;
-    clearTimeout(bounceT);
+    clearTimeout(bounceT); ctrlUntil = 0;
     active = false; de.classList.remove('lk10-cinema');
     if (!fromPop) { try { if (history.state && history.state.lk10cine) { popping = true; history.back(); } } catch (e) {} }
     var vc = $('video-container'); try { ($('fx-go') || document.querySelector('#lk10-opts button') || vc).focus({ preventScroll: true }); } catch (e) {}
@@ -263,7 +275,7 @@
       f = playerFrame();
       if (!isOwnPlayer(f)) {
         /* lecteur tiers (Uqload / Voe / Filmoon) : touches natives. Si une touche arrive à la page, c'est que le focus s'est échappé : on le rend à l'iframe */
-        if (f && (DIRK[k] || isOk(k)) && (!a || a.tagName !== 'IFRAME')) { e.preventDefault(); e.stopImmediatePropagation(); try { f.setAttribute('tabindex', '0'); f.focus(); } catch (x) {} }
+        if (f && (DIRK[k] || isOk(k))) { e.preventDefault(); e.stopImmediatePropagation(); handToPlayer(f); }
         return;
       }
       /* lecteur maison : 3 = sous-titres on/off, 1 = langue des sous-titres, 2 = piste audio */
