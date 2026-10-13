@@ -32,7 +32,7 @@
     'secret de la plume', 'willow', 'mortal kombat', 'venom', 'batman', 'star wars', 'cite de la peur',
     'nouveaux mutant', 'new mutant', 'dernier souffle', 'yakuza', 'demon slave', 'demon slayer', 'elusive samurai', 'one piece',
     'pirates des caraibes', 'pirates of the caribbean', 'sisu', 'doctor on the edge', 'frankelda', 'ligue des justiciers', 'justice league',
-    'crapaud et le maitre', 'mobile suit gundam', 'gundam', 'iron man', 'sword gai', 'swordgai', 'roar', 'mad max', 'freres scott', 'heavy metal'
+    'crapaud et le maitre', 'mobile suit gundam', 'gundam', 'iron man', 'sword gai', 'swordgai', 'roar', 'mad max', 'freres scott', 'heavy metal', 'les nouveaux mutants'
   ];
   /* Liste blanche : titres toujours affichés (ex. : un vrai film d'horreur dont le genre n'est pas renseigné). Ajoute-les ici. */
   var INCLUDE = [];
