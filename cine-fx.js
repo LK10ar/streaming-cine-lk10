@@ -806,7 +806,8 @@
      Un titre est « au catalogue » si le nom, le type (film / série) et l'année (±1) correspondent.
      ============================================================================================ */
   var TR = { raw: null, lists: null, p: null };
-  var TR_MAP = { 'tendances-slider': 'mix', 'series-tendance-slider': 'tv', 'films-animes-tendance-slider': 'fa', 'series-animes-tendance-slider': 'sa', 'top10-series-slider': 'topTv' };
+  var TR_MAP = { 'tendances-slider': 'mix', 'series-tendance-slider': 'tv', 'films-animes-tendance-slider': 'fa', 'series-animes-tendance-slider': 'sa', 'top10-series-slider': 'topTv', 'top10-series-animes-slider': 'topSa', 'top10-films-animes-slider': 'topFa' };
+  var TOP_IDS = { 'top10-series-slider': 'topTv', 'top10-series-animes-slider': 'topSa', 'top10-films-animes-slider': 'topFa' };   /* les Top 10 « secondaires » (le Top 10 des films est top10-slider) */
   var TR_MIN = 6;                       /* en dessous, la rangée garde son ancien contenu */
   function trPages(path, params, pages) {
     var a = []; for (var p = 1; p <= pages; p++) a.push(tmdb(path, (params ? params + '&' : '') + 'page=' + p).then(function (r) { return r.results || []; }).catch(function () { return []; }));
@@ -830,12 +831,13 @@
     }).catch(function () { TR.p = null; });
     return TR.p;
   }
-  var isAnimeItem = function (m) { return !!(m && m.genre && String(m.genre).indexOf('Anime') > -1); };
+  var isAnimeItem = function (m) { return !!(m && m.genre && String(m.genre).toLowerCase().indexOf('anime') > -1); };
+  var notAnime = function (m) { return !isAnimeItem(m); };
   var notHP = function (m) { return (m.title || '').toLowerCase().indexOf('harry potter') < 0; };
   /* Complète un Top 10 jusqu'à 10 : d'abord la popularité TMDB, puis (en dernier recours) les mieux notés du catalogue */
-  function fillTop(list, type, used) {
+  function fillTop(list, type, used, pred) {
     var have = {}; list.forEach(function (m) { have[m.id] = 1; });
-    var rest = DB().filter(function (m) { return m.type === type && !have[m.id] && !used[m.id] && notHP(m) && m.poster; })
+    var rest = DB().filter(function (m) { return m.type === type && !have[m.id] && !used[m.id] && notHP(m) && m.poster && (!pred || pred(m)); })
       .sort(function (a, b) { return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0); });
     return list.concat(rest.slice(0, Math.max(0, 10 - list.length)));
   }
@@ -852,11 +854,15 @@
     };
     var film = function (m) { return m.type === 'film'; }, serie = function (m) { return m.type === 'serie'; };
     /* Top 10 : tendance du jour, puis de la semaine, puis populaires ; toujours 10 titres */
-    var top = match(R.md, R.mw, R.pm, R.dm).filter(film).slice(0, 10);
-    var topTv = match(R.td, R.tw, R.pt, R.dt).filter(serie).slice(0, 10);
-    var used = {}; top.concat(topTv).forEach(function (m) { used[m.id] = 1; });
-    var tf = fillTop(top, 'film', {}), ts = fillTop(topTv, 'serie', {});
-    tf.concat(ts).forEach(function (m) { used[m.id] = 1; });
+    /* Top 10 des films / séries = classiques (les séries cartoon occidentales — Simpson, American Dad… — y restent) ; les animés japonais ont leurs propres Top 10 */
+    var top = match(R.md, R.mw, R.pm, R.dm).filter(film).filter(notAnime).slice(0, 10);
+    var topTv = match(R.td, R.tw, R.pt, R.dt).filter(serie).filter(notAnime).slice(0, 10);
+    var topFa = match(R.md, R.mw, R.am, R.pm, R.dm).filter(film).filter(isAnimeItem).slice(0, 10);
+    var topSa = match(R.td, R.tw, R.at, R.pt, R.dt).filter(serie).filter(isAnimeItem).slice(0, 10);
+    var used = {}; top.concat(topTv, topFa, topSa).forEach(function (m) { used[m.id] = 1; });
+    var tf = fillTop(top, 'film', {}, notAnime), ts = fillTop(topTv, 'serie', {}, notAnime);
+    var tfa = fillTop(topFa, 'film', {}, isAnimeItem), tsa = fillTop(topSa, 'serie', {}, isAnimeItem);
+    tf.concat(ts, tfa, tsa).forEach(function (m) { used[m.id] = 1; });
     var free = function (m) { return !used[m.id]; };
     /* Tendances du mois (films et séries en alternance), puis Séries tendance : sans répéter ce qui est déjà affiché plus haut */
     var pf = match(R.pm).filter(film).filter(free).filter(notHP), ps = match(R.pt).filter(serie).filter(free).filter(function (m) { return !isAnimeItem(m); });
@@ -865,7 +871,7 @@
     var tv = match(R.tw, R.pt).filter(serie).filter(function (m) { return !isAnimeItem(m); }).filter(free).slice(0, 30);
     tv.forEach(function (m) { used[m.id] = 1; });
     return {
-      top: tf, topTv: ts, mix: mix, tv: tv,
+      top: tf, topTv: ts, topFa: tfa, topSa: tsa, mix: mix, tv: tv,
       fa: match(R.mw, R.am).filter(film).filter(isAnimeItem).filter(free).slice(0, 30),
       sa: match(R.tw, R.at).filter(serie).filter(isAnimeItem).filter(free).slice(0, 30)
     };
@@ -873,8 +879,8 @@
   function applyTrending() {
     var L = trLists(); if (!L) return; TR.lists = L;
     Object.keys(TR_MAP).forEach(function (id) {
-      var l = L[TR_MAP[id]]; if (!$(id) || l.length < (id === 'top10-series-slider' ? 5 : TR_MIN)) return;
-      if (id === 'top10-series-slider') { if (typeof window.buildTop10Slider === 'function') window.buildTop10Slider(id, l); }
+      var l = L[TR_MAP[id]]; if (!$(id) || l.length < (TOP_IDS[id] ? 5 : TR_MIN)) return;
+      if (TOP_IDS[id]) { if (typeof window.buildTop10Slider === 'function') window.buildTop10Slider(id, l); }
       else if (typeof window.buildStandardSlider === 'function') window.buildStandardSlider(id, l);
     });
     if ($('top10-slider') && L.top.length >= 5 && typeof window.buildTop10Slider === 'function') window.buildTop10Slider('top10-slider', L.top);
@@ -1022,6 +1028,16 @@
         if (rated.length) window.buildTop10Slider('top10-series-slider', rated);
       }
     }
+    // Top 10 des séries animés / des films animés, au-dessus de « Séries animés récents » / « Films animés récents »
+    [['top10-series-animes-slider', 'TOP 10 DES SÉRIES ANIMÉS AUJOURD\'HUI', 'series-animes-recents-slider', 'serie', 'topSa'],
+     ['top10-films-animes-slider', 'TOP 10 DES FILMS ANIMÉS AUJOURD\'HUI', 'films-animes-recents-slider', 'film', 'topFa']].forEach(function (c) {
+      var anc = secOf(c[2]); if (!anc) return;
+      ensureSection(c[0], c[1], 'before', anc, true, 'fa-fire');
+      if (!(TR.lists && TR.lists[c[4]] && TR.lists[c[4]].length >= 5)) {                /* repli : les mieux notés */
+        var rt = DB().filter(function (m) { return m.type === c[3] && m.rating && isAnimeItem(m) && m.poster; }).sort(function (a, b) { return b.rating - a.rating; }).slice(0, 10);
+        if (rt.length) window.buildTop10Slider(c[0], rt);
+      }
+    });
     try { personalRows(); } catch (e) { console.warn('cine-home personal', e); }
     try { genreRows(); } catch (e) { console.warn('cine-home genres', e); }
     document.querySelectorAll('.btn-play-hero').forEach(function (b) {                  /* « Lecture » de la bannière = on lance direct */
@@ -1034,7 +1050,9 @@
       var k = TR_MAP[id], L = TR.lists; if (k && L && L[k] && L[k].length >= TR_MIN) list = L[k]; return oStd.call(this, id, list);
     };
     if (typeof oTop === 'function') window.buildTop10Slider = function (id, list) {   /* écrase aussi le résultat tardif de /api/trending */
-      var L = TR.lists; if (id === 'top10-slider' && L && L.top.length >= 5) list = L.top; if (id === 'top10-series-slider' && L && L.topTv.length >= 5) list = L.topTv; return oTop.call(this, id, list);
+      var L = TR.lists;
+      if (L) { if (id === 'top10-slider' && L.top.length >= 5) list = L.top; else if (TOP_IDS[id] && L[TOP_IDS[id]] && L[TOP_IDS[id]].length >= 5) list = L[TOP_IDS[id]]; }
+      return oTop.call(this, id, list);
     };
     if (typeof oHome === 'function') window.buildNetflixHome = function () {
       var r = oHome.apply(this, arguments); try { fxHome(); } catch (e) { console.warn('cine-home', e); } loadTrending().then(function () { applyTrending(); try { personalRows(); } catch (e) {} }); return r;
