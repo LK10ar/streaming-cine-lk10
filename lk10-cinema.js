@@ -1,4 +1,4 @@
-/* Ciné LK10 — lk10-cinema.js (v15)
+/* Ciné LK10 — lk10-cinema.js (v16)
    1) MODE CINÉMA (plein écran « CSS », sans le plein écran natif capricieux) : la vidéo occupe tout l'écran.
         - sur TÉLÉ : se lance tout seul quand on choisit un lecteur (Premium / Uqload / Vidzy) — option activable / désactivable
         - bouton « Cinéma » dans la barre sous la vidéo (télé) ; touche RETOUR de la télécommande = on quitte le mode cinéma
@@ -50,6 +50,10 @@
     /* télé : l'iframe déborde de 4 px de chaque côté (le cadre est en overflow:hidden) -> un éventuel liseré de focus interne au lecteur est rogné */
     'html.lk10-tv.lk10-cinema #video-container iframe{top:-4px!important;left:-4px!important;right:auto!important;bottom:auto!important;width:calc(100% + 8px)!important;height:calc(100% + 8px)!important}' +
     'html.lk10-tv #video-container iframe,html.lk10-tv #video-container iframe:focus,html.lk10-tv #video-container iframe:focus-visible{outline:none!important;box-shadow:none!important}' +
+    /* v16 : boutons de la barre centrés (Cinéma, Recalibrer, options, épisodes) */
+    'html #lk10-bar{justify-content:center!important}html #lk10-bar .lk10-left{display:none!important}html #lk10-bar #lk10-opts{flex:1 1 100%;justify-content:center}html #lk10-bar .lk10-right{justify-content:center}' +
+    /* v16 télé : quand la fiche est ouverte, l'arrière-plan ne défile plus */
+    'html.lk10-tv.lk10-fiche,html.lk10-tv.lk10-fiche body{overflow:hidden!important}' +
     '#lk10-cine-recal{display:none}html.lk10-tv #lk10-cine-ui button#lk10-cine-recal{display:block}' +
     '#lk10-sink{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;outline:none!important}' +
     /* petits boutons (souris / tactile) : quitter + épisode suivant */
@@ -259,6 +263,88 @@
       exitCinema();
     }
   });
+  /* ---------- v16 : navigation de la fiche à la télécommande ---------- */
+  var OTHER_LAYERS = '#trailer-overlay,#settings-overlay,#notifications-overlay,#report-overlay,#random-overlay,#actor-overlay,#admin-overlay,#analytics-overlay,#wb-request-modal,#wb-details-modal,#discord-overlay,#lk10-tvlink';
+  function otherLayerShown() {
+    var po = $('player-overlay'), pz = po ? (parseInt(getComputedStyle(po).zIndex, 10) || 0) : 0, hit = false;
+    document.querySelectorAll(OTHER_LAYERS).forEach(function (el) {
+      var cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
+      var r = el.getBoundingClientRect(); if (r.width < 50 || r.height < 50) return;
+      if ((parseInt(cs.zIndex, 10) || 0) >= pz) hit = true;
+    });
+    return hit;
+  }
+  var FICHE_SEL = 'button,a[href],select,input:not([type=hidden]),textarea,[tabindex]:not([tabindex="-1"]),.ep-item,.lk10-sim-card,.cast-card,.person-link,.server-btn,.movie-card,.netflix-card,#video-container';
+  function ficheCands(root) {
+    var out = [], seen = new Set();
+    root.querySelectorAll(FICHE_SEL).forEach(function (el) {
+      if (seen.has(el) || el.disabled || el.id === 'lk10-sink' || (el.closest && el.closest('#lk10-cine-ui'))) return; seen.add(el);
+      if (!el.getClientRects().length) return;
+      var cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.pointerEvents === 'none') return;
+      var r = el.getBoundingClientRect(); if (r.width < 10 || r.height < 10) return;
+      out.push({ el: el, r: r });
+    });
+    return out;
+  }
+  function pickDir(cur, cands, dir) {          // même calcul de voisin que cine-plus.js
+    var cx = cur.left + cur.width / 2, cy = cur.top + cur.height / 2, best = -1, bs = Infinity;
+    for (var i = 0; i < cands.length; i++) {
+      var r = cands[i].r, x = r.left + r.width / 2, y = r.top + r.height / 2, dx = x - cx, dy = y - cy, ok, prim, off, cross;
+      if (dir === 'right') { ok = dx > 2 && r.right > cur.right + 2; prim = Math.max(0, r.left - cur.right); off = Math.abs(dy); cross = Math.max(0, Math.max(cur.top, r.top) - Math.min(cur.bottom, r.bottom)); }
+      else if (dir === 'left') { ok = dx < -2 && r.left < cur.left - 2; prim = Math.max(0, cur.left - r.right); off = Math.abs(dy); cross = Math.max(0, Math.max(cur.top, r.top) - Math.min(cur.bottom, r.bottom)); }
+      else if (dir === 'down') { ok = dy > 2 && r.bottom > cur.bottom + 2; prim = Math.max(0, r.top - cur.bottom); off = Math.abs(dx); cross = Math.max(0, Math.max(cur.left, r.left) - Math.min(cur.right, r.right)); }
+      else { ok = dy < -2 && r.top < cur.top - 2; prim = Math.max(0, cur.top - r.bottom); off = Math.abs(dx); cross = Math.max(0, Math.max(cur.left, r.left) - Math.min(cur.right, r.right)); }
+      if (!ok) continue;
+      var score = prim + off * 2 + cross * 4;
+      if (score < bs) { bs = score; best = i; }
+    }
+    return best;
+  }
+  var lastFiche = null;
+  function focusIt(el) {                          // les div cliquables (épisodes, cartes) n'ont pas de tabindex : on leur en donne un
+    try { if (!el.matches('button,a[href],input,select,textarea,[tabindex]')) el.setAttribute('tabindex', '0'); el.focus({ preventScroll: true }); } catch (x) {}
+    lastFiche = el;
+  }
+  function reveal(el, root) {                    // fait défiler LA FICHE (jamais l'arrière-plan) pour montrer l'élément
+    var r = el.getBoundingClientRect(), o = root.getBoundingClientRect();
+    if (r.top < o.top + 70 || r.bottom > o.bottom - 70) root.scrollTop += (r.top + r.height / 2) - (o.top + o.height / 2);
+  }
+  function ficheMove(dir) {
+    var root = $('player-overlay'); if (!root) return;
+    var cands = ficheCands(root), a = document.activeElement, cur = null;
+    if (a && a !== root && root.contains(a)) cur = a;
+    else if (lastFiche && lastFiche.isConnected && root.contains(lastFiche) && lastFiche.getClientRects().length) cur = lastFiche;
+    if (!cur) {                                   // rien de sélectionné : « Lecture » d'abord, sinon le premier élément visible
+      var first = $('fx-go') || (cands.length ? cands[0].el : null);
+      if (first) { focusIt(first); reveal(first, root); }
+      return;
+    }
+    var i = pickDir(cur.getBoundingClientRect(), cands, dir);
+    if (i >= 0) { var el = cands[i].el; focusIt(el); reveal(el, root); return; }
+    /* plus rien dans cette direction : la fiche défile toute seule (description, acteurs, commentaires...) */
+    if (dir === 'down') root.scrollTop += Math.round(window.innerHeight * 0.6);
+    else if (dir === 'up') root.scrollTop -= Math.round(window.innerHeight * 0.6);
+  }
+  /* molette / pavé tactile (télé avec souris) : c'est toujours la fiche qui défile */
+  window.addEventListener('wheel', function (e) {
+    if (!isTV() || active || !shown('player-overlay') || otherLayerShown()) return;
+    var ov = $('player-overlay'); if (!ov || ov.classList.contains('fx-float')) return;
+    var n = e.target;
+    while (n && n !== ov && n.nodeType === 1) {                 // une zone qui défile elle-même (liste d'épisodes) garde sa molette
+      if (/(auto|scroll)/.test(getComputedStyle(n).overflowY) && n.scrollHeight > n.clientHeight + 1) {
+        var d = e.deltaY > 0; if ((d && n.scrollTop + n.clientHeight < n.scrollHeight - 1) || (!d && n.scrollTop > 0)) return;
+      }
+      n = n.parentNode;
+    }
+    e.preventDefault(); ov.scrollTop += e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+  }, { capture: true, passive: false });
+  /* classe html.lk10-fiche tant que la fiche est ouverte (télé : l'arrière-plan est gelé) */
+  (function () {
+    var ov = $('player-overlay'); if (!ov) return;
+    var sync = function () { de.classList.toggle('lk10-fiche', ov.style.display === 'block'); };
+    new MutationObserver(sync).observe(ov, { attributes: true, attributeFilter: ['style'] }); sync();
+  })();
+
   var DIRK = { 37: 'ArrowLeft', 38: 'ArrowUp', 39: 'ArrowRight', 40: 'ArrowDown' }, lastOk = 0;
   /* v13 : touches de SORTIE DE SECOURS (télé) : 0, Menu, bouton rouge */
   var EXIT_K = { 48: 1, 96: 1, 82: 1, 93: 1, 403: 1 };
@@ -300,14 +386,10 @@
       /* v13 : OK sur le cadre vidéo = lancer / plein écran (avant, ça donnait le focus à l'iframe : les touches étaient perdues, fiche bloquée en haut) */
       e.preventDefault(); e.stopImmediatePropagation(); hasPlayer() ? enterCinema() : startPlay(); return;
     }
-    if ((k === 38 || k === 40) && tag !== 'SELECT' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
-      /* v13 : si ↓ / ↑ ne déplace plus le curseur (fin de ligne, rien en dessous), on fait défiler la fiche */
-      var ov = $('player-overlay'), r0 = ae && ae.getBoundingClientRect ? ae.getBoundingClientRect().top : null, s0 = ov ? ov.scrollTop : 0, dir = k === 40 ? 1 : -1;
-      setTimeout(function () {
-        if (!ov) return;
-        var a2 = document.activeElement, r1 = a2 && a2.getBoundingClientRect ? a2.getBoundingClientRect().top : null;
-        if (a2 === ae && r1 === r0 && ov.scrollTop === s0) ov.scrollTop = s0 + dir * Math.round(window.innerHeight * 0.6);
-      }, 40);
+    var dn = { 37: 'left', 38: 'up', 39: 'right', 40: 'down' }[k];
+    if (dn && !otherLayerShown() && !(tag === 'SELECT' && (k === 38 || k === 40)) && !((tag === 'INPUT' || tag === 'TEXTAREA') && (k === 37 || k === 39))) {
+      /* v16 : la fiche a SA PROPRE navigation (on ne passe plus par cine-plus.js, qui faisait défiler l'arrière-plan) */
+      e.preventDefault(); e.stopImmediatePropagation(); ficheMove(dn); return;
     }
   }, true);
 
