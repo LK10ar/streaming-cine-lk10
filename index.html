@@ -5956,8 +5956,8 @@ function buildNetflixHome() {
         const filmsPopulaires = [...moviesDB].filter(m => m.type === 'film').sort((a, b) => b.rating - a.rating).slice(0, 30);
         buildStandardSlider('populaires-slider', filmsPopulaires);
         
-        // 6. SÉRIES RÉCENTES : Les 30 dernières séries ajoutées
-        const seriesRecentes = [...moviesDB].filter(m => m.type === 'serie').reverse().slice(0, 30);
+        // 6. SÉRIES RÉCENTES : Les 30 dernières séries ajoutées, SANS les animés japonais (genre "Anime") : ils vont dans SÉRIES ANIMÉS RÉCENTS
+        const seriesRecentes = [...moviesDB].filter(m => m.type === 'serie' && !isAnimeMovie(m)).reverse().slice(0, 30);
         buildStandardSlider('series-recentes-slider', seriesRecentes);
 
         // 6bis. SÉRIES TENDANCE : Mélange des 50 dernières séries ajoutées (hors séries "Anime", les cartoons type Hulk/Spider-Man restent)
@@ -5965,24 +5965,24 @@ function buildNetflixHome() {
         const seriesTendance = [...seriesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('series-tendance-slider', seriesTendance);
         
-        // 7. FILMS RÉCENTS : Les 30 derniers films
-        const filmsRecents = [...itemsWithoutHP].filter(m => m.type === 'film').reverse().slice(0, 30);
+        // 7. FILMS RÉCENTS : Les 30 derniers films, SANS les films d'animation japonaise (genre "Anime") : ils vont dans FILMS ANIMÉS RÉCENTS
+        const filmsRecents = [...itemsWithoutHP].filter(m => m.type === 'film' && !isAnimeMovie(m)).reverse().slice(0, 30);
         buildStandardSlider('films-recents-slider', filmsRecents);
 
         // 7bis. FILMS TENDANCE : Mélange des 50 derniers films ajoutés
-        const filmsSource = itemsWithoutHP.filter(m => m.type === 'film');
+        const filmsSource = itemsWithoutHP.filter(m => m.type === 'film' && !isAnimeMovie(m));
         const filmsTendance = [...filmsSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('films-tendance-slider', filmsTendance);
 
         // 7ter. FILMS ANIMÉS RÉCENTS / FILMS ANIMÉS TENDANCE : uniquement les FILMS au genre "Anime" (animation japonaise)
-        const filmsAnimesSource = allItems.filter(m => m.type === 'film' && m.genre && m.genre.includes('Anime'));
+        const filmsAnimesSource = allItems.filter(m => m.type === 'film' && isAnimeMovie(m));
         const filmsAnimesRecents = [...filmsAnimesSource].reverse().slice(0, 30);
         buildStandardSlider('films-animes-recents-slider', filmsAnimesRecents);
         const filmsAnimesTendance = [...filmsAnimesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
         buildStandardSlider('films-animes-tendance-slider', filmsAnimesTendance);
 
         // 7quater. SÉRIES ANIMÉS RÉCENTS / SÉRIES ANIMÉS TENDANCE : uniquement les SÉRIES au genre "Anime"
-        const seriesAnimesSource = allItems.filter(m => m.type === 'serie' && m.genre && m.genre.includes('Anime'));
+        const seriesAnimesSource = allItems.filter(m => m.type === 'serie' && isAnimeMovie(m));
         const seriesAnimesRecents = [...seriesAnimesSource].reverse().slice(0, 30);
         buildStandardSlider('series-animes-recents-slider', seriesAnimesRecents);
         const seriesAnimesTendance = [...seriesAnimesSource].reverse().slice(0, 50).sort(() => 0.5 - Math.random()).slice(0, 30);
@@ -6552,7 +6552,7 @@ function buildNetflixHome() {
     <script src="cine-avatars.js"></script>
     <script src="avatar-banners-admin.js"></script>
     <script src="series-order-admin.js"></script>
-    <script src="cine-plus.js?v=2"></script>
+    <script src="cine-plus.js"></script>
     <script src="lk10-perf.js"></script>
     <script src="lk10-tv-fix.js"></script>
     <script src="lk10-cinema.js?v=20"></script>
