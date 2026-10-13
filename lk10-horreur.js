@@ -10,7 +10,7 @@
 
   /* ---------- Réglages ---------- */
   var ONLY_OCTOBER = false;      // true = le bandeau d'accueil n'apparaît que du 1er octobre au 2 novembre
-  var BANNER_IMG = 'https://m.media-amazon.com/images/S/pv-target-images/0dedbdd7158481ccd4a7987c3fe61b18ad4e57a1a7cc501b49f640583e65ecaa._SX1080_FMjpg_.jpg';           // (facultatif) lien d'une image de fond ; vide = fond pris automatiquement sur un titre d'horreur
+  var BANNER_IMG = 'https://imgsrc.cineserie.com/2023/01/art-le-clown-david-howard-thornton-terrifier-2.jpg?width=&height=&aspect_ratio=:';           // (facultatif) lien d'une image de fond ; vide = fond pris automatiquement sur un titre d'horreur
   var GRID_STEP = 42;            // nombre de titres ajoutés à chaque clic sur « Voir plus »
   var MIN_ROW = 4;               // une rangée avec moins de titres que ça est cachée
 
@@ -28,18 +28,21 @@
   var G_HORROR = /horreur|epouvante|\bgore\b|slasher/;
   /* Liste noire : titres jamais affichés, même si leur genre est mal étiqueté (comparé sans accents ni majuscules) */
   var EXCLUDE = [
-    'derniere chance', 'secret de la plume', 'willow', 'mortal kombat', 'venom', 'batman', 'star wars', 'cite de la peur',
-    'nouveaux mutants', 'new mutants', 'dernier souffle', 'yakuza', 'demon slave', 'demon slayer', 'elusive samurai', 'one piece',
-    'pirates des caraibes', 'sisu', 'doctor on the edge', 'frankelda', 'ligue des justiciers', 'justice league', 'crapaud et le maitre',
-    'gundam', 'iron man', 'sword gai', 'roar', 'mad max', 'freres scott', 'heavy metal'
+    'project derniere chance', 'projet derniere chance', 'derniere chance', 'hail mary',
+    'secret de la plume', 'willow', 'mortal kombat', 'venom', 'batman', 'star wars', 'cite de la peur',
+    'nouveaux mutant', 'new mutant', 'dernier souffle', 'yakuza', 'demon slave', 'demon slayer', 'elusive samurai', 'one piece',
+    'pirates des caraibes', 'pirates of the caribbean', 'sisu', 'doctor on the edge', 'frankelda', 'ligue des justiciers', 'justice league',
+    'crapaud et le maitre', 'mobile suit gundam', 'gundam', 'iron man', 'sword gai', 'swordgai', 'roar', 'mad max', 'freres scott', 'heavy metal'
   ];
   /* Liste blanche : titres toujours affichés (ex. : un vrai film d'horreur dont le genre n'est pas renseigné). Ajoute-les ici. */
   var INCLUDE = [];
-  var has = function (list, t) { for (var i = 0; i < list.length; i++) if (t.indexOf(list[i]) > -1) return true; return false; };
+  var flat = function (t) { return ' ' + norm(t).replace(/[^a-z0-9]+/g, ' ').trim() + ' '; };
+  var has = function (list, t) { t = flat(t); for (var i = 0; i < list.length; i++) if (t.indexOf(flat(list[i])) > -1) return true; return false; };
   function text(m) { return norm((m.title || '') + ' ' + (m.desc || '') + ' ' + (m.genre || '')); }
   function isHorror(m) {
     if (!m || m.type === 'saga') return false;
-    var t = norm(m.title);
+    var t = m.title || '';
+    if (has(EXCLUDE, t)) return false;
     if (has(INCLUDE, t)) return true;
     if (has(EXCLUDE, t)) return false;
     return G_HORROR.test(norm(m.genre));
