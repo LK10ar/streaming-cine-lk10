@@ -109,6 +109,39 @@
   var GHOST = '<svg viewBox="0 0 50 60" xmlns="http://www.w3.org/2000/svg"><path d="M25 3C13 3 5 12 5 24v31l7-6 6 6 7-6 7 6 6-6 7 6V24C45 12 37 3 25 3z" fill="#fff"/>' +
     '<ellipse cx="18" cy="24" rx="3.4" ry="5" fill="#2a1b4d"/><ellipse cx="32" cy="24" rx="3.4" ry="5" fill="#2a1b4d"/><ellipse cx="25" cy="36" rx="3" ry="4" fill="#2a1b4d"/></svg>';
 
+  /* Sorcière sur son balai (tournée vers la droite) + traînée d'étincelles */
+  var WITCH = '<svg viewBox="0 -12 130 92" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle class="tw" cx="9" cy="50" r="2.4" fill="#ffd36b"/><circle class="tw" cx="1" cy="60" r="1.8" fill="#c9a3ff" style="animation-delay:-.3s"/><circle class="tw" cx="14" cy="64" r="2" fill="#ff9a3c" style="animation-delay:-.55s"/><circle class="tw" cx="-6" cy="46" r="1.6" fill="#ffd36b" style="animation-delay:-.2s"/><circle class="tw" cx="6" cy="72" r="1.5" fill="#c9a3ff" style="animation-delay:-.7s"/>' +
+    '<path d="M20 50L3 41Q7 50 2 56Q8 57 4 63L20 54z" fill="#c79a4b" stroke="#7a5a22" stroke-width=".9" stroke-linejoin="round"/><path d="M16 52L118 40" stroke="#6b4423" stroke-width="3.4" stroke-linecap="round"/><path d="M20.5 49.5l.6 5" stroke="#4a2f14" stroke-width="2.6"/>' +
+    '<g stroke="#b58bff" stroke-width="1" stroke-linejoin="round">' +
+    '<path d="M63 44C47 42 37 47 29 58C41 55 52 57 65 52z" fill="#1c1130"/><path d="M63 45C58 31 66 22 78 24C89 26 93 36 88 46z" fill="#2a1650"/>' +
+    '<path d="M70 45L68 59L75 59L77 45z" fill="#1c1130"/><ellipse cx="72" cy="61" rx="6" ry="2.6" fill="#ff9a3c" stroke="none"/></g>' +
+    '<path d="M84 33L97 40" stroke="#2a1650" stroke-width="5.5" stroke-linecap="round"/><circle cx="99" cy="41" r="3.2" fill="#8fbf6a"/>' +
+    '<path d="M77 18C68 20 63 29 58 36C67 32 72 28 79 26z" fill="#ff8a1f"/>' +
+    '<circle cx="82" cy="18" r="6.6" fill="#8fbf6a" stroke="#4d7a36" stroke-width="1"/><path d="M88 17.5L96 21.5L88 22.5z" fill="#8fbf6a" stroke="#4d7a36" stroke-width="1"/><circle cx="84.5" cy="16.5" r="1.1" fill="#111"/>' +
+    '<ellipse cx="82" cy="12" rx="13" ry="3.3" fill="#1c1130" stroke="#b58bff" stroke-width="1"/><path d="M73 12C76 4 82-2 97-10C91-4 90 4 91 12z" fill="#1c1130" stroke="#b58bff" stroke-width="1" stroke-linejoin="round"/><path d="M74 9.6Q82 12.5 90.6 9.6" fill="none" stroke="#ff9a3c" stroke-width="2.4"/></svg>';
+
+  /* Cavalier sans tête (tourné vers la droite) : cheval au galop, flammes, citrouille brandie */
+  var HORSEMAN = (function () {
+    function leg(x, w) { return '<path d="M' + x + ' 68L' + (x - 8) + ' 92L' + (x - 10) + ' 106L' + (x - 1) + ' 106L' + (x + 1) + ' 93L' + (x + w) + ' 70z" fill="#120c22" stroke="#6e4bb0" stroke-width="1"/>'; }
+    return '<svg viewBox="0 -14 170 134" xmlns="http://www.w3.org/2000/svg">' +
+      '<g class="hb">' + leg(40, 10) + leg(30, 10) + '</g>' +
+      '<path class="fl" d="M40 58C29 52 19 56 8 50C14 58 10 64 2 68C14 68 24 66 30 70C35 66 38 62 41 62z" fill="#ff8a1f"/><path class="fl" d="M38 59C30 56 22 59 14 56C18 61 15 64 10 66C19 65 27 64 33 66z" fill="#ffd36b"/>' +
+      '<path d="M58 28C44 26 30 34 15 29C26 38 36 40 44 49C50 47 56 47 58 47z" fill="#3a1f6b" stroke="#b58bff" stroke-width="1" stroke-linejoin="round"/>' +
+      '<ellipse cx="70" cy="64" rx="35" ry="17" fill="#17102a" stroke="#6e4bb0" stroke-width="1.2"/>' +
+      '<path d="M92 56C100 46 108 38 118 31L129 40C121 46 114 56 106 72z" fill="#17102a" stroke="#6e4bb0" stroke-width="1.2" stroke-linejoin="round"/>' +
+      '<path d="M117 29L142 46L138 55L128 53L115 42z" fill="#17102a" stroke="#6e4bb0" stroke-width="1.2" stroke-linejoin="round"/><path d="M119 30L120 21L126 29z" fill="#17102a" stroke="#6e4bb0" stroke-width="1"/>' +
+      '<circle cx="127" cy="40" r="3.4" fill="#ff3b3b" opacity=".35"/><circle cx="127" cy="40" r="2" fill="#ff5a3a"/><circle cx="138" cy="49" r="1.2" fill="#6e4bb0"/>' +
+      '<path class="fl" d="M118 29C111 22 108 29 104 27C106 33 100 35 98 41C102 41 100 47 96 51C104 49 108 43 112 39C116 37 118 33 118 29z" fill="#ff8a1f"/><path class="fl" d="M114 31C110 28 109 32 106 31C107 35 103 37 102 41C106 40 110 37 114 31z" fill="#ffd36b"/>' +
+      '<path d="M62 54L70 75L78 73L73 52z" fill="#2a1650" stroke="#b58bff" stroke-width="1" stroke-linejoin="round"/><ellipse cx="76" cy="76" rx="6" ry="3" fill="#1b1030"/>' +
+      '<path d="M58 53C55 37 60 26 68 22C76 22 80 30 80 40L79 55z" fill="#2a1650" stroke="#b58bff" stroke-width="1" stroke-linejoin="round"/>' +
+      '<ellipse cx="69" cy="21" rx="5.6" ry="2.8" fill="#ff6a00"/><ellipse cx="69" cy="19.6" rx="3" ry="1.6" fill="#ffd36b"/>' +
+      '<path d="M73 36L97 51" stroke="#2a1650" stroke-width="5" stroke-linecap="round"/><path d="M97 51L121 43" stroke="#b58bff" stroke-width="1.1" fill="none"/>' +
+      '<path d="M75 29L89 11" stroke="#2a1650" stroke-width="6" stroke-linecap="round"/>' +
+      '<path d="M93-6c0-3 2-4 4-5" fill="none" stroke="#4d8a2b" stroke-width="2.4" stroke-linecap="round"/><circle cx="92" cy="3" r="10" fill="#ff8a1f" stroke="#c24d05" stroke-width="1"/><path d="M87 1l3.4-3.4 2 4zM96 1l-3.4-3.4-2 4z" fill="#ffe27a"/><path d="M86.5 6.5q2.2 3.6 5.5 1.2 3.3 2.4 5.5-1.2" fill="none" stroke="#ffe27a" stroke-width="1.8"/>' +
+      '<g class="hf">' + leg(90, 10) + leg(100, 10) + '</g></svg>';
+  })();
+
   /* ---------- CSS ---------- */
   var st = document.createElement('style'); st.id = 'hw-css';
   st.textContent =
@@ -162,16 +195,35 @@
     '@keyframes hwWalkL{from{transform:translateX(calc(100vw + 120px))}to{transform:translateX(-120px)}}' +
     '@keyframes hwZBob{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-4px) rotate(2deg)}}' +
     '@keyframes hwLeg{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}' +
+    /* sorcières sur leur balai */
+    '.hw-wi{position:absolute;top:var(--y);left:0;width:var(--w);will-change:transform}' +
+    '.hw-wi.r{animation:hwFlyR var(--d) linear forwards}.hw-wi.l{animation:hwFlyL var(--d) linear forwards}' +
+    '.hw-wi>div{animation:hwWobW 2.8s ease-in-out infinite}' +
+    '.hw-wi svg{display:block;width:100%;overflow:visible;filter:drop-shadow(0 0 7px rgba(170,110,255,.75))}' +
+    '.hw-wi .tw{transform-box:fill-box;transform-origin:center;animation:hwTw .8s ease-in-out infinite alternate}' +
+    /* cavalier sans tête */
+    '.hw-hm{position:absolute;bottom:var(--b);left:0;width:var(--w);will-change:transform}' +
+    '.hw-hm.r{animation:hwFlyR var(--d) linear forwards}.hw-hm.l{animation:hwFlyL var(--d) linear forwards}' +
+    '.hw-hm>div{animation:hwGallop .42s ease-in-out infinite alternate}' +
+    '.hw-hm svg{display:block;width:100%;overflow:visible;filter:drop-shadow(0 0 9px rgba(255,120,30,.6))}' +
+    '.hw-hm .hf{transform-box:view-box;transform-origin:96px 70px;animation:hwLegH .42s ease-in-out infinite alternate}' +
+    '.hw-hm .hb{transform-box:view-box;transform-origin:44px 70px;animation:hwLegH .42s ease-in-out infinite alternate-reverse}' +
+    '.hw-hm .fl{transform-box:fill-box;transform-origin:50% 100%;animation:hwFl .3s ease-in-out infinite alternate}' +
+    '@keyframes hwWobW{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-30px) rotate(3deg)}}' +
+    '@keyframes hwTw{from{opacity:.2;transform:scale(.6)}to{opacity:1;transform:scale(1.25)}}' +
+    '@keyframes hwGallop{from{transform:translateY(0)}to{transform:translateY(-8px)}}' +
+    '@keyframes hwLegH{from{transform:rotate(28deg)}to{transform:rotate(-28deg)}}' +
+    '@keyframes hwFl{from{transform:scale(1,.9);opacity:.85}to{transform:scale(1.06,1.1);opacity:1}}' +
     /* petite citrouille seule quand le visiteur a coupé la déco */
     '#hw-root.off>*:not(.hw-pk){display:none}#hw-root.off .hw-pk{opacity:.4}#hw-root.off .hw-pk .big{width:30px}#hw-root.off .hw-pk .small{display:none}#hw-root.off .hw-pk svg{animation:none}' +
     '#hw-top.off,#hw-yard.off{display:none}' +
     /* mobile */
     '@media(max-width:700px){.hw-web{width:min(110px,30vw)}.hw-pk .big{width:52px}.hw-pk .small{width:32px}.hw-gh{left:44px;bottom:66px;width:32px}.hw-cn.t{left:94px;width:34px}.hw-cn.h{left:128px;width:20px}.hw-sp svg{width:24px;margin-left:-12px}#hw-root.off .hw-pk .big{width:26px}#hw-yard{height:120px}}' +
     /* télé / mode lite / mouvement réduit : décor fixe (toiles, citrouilles, pierres tombales), sans animation ni effets */
-    'html.lk10-tv #hw-root .hw-vg,html.lk10-tv #hw-top .hw-sp,html.lk10-tv #hw-root .hw-gh,html.lk10-tv #hw-root .hw-bat,html.lk10-tv #hw-root .hw-em,html.lk10-tv #hw-yard .hw-zb,html.lk10-tv #hw-yard .hw-hd,html.lk10-tv #hw-root .hw-cn.h,' +
-    'html.fx-lite #hw-root .hw-bat,html.fx-lite #hw-root .hw-em,html.fx-lite #hw-root .hw-vg{display:none!important}' +
+    'html.lk10-tv #hw-root .hw-vg,html.lk10-tv #hw-top .hw-sp,html.lk10-tv #hw-root .hw-gh,html.lk10-tv #hw-root .hw-bat,html.lk10-tv #hw-root .hw-wi,html.lk10-tv #hw-root .hw-hm,html.lk10-tv #hw-root .hw-em,html.lk10-tv #hw-yard .hw-zb,html.lk10-tv #hw-yard .hw-hd,html.lk10-tv #hw-root .hw-cn.h,' +
+    'html.fx-lite #hw-root .hw-bat,html.fx-lite #hw-root .hw-wi,html.fx-lite #hw-root .hw-hm,html.fx-lite #hw-root .hw-em,html.fx-lite #hw-root .hw-vg{display:none!important}' +
     'html.lk10-tv #hw-root *,html.lk10-tv #hw-top *,html.lk10-tv #hw-yard *{animation:none!important;filter:none!important}' +
-    '@media(prefers-reduced-motion:reduce){#hw-root *,#hw-top *,#hw-yard *{animation:none!important}#hw-root .hw-bat,#hw-root .hw-em,#hw-yard .hw-zb{display:none!important}}';
+    '@media(prefers-reduced-motion:reduce){#hw-root *,#hw-top *,#hw-yard *{animation:none!important}#hw-root .hw-bat,#hw-root .hw-wi,#hw-root .hw-hm,#hw-root .hw-em,#hw-yard .hw-zb{display:none!important}}';
   document.head.appendChild(st);
 
   /* ---------- Construction ---------- */
@@ -232,5 +284,32 @@
     var k = Math.random() < 0.3 ? 3 : 1;
     for (var j = 0; j < k; j++) bat(j * 800);
   }
-  if (!reduce) { setTimeout(wave, 2000); setInterval(wave, BATS_EVERY); }
+  /* Sorcières sur leur balai : une de temps en temps (parfois deux) */
+  function fly(cls, html, css, delay) {
+    setTimeout(function () {
+      if (!on || document.hidden) return;
+      var dir = Math.random() < 0.5 ? 'r' : 'l', el = document.createElement('div'); el.className = cls + ' ' + dir;
+      el.style.cssText = css;
+      el.innerHTML = '<div><i style="display:block;' + (dir === 'l' ? 'transform:scaleX(-1)' : '') + '">' + html + '</i></div>';
+      el.addEventListener('animationend', function (e) { if (e.target === el) el.remove(); });
+      root.appendChild(el);
+    }, delay);
+  }
+  function calm() { return reduce || de.classList.contains('lk10-tv') || de.classList.contains('fx-lite'); }
+  function witches() {
+    if (calm()) return;
+    var k = Math.random() < 0.3 ? 2 : 1, m = window.innerWidth < 700;
+    for (var j = 0; j < k; j++) fly('hw-wi', WITCH, '--y:' + Math.round(8 + Math.random() * 28) + 'vh;--w:' + ((m ? 78 : 104) + Math.round(Math.random() * 36)) + 'px;--d:' + (11 + Math.random() * 5).toFixed(1) + 's', j * 2500);
+  }
+  /* Cavalier sans tête : il traverse le bas de l'écran au galop, rarement */
+  function horseman() {
+    if (calm()) return;
+    var m = window.innerWidth < 700;
+    fly('hw-hm', HORSEMAN, '--b:' + (m ? 60 : 36) + 'px;--w:' + (m ? 120 : 190) + 'px;--d:' + (9 + Math.random() * 3).toFixed(1) + 's', 0);
+  }
+  if (!reduce) {
+    setTimeout(wave, 2000); setInterval(wave, BATS_EVERY);
+    setTimeout(witches, 7000); setInterval(witches, 24000);
+    setTimeout(horseman, 15000); setInterval(horseman, 52000);
+  }
 })();
