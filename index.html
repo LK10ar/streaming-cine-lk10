@@ -2587,7 +2587,13 @@ function finishCover() {
             <div class="charts-grid">
                 <div class="chart-box">
                     <h3><i class="fas fa-eye"></i> Films & Séries les plus vus</h3>
-                    <input type="text" id="chart-history-search" class="analytics-search-input" placeholder="Filtrer par titre..." oninput="filterChartData('chart-history')">
+                    <input type="text" id="chart-history-search" class="analytics-search-input" placeholder="Filtrer par titre (même les titres à 0 vue)..." oninput="filterChartData('chart-history')">
+                    <select id="chart-history-type" class="analytics-search-input" style="margin-top:8px;" onchange="filterChartData('chart-history')">
+                        <option value="all">Tout (films, séries, animés)</option>
+                        <option value="film">Films</option>
+                        <option value="serie">Séries</option>
+                        <option value="anime">Animés</option>
+                    </select>
                     <div class="chart-scroll-wrap"><canvas id="chart-history"></canvas></div>
                 </div>
                 <div class="chart-box">
@@ -5289,7 +5295,7 @@ async function saveMovie() {
                     }
 
                     if (typeof renderChart === 'function') {
-                        renderChart('chart-history', 'Vues Totales', data.topHistory, '#3498db');
+                        renderHistoryChart(data.topHistory);
                         renderChart('chart-favorites', 'Ajouts en Favoris', data.topFavorites, '#e74c3c');
                         renderChart('chart-watchlater', 'Ajouts À Voir', data.topWatchlater, '#f1c40f');
                     }
@@ -5390,11 +5396,45 @@ async function saveMovie() {
     }
 
     // --- GRAPHIQUES (CHART.JS) : DÉFILEMENT HORIZONTAL + FILTRE PAR TITRE ---
-    function renderChart(canvasId, label, dataArray, color) {
-        chartsFullData[canvasId] = { label, dataArray: dataArray || [], color };
+    function renderChart(canvasId, label, dataArray, color, fullArray) {
+        chartsFullData[canvasId] = { label, dataArray: dataArray || [], color, fullArray: fullArray || null };
         const searchInput = document.getElementById(canvasId + '-search');
         if (searchInput) searchInput.value = '';
+        const typeSel = document.getElementById(canvasId + '-type');
+        if (typeSel) typeSel.value = 'all';
         drawChart(canvasId, label, dataArray || [], color);
+    }
+
+    // Normalise un titre : minuscules, sans accents (« Cyberpunk » = « cyberpunk » = « Cyberpünk »)
+    function normTitle(t) {
+        return String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    // « Films & Séries les plus vus » : on part de TOUT le catalogue (films, séries, animés)
+    // et on y colle les vues réelles ; un titre que personne n'a regardé vaut 0.
+    function renderHistoryChart(topHistory) {
+        const counts = {};
+        (topHistory || []).forEach(d => { const k = normTitle(d.title); counts[k] = (counts[k] || 0) + (Number(d.count) || 0); });
+        const isAnime = m => !!(m.genre && m.genre.toLowerCase().includes('anime'));
+        const seen = new Set();
+        const full = [];
+        (typeof moviesDB !== 'undefined' ? moviesDB : []).forEach(m => {
+            if (!m || m.type === 'saga' || !m.title) return;
+            const k = normTitle(m.title);
+            if (seen.has(k)) return;
+            seen.add(k);
+            full.push({ title: m.title, count: counts[k] || 0, kind: isAnime(m) ? 'anime' : m.type });
+        });
+        // titres vus mais plus présents dans le catalogue (supprimés / renommés) : on ne les perd pas
+        (topHistory || []).forEach(d => {
+            const k = normTitle(d.title);
+            if (seen.has(k)) return;
+            seen.add(k);
+            full.push({ title: d.title, count: Number(d.count) || 0, kind: 'autre' });
+        });
+        full.sort((a, b) => b.count - a.count || a.title.localeCompare(b.title));
+        // par défaut on n'affiche que les titres déjà vus ; la recherche / le filtre cherchent dans TOUT
+        renderChart('chart-history', 'Vues Totales', full.filter(d => d.count > 0), '#3498db', full);
     }
 
     function drawChart(canvasId, label, dataArray, color) {
@@ -5426,7 +5466,7 @@ async function saveMovie() {
         chartsInstance[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: { labels: labels, datasets: [{ label: label, data: values, backgroundColor: color + '80', borderColor: color, borderWidth: 2, borderRadius: 4 }] },
-            options: { responsive: false, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { color: '#ccc', stepSize: 1, font: {family: 'Arial'} }, grid: { color: '#333' } }, x: { ticks: { color: '#ccc', font: {size: 10} }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.9)', titleColor: color, bodyFont: {size: 14} } } }
+            options: { responsive: false, maintainAspectRatio: false, scales: { y: { beginAtZero: true, suggestedMax: 3, ticks: { color: '#ccc', stepSize: 1, font: {family: 'Arial'} }, grid: { color: '#333' } }, x: { ticks: { color: '#ccc', font: {size: 10} }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.9)', titleColor: color, bodyFont: {size: 14} } } }
         });
     }
 
@@ -5434,8 +5474,13 @@ async function saveMovie() {
         const stored = chartsFullData[canvasId];
         if (!stored) return;
         const searchInput = document.getElementById(canvasId + '-search');
-        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-        const filtered = query ? stored.dataArray.filter(d => d.title.toLowerCase().includes(query)) : stored.dataArray;
+        const query = searchInput ? normTitle(searchInput.value) : '';
+        const typeSel = document.getElementById(canvasId + '-type');
+        const type = typeSel ? typeSel.value : 'all';
+        // avec une recherche, on cherche dans tout le catalogue (y compris les titres à 0 vue)
+        let pool = (query && stored.fullArray) ? stored.fullArray : stored.dataArray;
+        if (type !== 'all') pool = pool.filter(d => d.kind === type);
+        const filtered = query ? pool.filter(d => normTitle(d.title).includes(query)) : pool;
         drawChart(canvasId, stored.label, filtered, stored.color);
     }
 
