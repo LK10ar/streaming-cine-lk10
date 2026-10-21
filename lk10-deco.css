@@ -1,0 +1,78 @@
+/* Ciné LK10 — lk10-deco.css : déco des fêtes (Noël pour l'instant) + fenêtre admin « Déco »
+   À ajouter dans <head> de index.html :  <link rel="stylesheet" href="lk10-deco.css"> */
+
+/* ---------- Calque de déco (jamais cliquable, passe SOUS les fenêtres / le lecteur) ---------- */
+#lk10-deco-root { position: fixed; inset: 0; z-index: 9000; pointer-events: none; overflow: hidden; }
+#lk10-deco-root * { pointer-events: none !important; }
+#lk10-deco-root svg { display: block; width: 100%; height: auto; overflow: visible; }
+.dc-snow { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ---------- Guirlande lumineuse sous le header ---------- */
+.dc-lights { position: absolute; left: 0; right: 0; top: var(--dc-h, 70px); height: 36px; display: flex; overflow: hidden;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='36'%3E%3Cpath d='M0 1 Q23 15 46 1' fill='none' stroke='%23144d2b' stroke-width='2.4'/%3E%3C/svg%3E") repeat-x; }
+.dc-lights i { flex: 0 0 46px; height: 36px; position: relative; }
+.dc-lights i::before { content: ""; position: absolute; left: 17px; top: 9px; width: 12px; height: 17px; border-radius: 50% 50% 55% 55%;
+  background: var(--c); box-shadow: 0 0 12px 3px var(--c); animation: dc-twinkle 1.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
+.dc-lights i::after { content: ""; position: absolute; left: 20px; top: 5px; width: 6px; height: 6px; background: #3b3b3b; border-radius: 1px; }
+@keyframes dc-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.88); } }
+html.lk10-tv .dc-lights i::before, html.fx-lite .dc-lights i::before { animation: none; box-shadow: none; }
+
+/* ---------- Sol enneigé ---------- */
+.dc-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='34' preserveAspectRatio='none'%3E%3Cpath d='M0 34V16Q30 2 60 14T120 12T180 15T240 10V34Z' fill='%23f4f9ff'/%3E%3Cpath d='M0 34V24Q40 14 80 22T160 21T240 20V34Z' fill='%23dbe9f7'/%3E%3C/svg%3E") repeat-x bottom / 240px 34px;
+  filter: drop-shadow(0 -2px 6px rgba(0, 0, 0, .35)); }
+
+/* ---------- Groupes de personnages (coins du bas) ---------- */
+.dc-cluster { position: absolute; bottom: 14px; display: flex; align-items: flex-end; gap: 2px; }
+.dc-left { left: 8px; } .dc-right { right: 8px; }
+.dc-cluster > div { flex: 0 0 auto; transform-origin: bottom center; }
+.dc-tree { width: 118px; } .dc-elf { width: 50px; } .dc-santa { width: 66px; } .dc-cane { width: 26px; }
+.dc-snowman { width: 92px; } .dc-queen { width: 64px; } .dc-giftA { width: 40px; } .dc-giftB { width: 32px; margin-left: -8px; } .dc-giftC { width: 36px; }
+.dc-bob { animation: dc-bob 3.2s ease-in-out infinite; } .dc-bob.b2 { animation-duration: 4.1s; animation-delay: -1.2s; }
+@keyframes dc-bob { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.8deg); } }
+.dc-tw { animation: dc-twinkle 1.6s ease-in-out infinite; } .dc-tw.t2 { animation-delay: -.5s; } .dc-tw.t3 { animation-delay: -1s; }
+.dc-star { animation: dc-starglow 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes dc-starglow { 0%, 100% { filter: drop-shadow(0 0 3px #ffe97a); } 50% { filter: drop-shadow(0 0 9px #fff3a8); } }
+
+/* ---------- Traîneau du Père Noël et petit train (traversent l'écran de temps en temps) ---------- */
+.dc-sleigh { position: absolute; top: calc(var(--dc-h, 70px) + 50px); left: 0; width: 250px; opacity: 0; will-change: transform; }
+.dc-train { position: absolute; bottom: 10px; left: 0; width: 330px; opacity: 0; will-change: transform; }
+.dc-puff { animation: dc-puff 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes dc-puff { 0% { opacity: .85; transform: translate(0, 0) scale(.5); } 100% { opacity: 0; transform: translate(-16px, -26px) scale(1.6); } }
+
+/* ---------- Petit bonnet de Noël sur le logo + bandeau bonbon sous le header ---------- */
+html[data-deco="noel"] .logo { position: relative; }
+.dc-hat { position: absolute; left: -6px; top: -6px; width: 38px; height: 38px; transform: rotate(-18deg); z-index: 3; pointer-events: none; }
+html[data-deco="noel"] header { border-bottom: 3px solid #d62828; border-image: repeating-linear-gradient(135deg, #d62828 0 10px, #ffffff 10px 20px) 1; }
+
+/* ---------- Adaptation : mobile / télé / mouvement réduit ---------- */
+@media (max-width: 700px) {
+  .dc-elf, .dc-queen, .dc-santa, .dc-giftC { display: none; }
+  .dc-tree { width: 76px; } .dc-snowman { width: 62px; } .dc-cane { width: 18px; } .dc-giftA { width: 28px; } .dc-giftB { width: 22px; }
+  .dc-ground { height: 22px; background-size: 160px 22px; } .dc-cluster { bottom: 8px; }
+  .dc-sleigh { width: 170px; } .dc-train { width: 210px; }
+  .dc-lights { height: 30px; } .dc-lights i { flex-basis: 38px; }
+}
+html.lk10-tv .dc-sleigh, html.lk10-tv .dc-train { display: none; }
+@media (prefers-reduced-motion: reduce) { .dc-sleigh, .dc-train { display: none; } .dc-bob, .dc-tw, .dc-star, .dc-puff { animation: none; } }
+
+/* ---------- Fenêtre admin « Déco » ---------- */
+.deco-btn-header { background-color: #8e44ad; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: .3s; }
+.deco-btn-header:hover { background-color: #732d91; transform: scale(1.05); }
+#dc-modal { display: none; position: fixed; inset: 0; z-index: 15020; background: rgba(0, 0, 0, .8); align-items: center; justify-content: center; padding: 16px; }
+#dc-modal.open { display: flex; }
+.dc-box { position: relative; width: min(560px, 100%); max-height: 92vh; overflow-y: auto; background: #151515; border: 1px solid #333; border-top: 3px solid var(--primary, #ffde00); border-radius: 12px; padding: 26px 22px 22px; color: #eee; }
+.dc-box h2 { margin: 0 0 6px; font-size: 22px; color: var(--primary, #ffde00); }
+.dc-box p { margin: 0 0 18px; font-size: 13px; line-height: 1.45; color: #aaa; }
+.dc-x { position: absolute; top: 8px; right: 12px; background: none; border: 0; color: #888; font-size: 28px; cursor: pointer; line-height: 1; }
+.dc-x:hover { color: #fff; }
+.dc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.dc-opt { display: flex; align-items: center; gap: 10px; background: #1f1f1f; color: #ddd; border: 2px solid #333; border-radius: 10px; padding: 14px 12px; font: bold 15px Arial, sans-serif; cursor: pointer; text-align: left; transition: .2s; touch-action: manipulation; }
+.dc-opt span { font-size: 26px; }
+.dc-opt small { display: block; font-weight: normal; font-size: 11px; color: #888; margin-top: 2px; }
+.dc-opt:hover, .dc-opt:focus-visible { border-color: var(--primary, #ffde00); color: #fff; outline: none; }
+.dc-opt.on { border-color: #2ecc71; background: rgba(46, 204, 113, .12); color: #fff; }
+.dc-opt.on small { color: #2ecc71; }
+.dc-off { margin-top: 12px; width: 100%; justify-content: center; border-style: dashed; }
+.dc-status { margin-top: 12px; min-height: 18px; font-size: 13px; color: #aaa; text-align: center; }
+.dc-status.err { color: #e74c3c; }
