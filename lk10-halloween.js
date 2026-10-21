@@ -46,8 +46,15 @@
     return a <= b ? (t >= a && t <= b) : (t >= a || t <= b);
   }
   var pref = get(KEY);                                   // '1' = forcé, '0' = coupé par le visiteur, null = automatique
-  var on = pref === '1' ? true : pref === '0' ? false : inSeason();
-  if (!on && pref !== '0') return;                       // hors saison et rien de forcé : on n'ajoute rien du tout
+  /* BOUTON DÉCO (admin) : lk10-deco.js mémorise le choix dans 'lk10_deco' ('halloween', une autre fête, ou 'none' = aucune déco).
+     Absent = personne n'a rien choisi : on garde le comportement automatique d'avant (du 1er octobre au 2 novembre). */
+  var dc = get('lk10_deco');
+  var autoOn = pref === '1' ? true : pref === '0' ? false : inSeason();
+  var on = dc ? (dc === 'halloween' && pref !== '0') : autoOn;
+  var hwInit = false, hwApply = null, hwGone = null, hwStop = null;
+  /* Tout le reste du fichier est dans boot() : on ne construit la déco que si on en a besoin (et on peut l'allumer / l'éteindre à tout moment) */
+  function boot() {
+  hwInit = true;
   /* (si le visiteur l'a coupé en pleine saison, on garde la petite citrouille pour le rallumer) */
 
   var reduce = false; try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
@@ -428,6 +435,7 @@
     /* petite citrouille seule quand le visiteur a coupé la déco */
     '#hw-root.off>*:not(.hw-pk){display:none}#hw-root.off .hw-pk{opacity:.4}#hw-root.off .hw-pk .big{width:30px}#hw-root.off .hw-pk .small{display:none}#hw-root.off .hw-pk svg{animation:none}' +
     '#hw-top.off,#hw-yard.off{display:none}' +
+    '#hw-root.gone,#hw-top.gone,#hw-yard.gone{display:none!important}' +
     /* mobile */
     '@media(max-width:700px){.hw-web{width:min(110px,30vw)}.hw-pk .big{width:52px}.hw-pk .small{width:32px}.hw-gh{left:44px;bottom:66px;width:32px}.hw-cn.t{left:94px;width:34px}.hw-cn.h{left:128px;width:20px}.hw-sp svg{width:24px;margin-left:-12px}#hw-root.off .hw-pk .big{width:26px}#hw-yard{height:150px}}' +
     /* télé / mode lite / mouvement réduit : décor fixe (toiles, citrouilles, pierres tombales), sans animation ni effets */
@@ -824,4 +832,27 @@
     setTimeout(witches, 7000); setInterval(witches, 24000);
     setTimeout(horseman, 15000); setInterval(horseman, 52000);
   }
+  hwApply = applyOff;
+  hwGone = function (g) { root.classList.toggle('gone', g); top.classList.toggle('gone', g); yard.classList.toggle('gone', g); };
+  hwStop = function () { try { if (evBusy) evClose(); } catch (e) {} };
+  }
+
+  /* ---------- Commandes pour lk10-deco.js (bouton Déco de l'admin) ---------- */
+  function show(v) {
+    if (!hwInit) { if (!v) return; boot(); }
+    if (hwGone) hwGone(!v);
+    if (!v && hwStop) hwStop();
+    if (hwApply) hwApply();
+  }
+  window.LK10Halloween = {
+    /* l'admin a choisi Halloween : visible pour tout le monde (sauf visiteur qui l'a coupé avec la citrouille) */
+    enable: function () { on = get(KEY) !== '0'; show(true); },
+    /* l'admin a choisi une autre fête ou « aucune déco » : tout disparaît, citrouille comprise */
+    disable: function () { on = false; show(false); },
+    /* personne n'a rien choisi : retour au comportement automatique (saison) */
+    auto: function () { on = autoOn; if (autoOn || pref === '0') show(true); else show(false); },
+    active: function () { return !!on && hwInit; }
+  };
+
+  if (dc ? dc === 'halloween' : (autoOn || pref === '0')) boot();
 })();
