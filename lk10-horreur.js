@@ -227,6 +227,9 @@
 
   /* ---------- Bandeau de l'accueil ---------- */
   function inSeason() {
+    /* Bouton Déco (admin) : si une fête a été choisie, le bandeau n'apparaît que pour Halloween ; « aucune déco » le retire */
+    var dd = de.getAttribute('data-deco');
+    if (dd) return dd === 'halloween';
     if (!ONLY_OCTOBER) return true;
     var d = new Date(), mo = d.getMonth(), da = d.getDate();
     return mo === 9 || (mo === 10 && da <= 2);
@@ -442,5 +445,7 @@
     return r;
   };
   try { if (db().length) buildBand(); } catch (e) {}
+  /* le bouton Déco change de fête : on affiche / retire le bandeau tout de suite */
+  document.addEventListener('lk10deco', function () { try { buildBand(); } catch (e) {} });
   loadPicks();
 })();
