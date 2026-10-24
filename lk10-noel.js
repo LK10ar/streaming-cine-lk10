@@ -32,13 +32,21 @@
   /* ---------- Qu'est-ce qui est « de Noël » ? ----------
      1) mots-clés cherchés dans le TITRE (NOEL_TITLE) et dans le RÉSUMÉ (NOEL_DESC) ;  2) liste blanche INCLUDE (titres connus) ;
      3) liste noire EXCLUDE (faux positifs). Tout se règle aussi à la main avec « Gérer la sélection » (admin). */
-  var NOEL_TITLE = /\bnoel\b|christmas|\bxmas\b|pere noel|\bsanta\b|grinch|reveillon|\belfe?s?\b|lutin|rudolph|\brenne\b|\bsapin|bonhomme de neige|snowman|traineau|polar express|pole nord|north pole|krampus|jingle|reine des neiges|frozen|\bnoels\b|joyeux noel/;
-  var NOEL_DESC = /\bnoel\b|christmas|pere noel|santa claus|reveillon|nuit de noel|veille de noel|vacances de noel|fetes de fin d'annee|\bxmas\b/;
-  var EXCLUDE = ['santa clarita', 'santa barbara', 'santa muerte', 'winter soldier', 'soldat de l hiver', 'winterfell', 'game of thrones', 'winter war', 'hiver nucleaire', 'merry men'];
-  /* Liste blanche : titres toujours affichés (comparés sans accents ni majuscules). Ajoute-en ici si besoin. */
-  var INCLUDE = ['maman j ai rate l avion', 'home alone', 'le grinch', 'the grinch', 'polar express', 'le pole express', 'la reine des neiges', 'frozen',
-    'klaus', 'love actually', 'krampus', 'l etrange noel de monsieur jack', 'nightmare before christmas', 'jingle jangle', 'the santa clause', 'elf',
-    'le pere noel est une ordure', 'bad santa', 'rudolph', 'les gardiens de la legende', 'rise of the guardians', 'arthur christmas', 'arthur noel', 'last christmas'];
+  /* Règle STRICTE : un titre n'est « de Noël » que si son TITRE contient un mot de Noël (NOEL_TITLE) ou s'il est dans la liste INCLUDE ci-dessous.
+     Le résumé n'est plus utilisé (c'est lui qui laissait passer des films qui parlent à peine de Noël). */
+  var NOEL_TITLE = /\bnoel\b|\bnoels\b|christmas|\bxmas\b|pere noel|\bsanta\b|grinch|reveillon|\belfe\b|\belf\b|lutin|rudolph|\brenne\b|bonhomme de neige|snowman|traineau|polar express|pole nord|north pole|krampus|jingle|casse noisette|nutcracker|scrooge/;
+  var EXCLUDE = ['santa clarita', 'santa barbara', 'santa muerte', 'expendables', 'novocaine', 'futurama', 'christmas in connecticut dead'];
+  /* Liste blanche : vrais films / séries de Noël dont le titre ne contient pas de mot de Noël (comparés sans accents ni majuscules). Ajoute-en ici si besoin. */
+  var INCLUDE = [
+    'maman j ai rate l avion', 'home alone', 'le grinch', 'polar express', 'le pole express', 'l etrange noel de monsieur jack', 'nightmare before christmas',
+    'love actually', 'klaus', 'last christmas', 'the holiday', 'le pere noel est une ordure', 'bad santa', 'bad moms christmas', 'krampus', 'terrifier 3',
+    'silent night', 'douce nuit', 'black christmas', 'gremlins', 'the santa clause', 'jingle all the way', 'un noel de dingue', 'christmas vacation',
+    'miracle sur la 34e rue', 'miracle on 34th street', 'it s a wonderful life', 'white christmas', 'violent night', 'nuit violente',
+    'fatman', 'the family plan', 'fred claus', 'deck the halls', 'arthur christmas', 'les chroniques de noel', 'the christmas chronicles', 'prancer',
+    'un fauteuil pour deux', 'trading places', 'toy story hors du temps', 'toy story that time forgot', 'office christmas party', 'fete de bureau',
+    'jack frost', 'le petit renne', 'the muppet christmas carol', 'les muppets noel', 'christmas with the kranks', 'surviving christmas', 'noelle', 'jingle jangle',
+    'the man who invented christmas', 'l homme qui a invente noel', 'red one', 'happiest season', 'holidate',
+    'a christmas prince', 'un prince pour noel', 'the princess switch', 'falling for christmas', 'the polar express', 'arthur noel', 'shrek noel', 'madagascar noel', ];
   var flat = function (t) { return ' ' + norm(t).replace(/[^a-z0-9]+/g, ' ').trim() + ' '; };
   var has = function (list, t) { t = flat(t); for (var i = 0; i < list.length; i++) if (t.indexOf(flat(list[i])) > -1) return true; return false; };
   function text(m) { return norm((m.title || '') + ' ' + (m.desc || '') + ' ' + (m.genre || '')); }
@@ -48,9 +56,7 @@
     var t = m.title || '';
     if (has(EXCLUDE, t)) return false;
     if (has(INCLUDE, t)) return true;
-    var f = ' ' + norm(t).replace(/[^a-z0-9']+/g, ' ').trim() + ' ';
-    if (NOEL_TITLE.test(f.trim())) return true;
-    return NOEL_DESC.test(norm(m.desc || ''));
+    return NOEL_TITLE.test(norm(t).replace(/[^a-z0-9']+/g, ' ').trim());
   }
   /* Choix de l'admin (enregistrés sur le serveur) : ils passent avant tout le reste */
   var picks = { add: {}, remove: {} };
@@ -98,7 +104,7 @@
     { t: 'Comédies de Noël', f: function (m) { return /comedie/.test(norm(m.genre)); }, sort: 'rating' },
     { t: 'Romances sous le gui', f: function (m) { return /romance/.test(norm(m.genre)); }, sort: 'rating' },
     { t: 'Neige, glace et hiver', f: kw(/neige|hiver|glace|flocon|froid|arctique|pole nord|reine des neiges|frozen|winter|snow/), sort: 'rating' },
-    { t: 'Noël… version frissons', f: function (m) { return /horreur|epouvante|thriller/.test(norm(m.genre)); }, sort: 'rating' },
+    { t: 'Noël version horreur 🎅🔪', f: function (m) { return /horreur|epouvante|gore|slasher/.test(norm(m.genre)) || /krampus|terrifier|black christmas|silent night|douce nuit|gremlins|jack frost|violent night|nuit violente/.test(norm(m.title)); }, sort: 'rating', min: 1 },
     { t: 'Aventures et fantastique', f: function (m) { return /aventure|fantastique/.test(norm(m.genre)); }, sort: 'rating' },
     { t: 'Les classiques des fêtes', f: function (m) { return yr(m) && yr(m) <= 1999; }, sort: 'rating' }
   ];
@@ -302,7 +308,7 @@
     var box = $('nl-rows'); box.innerHTML = '';
     ROWS.forEach(function (r, i) {
       var list = sorted(pool.filter(r.f), r.sort).slice(0, 30);
-      if (list.length < MIN_ROW) return;
+      if (list.length < (r.min || MIN_ROW)) return;
       var id = 'nl-r-' + i, sec = document.createElement('div'); sec.className = 'slider-section';
       sec.innerHTML = '<h2 class="slider-title">' + esc(r.t) + '</h2>' +
         '<button class="slider-arrow left" onclick="scrollSlider(\'' + id + '\',-1)"><i class="fas fa-chevron-left"></i></button>' +
