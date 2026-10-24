@@ -1,60 +1,83 @@
-/* Ciné LK10 — lk10-deco.css : déco des fêtes (Noël pour l'instant) + fenêtre admin « Déco »
+/* Ciné LK10 — lk10-deco.css : déco des fêtes (Noël, version 2) + fenêtre admin « Déco »
    À ajouter dans <head> de index.html :  <link rel="stylesheet" href="lk10-deco.css"> */
 
 /* ---------- Calque de déco (jamais cliquable, passe SOUS les fenêtres / le lecteur) ---------- */
 #lk10-deco-root { position: fixed; inset: 0; z-index: 9000; pointer-events: none; overflow: hidden; }
-#lk10-deco-root * { pointer-events: none !important; }
-#lk10-deco-root svg { display: block; width: 100%; height: auto; overflow: visible; }
-.dc-snow { position: absolute; inset: 0; width: 100%; height: 100%; }
+#lk10-deco-root *, #dc-yard * { pointer-events: none !important; }
+#lk10-deco-root svg, #dc-yard svg { display: block; overflow: visible; }
+.dcn-snow { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dcn-vg { position: absolute; inset: 0; background:
+  radial-gradient(ellipse at 0% 0%, rgba(214, 40, 40, .13), transparent 42%),
+  radial-gradient(ellipse at 100% 0%, rgba(46, 204, 113, .11), transparent 42%),
+  radial-gradient(ellipse at 50% 120%, rgba(110, 170, 255, .12), transparent 55%); }
 
-/* ---------- Guirlande lumineuse sous le header ---------- */
-.dc-lights { position: absolute; left: 0; right: 0; top: var(--dc-h, 70px); height: 36px; display: flex; overflow: hidden;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='36'%3E%3Cpath d='M0 1 Q23 15 46 1' fill='none' stroke='%23144d2b' stroke-width='2.4'/%3E%3C/svg%3E") repeat-x; }
-.dc-lights i { flex: 0 0 46px; height: 36px; position: relative; }
-.dc-lights i::before { content: ""; position: absolute; left: 17px; top: 9px; width: 12px; height: 17px; border-radius: 50% 50% 55% 55%;
-  background: var(--c); box-shadow: 0 0 12px 3px var(--c); animation: dc-twinkle 1.8s ease-in-out infinite; animation-delay: var(--d, 0s); }
-.dc-lights i::after { content: ""; position: absolute; left: 20px; top: 5px; width: 6px; height: 6px; background: #3b3b3b; border-radius: 1px; }
-@keyframes dc-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.88); } }
-html.lk10-tv .dc-lights i::before, html.fx-lite .dc-lights i::before { animation: none; box-shadow: none; }
+/* ---------- Animations communes ---------- */
+@keyframes dc-twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes dc-swing { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes dc-wave { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(14deg); } }
+@keyframes dc-spin { to { transform: rotate(360deg); } }
+@keyframes dc-bob { 0%, 100% { transform: translateX(-50%) rotate(-1.2deg); } 50% { transform: translateX(-50%) rotate(1.4deg); } }
+@keyframes dc-starglow { 0%, 100% { filter: drop-shadow(0 0 3px #ffe97a); } 50% { filter: drop-shadow(0 0 10px #fff3a8); } }
+@keyframes dc-puff { 0% { opacity: .85; transform: translate(0, 0) scale(.5); } 100% { opacity: 0; transform: translate(-18px, -30px) scale(1.7); } }
+@keyframes dc-wheel { to { transform: rotate(360deg); } }
+@keyframes dcy-train { from { transform: translateX(-640px); } to { transform: translateX(calc(100vw + 120px)); } }
+.dc-tw { animation: dc-twinkle 1.7s ease-in-out infinite; } .dc-tw.t1 { animation-delay: -.55s; } .dc-tw.t2 { animation-delay: -1.1s; }
+.dc-star { animation: dc-starglow 2.4s ease-in-out infinite; }
+.dc-swing { animation: dc-swing 3.8s ease-in-out infinite; }
+.dc-wave { animation: dc-wave 2.2s ease-in-out infinite; }
+.dc-spin { animation: dc-spin 18s linear infinite; }
+.dc-wheel { animation: dc-wheel .9s linear infinite; }
+.dc-puff { transform-box: fill-box; transform-origin: center; animation: dc-puff 1.9s ease-out infinite; }
+.dc-bulb { animation: dc-twinkle 1.6s ease-in-out infinite; }
+.dc-bulb.b1 { animation-delay: -.3s; } .dc-bulb.b2 { animation-delay: -.7s; } .dc-bulb.b3 { animation-delay: -1.1s; } .dc-bulb.b4 { animation-delay: -1.4s; }
 
-/* ---------- Sol enneigé ---------- */
-.dc-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='34' preserveAspectRatio='none'%3E%3Cpath d='M0 34V16Q30 2 60 14T120 12T180 15T240 10V34Z' fill='%23f4f9ff'/%3E%3Cpath d='M0 34V24Q40 14 80 22T160 21T240 20V34Z' fill='%23dbe9f7'/%3E%3C/svg%3E") repeat-x bottom / 240px 34px;
-  filter: drop-shadow(0 -2px 6px rgba(0, 0, 0, .35)); }
+/* ---------- Guirlande sous le header ---------- */
+.dcn-gwrap { position: absolute; left: 0; right: 0; top: calc(var(--dc-h, 70px) - 4px); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .45)); }
+.dcn-garland { width: 100%; height: auto; }
 
-/* ---------- Groupes de personnages (coins du bas) ---------- */
-.dc-cluster { position: absolute; bottom: 14px; display: flex; align-items: flex-end; gap: 2px; }
-.dc-left { left: 8px; } .dc-right { right: 8px; }
-.dc-cluster > div { flex: 0 0 auto; transform-origin: bottom center; }
-.dc-tree { width: 118px; } .dc-elf { width: 50px; } .dc-santa { width: 66px; } .dc-cane { width: 26px; }
-.dc-snowman { width: 92px; } .dc-queen { width: 64px; } .dc-giftA { width: 40px; } .dc-giftB { width: 32px; margin-left: -8px; } .dc-giftC { width: 36px; }
-.dc-bob { animation: dc-bob 3.2s ease-in-out infinite; } .dc-bob.b2 { animation-duration: 4.1s; animation-delay: -1.2s; }
-@keyframes dc-bob { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.8deg); } }
-.dc-tw { animation: dc-twinkle 1.6s ease-in-out infinite; } .dc-tw.t2 { animation-delay: -.5s; } .dc-tw.t3 { animation-delay: -1s; }
-.dc-star { animation: dc-starglow 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-@keyframes dc-starglow { 0%, 100% { filter: drop-shadow(0 0 3px #ffe97a); } 50% { filter: drop-shadow(0 0 9px #fff3a8); } }
+/* ---------- Coins de l'écran : sapin et bonhomme de neige ---------- */
+.dcn-fix { position: absolute; bottom: 4px; display: flex; align-items: flex-end; gap: 0; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .45)); }
+.dcn-fl { left: 6px; } .dcn-fr { right: 6px; }
+.dcn-tr { width: 104px; } .dcn-sm { width: 82px; } .dcn-gf { width: 40px; margin-bottom: 2px; } .dcn-gf.g2 { width: 32px; margin-left: -6px; margin-right: -4px; }
 
-/* ---------- Traîneau du Père Noël et petit train (traversent l'écran de temps en temps) ---------- */
-.dc-sleigh { position: absolute; top: calc(var(--dc-h, 70px) + 50px); left: 0; width: 250px; opacity: 0; will-change: transform; }
-.dc-train { position: absolute; bottom: 10px; left: 0; width: 330px; opacity: 0; will-change: transform; }
-.dc-puff { animation: dc-puff 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
-@keyframes dc-puff { 0% { opacity: .85; transform: translate(0, 0) scale(.5); } 100% { opacity: 0; transform: translate(-16px, -26px) scale(1.6); } }
+/* ---------- Traîneau et étoile filante ---------- */
+.dcn-sleigh { position: absolute; left: 0; top: calc(var(--dc-h, 70px) + 80px); width: clamp(260px, 27vw, 460px); opacity: 0; will-change: transform; filter: drop-shadow(0 0 14px rgba(160, 210, 255, .55)); }
+.dcn-shoot { position: absolute; width: 130px; height: 2px; opacity: 0; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff); border-radius: 2px; box-shadow: 0 0 8px 2px rgba(255, 255, 255, .6); }
 
-/* ---------- Petit bonnet de Noël sur le logo + bandeau bonbon sous le header ---------- */
+/* ---------- Village de Noël (avant le pied de page) ---------- */
+.dcy { --k: 1; position: relative; width: 100%; height: calc(390px * var(--k)); margin-top: 34px; overflow: hidden; background: linear-gradient(180deg, rgba(6, 12, 28, 0) 0, rgba(12, 26, 56, .82) 55%, rgba(18, 38, 76, .95) 100%); }
+@media (max-width: 1500px) { .dcy { --k: .86; } } @media (max-width: 1100px) { .dcy { --k: .7; } } @media (max-width: 800px) { .dcy { --k: .56; } }
+.dcy-sky { position: absolute; inset: 0; } .dcy-sky i { position: absolute; width: var(--s); height: var(--s); border-radius: 50%; background: #fff; box-shadow: 0 0 6px 1px rgba(255, 255, 255, .7); animation: dc-twinkle 3s ease-in-out infinite; }
+.dcy-moon { position: absolute; right: 11%; top: 8%; width: calc(70px * var(--k) + 20px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fffef0, #f4efc4 55%, #d8d09a); box-shadow: 0 0 40px 14px rgba(255, 250, 200, .28); }
+.dcy-hill { position: absolute; left: 0; width: 100%; } .dcy-hill.far { bottom: calc(76px * var(--k)); height: calc(150px * var(--k)); } .dcy-hill.mid { bottom: calc(40px * var(--k)); height: calc(120px * var(--k)); } .dcy-hill.gnd { bottom: 0; height: calc(84px * var(--k)); }
+.dcy-forest { position: absolute; left: 0; right: 0; } .dcy-forest i { position: absolute; bottom: 0; width: calc(var(--h) * .56); height: var(--h); transform: translateX(-50%); background: var(--pf) no-repeat center bottom / contain; }
+.dcy-forest.far { bottom: calc(112px * var(--k)); opacity: .75; } .dcy-forest.far i { height: calc(var(--h) * var(--k)); width: calc(var(--h) * var(--k) * .56); }
+.dcy-forest.mid { bottom: calc(56px * var(--k)); } .dcy-forest.mid i { background-image: var(--pm); height: calc(var(--h) * var(--k)); width: calc(var(--h) * var(--k) * .56); }
+.dcy-track { position: absolute; left: 0; right: 0; bottom: calc(11px * var(--k)); height: 7px; background: repeating-linear-gradient(90deg, #6b5240 0 9px, transparent 9px 26px), linear-gradient(#8e8e9a, #55555f); background-size: auto, 100% 2px; background-repeat: repeat-x, no-repeat; background-position: 0 0, 0 2px; opacity: .9; }
+.dcy-i { position: absolute; left: var(--x); bottom: calc(var(--b) * var(--k) * 1px); width: calc(var(--w) * var(--k) * 1px); transform: translateX(-50%); filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .35)); }
+.dcy-i svg { width: 100%; height: auto; } .dcy-i.flip svg { transform: scaleX(-1); }
+.dcy-bob { transform-origin: bottom center; } .dcy.run .dcy-bob { animation: dc-bob 3.6s ease-in-out infinite; } .dcy.run .dcy-bob.b2 { animation-duration: 4.4s; animation-delay: -1.3s; }
+.dcy-train { position: absolute; left: 0; bottom: calc(10px * var(--k)); width: calc(540px * var(--k)); transform: translateX(-640px); filter: drop-shadow(0 4px 5px rgba(0, 0, 0, .4)); }
+.dcy-train svg { width: 100%; height: auto; }
+.dcy:not(.run) *, .dcy:not(.run) { animation-play-state: paused !important; }
+.dcy.run .dcy-train { animation: dcy-train 46s linear infinite; }
+@media (max-width: 700px) { .dcy-cottage, .dcy-queen, .dcy-elf, .dcy-forest.far { display: none; } .dcy { height: calc(330px * var(--k)); } }
+html.lk10-tv .dcy-train { display: none; }
+@media (prefers-reduced-motion: reduce) { .dcy-train { display: none; } .dcy *, .dc-tw, .dc-star, .dc-swing, .dc-wave, .dc-spin, .dc-wheel, .dc-puff, .dc-bulb { animation: none !important; } }
+html.lk10-tv .dc-bulb, html.fx-lite .dc-bulb, html.lk10-tv .dc-swing { animation: none; }
+
+/* ---------- Neige sur le haut des affiches + bonnet du logo + liseré du header ---------- */
+html[data-deco="noel"] .netflix-card::before, html[data-deco="noel"] *:not(.saga-grid) > .movie-card::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 15px; z-index: 6; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='15'%3E%3Cpath d='M0 0H44V5Q41 11 37 6Q34 13 30 6Q27 10 23 5Q20 12 16 6Q12 10 9 5Q5 12 0 6Z' fill='%23ffffff'/%3E%3Cpath d='M0 0H44V2H0Z' fill='%23dfeaf6'/%3E%3C/svg%3E") repeat-x top left / 44px 15px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .4)); }
 html[data-deco="noel"] .logo { position: relative; }
-.dc-hat { position: absolute; left: -6px; top: -6px; width: 38px; height: 38px; transform: rotate(-18deg); z-index: 3; pointer-events: none; }
+.dc-hat { position: absolute; left: -8px; top: -10px; width: 44px; height: 40px; transform: rotate(-16deg); z-index: 3; pointer-events: none; }
+.dc-hat svg { width: 100%; height: auto; }
 html[data-deco="noel"] header { border-bottom: 3px solid #d62828; border-image: repeating-linear-gradient(135deg, #d62828 0 10px, #ffffff 10px 20px) 1; }
 
-/* ---------- Adaptation : mobile / télé / mouvement réduit ---------- */
-@media (max-width: 700px) {
-  .dc-elf, .dc-queen, .dc-santa, .dc-giftC { display: none; }
-  .dc-tree { width: 76px; } .dc-snowman { width: 62px; } .dc-cane { width: 18px; } .dc-giftA { width: 28px; } .dc-giftB { width: 22px; }
-  .dc-ground { height: 22px; background-size: 160px 22px; } .dc-cluster { bottom: 8px; }
-  .dc-sleigh { width: 170px; } .dc-train { width: 210px; }
-  .dc-lights { height: 30px; } .dc-lights i { flex-basis: 38px; }
-}
-html.lk10-tv .dc-sleigh, html.lk10-tv .dc-train { display: none; }
-@media (prefers-reduced-motion: reduce) { .dc-sleigh, .dc-train { display: none; } .dc-bob, .dc-tw, .dc-star, .dc-puff { animation: none; } }
+/* ---------- Mobile ---------- */
+@media (max-width: 700px) { .dcn-tr { width: 70px; } .dcn-sm { width: 56px; } .dcn-gf { width: 28px; } .dcn-gf.g2 { width: 22px; } }
 
 /* ---------- Fenêtre admin « Déco » ---------- */
 .deco-btn-header { background-color: #8e44ad; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: .3s; }
