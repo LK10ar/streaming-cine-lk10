@@ -112,6 +112,7 @@
       sm.textContent = on ? (ctl === null ? 'Actif (automatique)' : 'Activée pour tout le monde') : (ready ? 'Cliquer pour activer' : 'Bientôt (menu prêt)');
     });
     var off = modal.querySelector('.dc-off'); if (off) off.classList.toggle('on', eff === '');
+    var dd = modal.querySelector('.dc-demo'); if (dd) dd.classList.toggle('on', !!(noelCtl && noelCtl.hasMotion));
   }
   function choose(t) {
     if (t === effective()) t = '';                               // re-clic sur la fête active = on enlève tout
@@ -131,11 +132,14 @@
     }).join('');
     modal.innerHTML = '<div class="dc-box"><button class="dc-x" aria-label="Fermer">&times;</button><h2><i class="fas fa-magic"></i> Déco du site</h2>' +
       '<p>Clique sur une fête pour décorer tout le site, pour tous les visiteurs. Clique de nouveau sur la fête active (ou « Aucune déco ») pour tout enlever.</p>' +
-      '<div class="dc-grid">' + opts + '</div><button class="dc-opt dc-off"><span>🚫</span><div>Aucune déco</div></button><div class="dc-status"></div></div>';
+      '<div class="dc-grid">' + opts + '</div><button class="dc-opt dc-off"><span>🚫</span><div>Aucune déco</div></button>' +
+      '<div class="dc-demo"><button data-demo="sleigh">🛷 Voir le traîneau</button><button data-demo="train">🚂 Voir le train</button></div><div class="dc-status"></div></div>';
     document.body.appendChild(modal);
     statusEl = modal.querySelector('.dc-status');
     modal.addEventListener('click', function (e) {
       if (e.target === modal || e.target.closest('.dc-x')) { modal.classList.remove('open'); return; }
+      var dm = e.target.closest('[data-demo]');
+      if (dm) { if (noelCtl) { modal.classList.remove('open'); try { noelCtl[dm.dataset.demo](); } catch (er) {} } return; }
       var b = e.target.closest('.dc-opt'); if (!b) return;
       choose(b.dataset.t || '');
     });

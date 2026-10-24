@@ -41,8 +41,12 @@
 .dcn-tr { width: 104px; } .dcn-sm { width: 82px; } .dcn-gf { width: 40px; margin-bottom: 2px; } .dcn-gf.g2 { width: 32px; margin-left: -6px; margin-right: -4px; }
 
 /* ---------- Traîneau et étoile filante ---------- */
-.dcn-sleigh { position: absolute; left: 0; top: calc(var(--dc-h, 70px) + 80px); width: clamp(260px, 27vw, 460px); opacity: 0; will-change: transform; filter: drop-shadow(0 0 14px rgba(160, 210, 255, .55)); }
+.dcn-sleigh { position: absolute; left: 0; top: calc(var(--dc-h, 70px) + 70px); width: clamp(330px, 36vw, 680px); opacity: 0; will-change: transform; filter: drop-shadow(0 0 14px rgba(160, 210, 255, .55)); }
 .dcn-shoot { position: absolute; width: 130px; height: 2px; opacity: 0; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff); border-radius: 2px; box-shadow: 0 0 8px 2px rgba(255, 255, 255, .6); }
+
+/* ---------- Petit train qui traverse le bas de l'écran ---------- */
+.dcn-btrain { position: absolute; left: 0; bottom: 0; width: clamp(280px, 26vw, 480px); opacity: 0; will-change: transform; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, .5)); }
+.dcn-btrain svg { width: 100%; height: auto; }
 
 /* ---------- Village de Noël (avant le pied de page) ---------- */
 .dcy { --k: 1; position: relative; width: 100%; height: calc(390px * var(--k)); margin-top: 34px; overflow: hidden; background: linear-gradient(180deg, rgba(6, 12, 28, 0) 0, rgba(12, 26, 56, .82) 55%, rgba(18, 38, 76, .95) 100%); }
@@ -72,7 +76,7 @@ html[data-deco="noel"] .netflix-card::before, html[data-deco="noel"] *:not(.saga
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='15'%3E%3Cpath d='M0 0H44V5Q41 11 37 6Q34 13 30 6Q27 10 23 5Q20 12 16 6Q12 10 9 5Q5 12 0 6Z' fill='%23ffffff'/%3E%3Cpath d='M0 0H44V2H0Z' fill='%23dfeaf6'/%3E%3C/svg%3E") repeat-x top left / 44px 15px;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .4)); }
 html[data-deco="noel"] .logo { position: relative; }
-.dc-hat { position: absolute; left: -8px; top: -10px; width: 44px; height: 40px; transform: rotate(-16deg); z-index: 3; pointer-events: none; }
+.dc-hat { position: absolute; left: 0; top: 0; width: 40px; height: 31px; transform: rotate(-12deg); transform-origin: 50% 90%; z-index: 1003; pointer-events: none; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .45)); }
 .dc-hat svg { width: 100%; height: auto; }
 html[data-deco="noel"] header { border-bottom: 3px solid #d62828; border-image: repeating-linear-gradient(135deg, #d62828 0 10px, #ffffff 10px 20px) 1; }
 
@@ -97,5 +101,9 @@ html[data-deco="noel"] header { border-bottom: 3px solid #d62828; border-image: 
 .dc-opt.on { border-color: #2ecc71; background: rgba(46, 204, 113, .12); color: #fff; }
 .dc-opt.on small { color: #2ecc71; }
 .dc-off { margin-top: 12px; width: 100%; justify-content: center; border-style: dashed; }
+.dc-demo { display: none; margin-top: 14px; gap: 8px; }
+.dc-demo.on { display: flex; }
+.dc-demo button { flex: 1; background: #1f1f1f; color: #ddd; border: 1px solid #444; border-radius: 8px; padding: 10px; font: bold 14px Arial, sans-serif; cursor: pointer; }
+.dc-demo button:hover { border-color: var(--primary, #ffde00); color: #fff; }
 .dc-status { margin-top: 12px; min-height: 18px; font-size: 13px; color: #aaa; text-align: center; }
 .dc-status.err { color: #e74c3c; }

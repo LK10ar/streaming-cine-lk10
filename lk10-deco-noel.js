@@ -450,18 +450,28 @@ function build(root, env) {
   var L = div('dcn-fix dcn-fl'); L.appendChild(div('dcn-gf', gift('#2e86de', '#fff'))); L.appendChild(div('dcn-tr', tree())); L.appendChild(div('dcn-gf g2', gift('#d62828', '#ffd93b'))); root.appendChild(L);
   var R = div('dcn-fix dcn-fr'); R.appendChild(div('dcn-gf g2', gift('#8e44ad', '#f1f1f1'))); R.appendChild(div('dcn-sm', snowman())); R.appendChild(div('dcn-gf', gift('#27ae60', '#ffd93b'))); root.appendChild(R);
 
+  var flySleigh = function () {}, rollTrain = function () {};
   if (!still) {
+    /* Traîneau : traverse le ciel (1er passage au bout de 3 s, puis toutes les 30 à 55 s) */
     var sl = div('dcn-sleigh', sleigh()); root.appendChild(sl);
-    (function fly() {
-      if (!document.hidden && !env.busy() && sl.animate) {
-        var W = window.innerWidth, sw = sl.offsetWidth || 400;
-        sl.style.opacity = '1';
-        var a = sl.animate([{ transform: 'translate(' + (-sw - 40) + 'px,10px) rotate(2deg)' }, { transform: 'translate(' + (W * .45) + 'px,-26px) rotate(-1deg)' }, { transform: 'translate(' + (W + 60) + 'px,14px) rotate(2deg)' }], { duration: 20000, easing: 'linear' });
-        a.onfinish = function () { sl.style.opacity = '0'; };
-      }
-      later(fly, rnd(42000, 80000));
-    })();
-    later(function () { try { sl.style.opacity = '0'; } catch (e) {} }, 0);
+    flySleigh = function () {
+      if (!sl.animate) return;
+      var W = window.innerWidth, sw = sl.offsetWidth || 400;
+      sl.style.opacity = '1';
+      var a = sl.animate([{ transform: 'translate(' + (-sw - 40) + 'px,10px) rotate(2deg)' }, { transform: 'translate(' + (W * .45) + 'px,-26px) rotate(-1deg)' }, { transform: 'translate(' + (W + 60) + 'px,14px) rotate(2deg)' }], { duration: 20000, easing: 'linear' });
+      a.onfinish = function () { sl.style.opacity = '0'; };
+    };
+    (function loopS(first) { later(function () { if (!document.hidden && !env.busy()) flySleigh(); loopS(false); }, first ? 3000 : rnd(30000, 55000)); })(true);
+    /* Petit train : traverse le bas de l'écran (1er passage au bout de 9 s, puis toutes les 50 à 80 s) */
+    var bt = div('dcn-btrain', train()); root.appendChild(bt);
+    rollTrain = function () {
+      if (!bt.animate) return;
+      var W = window.innerWidth, tw = bt.offsetWidth || 400;
+      bt.style.opacity = '1';
+      var a = bt.animate([{ transform: 'translateX(' + (-tw - 40) + 'px)' }, { transform: 'translateX(' + (W + 60) + 'px)' }], { duration: 26000, easing: 'linear' });
+      a.onfinish = function () { bt.style.opacity = '0'; };
+    };
+    (function loopT(first) { later(function () { if (!document.hidden && !env.busy()) rollTrain(); loopT(false); }, first ? 9000 : rnd(50000, 80000)); })(true);
     var ss = div('dcn-shoot'); root.appendChild(ss);
     (function shoot() {
       if (!document.hidden && !env.busy() && ss.animate) {
@@ -500,7 +510,7 @@ function build(root, env) {
     if ('ResizeObserver' in window) { var ro = new ResizeObserver(place); ro.observe(logo); killers.push(function () { ro.disconnect(); }); }
   }
 
-  return { destroy: function () {
+  return { sleigh: function () { flySleigh(); }, train: function () { rollTrain(); }, hasMotion: !still, destroy: function () {
     timers.forEach(clearTimeout); killers.forEach(function (k) { try { k(); } catch (e) {} });
     if (yard && yard.parentNode) yard.parentNode.removeChild(yard);
     if (hatEl && hatEl.parentNode) hatEl.parentNode.removeChild(hatEl);
