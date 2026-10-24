@@ -200,14 +200,14 @@ function pine(c1, c2) {
 }
 
 /* Renne au galop : (0,0) = arrière du corps ; ~210 de long */
+var gi = 0;
 function deer3(x, y, sc, nose, ids) {
-  var o = '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')">';
-  /* pattes arrière (derrière le corps) */
-  o += '<path d="M30 74 C14 86 4 98 -8 100" fill="none" stroke="#5a3417" stroke-width="10" stroke-linecap="round"/><path d="M50 78 C40 96 30 108 18 112" fill="none" stroke="#6a3f1c" stroke-width="10" stroke-linecap="round"/>' +
-    '<ellipse cx="-10" cy="102" rx="7" ry="4" fill="#1d1208" transform="rotate(-20 -10 102)"/><ellipse cx="16" cy="114" rx="7" ry="4" fill="#1d1208" transform="rotate(-25 16 114)"/>';
-  /* pattes avant tendues */
-  o += '<path d="M122 74 C142 84 156 84 170 78" fill="none" stroke="#5a3417" stroke-width="9" stroke-linecap="round"/><path d="M108 80 C126 98 142 100 156 98" fill="none" stroke="#6a3f1c" stroke-width="9" stroke-linecap="round"/>' +
-    '<ellipse cx="173" cy="77" rx="6.5" ry="4" fill="#1d1208" transform="rotate(-16 173 77)"/><ellipse cx="159" cy="98" rx="6.5" ry="4" fill="#1d1208" transform="rotate(-8 159 98)"/>';
+  var o = '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')"><g class="dc-gal g' + (gi++ % 3) + '">';
+  /* pattes (animées : classes dc-lg l1..l4) */
+  o += '<g class="dc-lg l1"><path d="M30 74 C14 86 4 98 -8 100" fill="none" stroke="#5a3417" stroke-width="10" stroke-linecap="round"/><ellipse cx="-10" cy="102" rx="7" ry="4" fill="#1d1208" transform="rotate(-20 -10 102)"/></g>' +
+    '<g class="dc-lg l2"><path d="M50 78 C40 96 30 108 18 112" fill="none" stroke="#6a3f1c" stroke-width="10" stroke-linecap="round"/><ellipse cx="16" cy="114" rx="7" ry="4" fill="#1d1208" transform="rotate(-25 16 114)"/></g>' +
+    '<g class="dc-lg l3"><path d="M122 74 C142 84 156 84 170 78" fill="none" stroke="#5a3417" stroke-width="9" stroke-linecap="round"/><ellipse cx="173" cy="77" rx="6.5" ry="4" fill="#1d1208" transform="rotate(-16 173 77)"/></g>' +
+    '<g class="dc-lg l4"><path d="M108 80 C126 98 142 100 156 98" fill="none" stroke="#6a3f1c" stroke-width="9" stroke-linecap="round"/><ellipse cx="159" cy="98" rx="6.5" ry="4" fill="#1d1208" transform="rotate(-8 159 98)"/></g>';
   /* corps */
   o += '<path d="M6 64 C4 40 34 26 74 28 C110 30 132 36 140 54 C136 76 114 86 84 86 C46 88 8 90 6 64Z" fill="url(#' + ids.b + ')"/>' +
     '<path d="M16 44 C40 32 90 30 128 42" fill="none" stroke="#6a3f1c" stroke-width="5" stroke-linecap="round" opacity=".55"/>' +
@@ -223,7 +223,7 @@ function deer3(x, y, sc, nose, ids) {
   /* harnais, bandeau rouge et grelots */
   o += '<path d="M126 38 C140 52 142 66 134 80" fill="none" stroke="#d62828" stroke-width="7" stroke-linecap="round"/><path d="M60 28 C64 44 64 66 58 86" fill="none" stroke="#d62828" stroke-width="5" opacity=".9"/>' +
     '<circle cx="138" cy="62" r="5.6" fill="#ffd24a" stroke="#b88700" stroke-width=".9"/><circle cx="62" cy="62" r="4.6" fill="#ffd24a" stroke="#b88700" stroke-width=".8"/>';
-  return o + '</g>';
+  return o + '</g></g>';
 }
 function sleigh() {
   var b = U('db'), n = U('dn'), r = U('sr'), r2 = U('sr2'), g = U('sg'), bag = U('bg'), tr = U('tr');
@@ -264,29 +264,104 @@ function sleigh() {
   return SV('-14 -60 980 250', defs, o);
 }
 
-/* ---------- Train ---------- */
-function wheel(cx, cy, r, cls) { var s = ''; for (var i = 0; i < 4; i++) s += '<path d="M' + cx + ' ' + cy + ' L' + (cx + r * .86 * Math.cos(i * Math.PI / 4)).toFixed(1) + ' ' + (cy + r * .86 * Math.sin(i * Math.PI / 4)).toFixed(1) + ' M' + cx + ' ' + cy + ' L' + (cx - r * .86 * Math.cos(i * Math.PI / 4)).toFixed(1) + ' ' + (cy - r * .86 * Math.sin(i * Math.PI / 4)).toFixed(1) + '" stroke="#c8c8d0" stroke-width="1.6"/>'; return '<g class="dc-wheel" style="transform-origin:' + cx + 'px ' + cy + 'px"><circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#1f1f27" stroke="#d62828" stroke-width="2.4"/>' + s + '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * .22) + '" fill="#ffd24a"/></g>'; }
+
+function wheel2(cx, cy, r, big) {
+  var s = '', i;
+  for (i = 0; i < 4; i++) { var a = i * Math.PI / 4; s += '<path d="M' + (cx + r * .8 * Math.cos(a)).toFixed(1) + ' ' + (cy + r * .8 * Math.sin(a)).toFixed(1) + ' L' + (cx - r * .8 * Math.cos(a)).toFixed(1) + ' ' + (cy - r * .8 * Math.sin(a)).toFixed(1) + '" stroke="#d9d9e2" stroke-width="' + (big ? 2.2 : 1.6) + '" stroke-linecap="round"/>'; }
+  return '<g class="dc-wheel" style="transform-origin:' + cx + 'px ' + cy + 'px"><circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#17171d"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r - 1.6) + '" fill="none" stroke="#d62828" stroke-width="' + (big ? 3 : 2.2) + '"/>' + s +
+    '<path d="M' + cx + ' ' + (cy - r * .62) + ' A' + (r * .62) + ' ' + (r * .62) + ' 0 0 1 ' + cx + ' ' + (cy + r * .62) + 'Z" fill="#3a3a46" opacity=".75"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (r * .24) + '" fill="#ffd24a" stroke="#a87a00" stroke-width=".8"/></g>';
+}
+function mg(x, y, w, h, c, r) { /* mini cadeau */
+  return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="1.6" fill="' + c + '"/><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + (h * .22) + '" fill="#fff" opacity=".18"/><rect x="' + (x + w / 2 - 1.8) + '" y="' + y + '" width="3.6" height="' + h + '" fill="' + r + '"/><rect x="' + x + '" y="' + (y + h / 2 - 1.8) + '" width="' + w + '" height="3.6" fill="' + r + '" opacity=".85"/>' +
+    '<path d="M' + (x + w / 2) + ' ' + y + ' C' + (x + w / 2 - 9) + ' ' + (y - 9) + ' ' + (x + w / 2 - 10) + ' ' + (y - 1) + ' ' + (x + w / 2 - .6) + ' ' + y + 'Z M' + (x + w / 2) + ' ' + y + ' C' + (x + w / 2 + 9) + ' ' + (y - 9) + ' ' + (x + w / 2 + 10) + ' ' + (y - 1) + ' ' + (x + w / 2 + .6) + ' ' + y + 'Z" fill="' + r + '" stroke="rgba(0,0,0,.25)" stroke-width=".5"/>';
+}
+function mtree(x, y, h) { /* mini sapin décoré */
+  var w = h * .55, o = '<rect x="' + (x - 2) + '" y="' + (y - 3) + '" width="4" height="5" fill="#5a3a1c"/>';
+  [[0, .52, 1], [.22, .76, .78], [.44, 1, .56]].forEach(function (t, i) { var yy = y - h * (1 - t[0]) , hw = w * t[2] / 2 * (1 + (i === 0 ? .0 : 0)); });
+  o += '<path d="M' + x + ' ' + (y - h) + ' L' + (x + w * .26) + ' ' + (y - h * .62) + ' L' + (x + w * .14) + ' ' + (y - h * .62) + ' L' + (x + w * .38) + ' ' + (y - h * .3) + ' L' + (x + w * .22) + ' ' + (y - h * .3) + ' L' + (x + w * .5) + ' ' + (y - 2) + ' L' + (x - w * .5) + ' ' + (y - 2) + ' L' + (x - w * .22) + ' ' + (y - h * .3) + ' L' + (x - w * .38) + ' ' + (y - h * .3) + ' L' + (x - w * .14) + ' ' + (y - h * .62) + ' L' + (x - w * .26) + ' ' + (y - h * .62) + 'Z" fill="#1f8c45" stroke="#0d5128" stroke-width=".8"/>' +
+    '<circle cx="' + (x - w * .14) + '" cy="' + (y - h * .5) + '" r="1.8" fill="#ff6b6b"/><circle cx="' + (x + w * .12) + '" cy="' + (y - h * .24) + '" r="1.8" fill="#ffe27a"/><circle cx="' + (x - w * .22) + '" cy="' + (y - h * .16) + '" r="1.8" fill="#7cc4ff"/><circle cx="' + (x + w * .2) + '" cy="' + (y - h * .55) + '" r="1.4" fill="#d6a6ff"/>' +
+    '<path d="M' + x + ' ' + (y - h - 5) + ' l1.2 3 l3.2 0 l-2.6 2 l1 3.2 l-2.8 -2 l-2.8 2 l1 -3.2 l-2.6 -2 l3.2 0z" fill="#ffd93b"/>';
+  return o;
+}
+function mcane(x, y, h, flip) {
+  var d = 'M' + x + ' ' + y + ' V' + (y - h + 6) + ' A5 5 0 0 ' + (flip ? 1 : 0) + ' ' + (x + (flip ? 10 : -10)) + ' ' + (y - h + 6);
+  return '<path d="' + d + '" fill="none" stroke="#9f1219" stroke-width="6" stroke-linecap="round"/><path d="' + d + '" fill="none" stroke="#fff" stroke-width="4"/><path d="' + d + '" fill="none" stroke="#e0262f" stroke-width="4" stroke-dasharray="3 3.2"/>';
+}
+function lolli(x, y, c) { return '<line x1="' + x + '" y1="' + y + '" x2="' + x + '" y2="' + (y + 16) + '" stroke="#e8e8ee" stroke-width="2"/><circle cx="' + x + '" cy="' + y + '" r="7.4" fill="' + c + '"/><path d="M' + x + ' ' + y + ' m0 -6 a6 6 0 0 1 0 12 a4.2 4.2 0 0 1 0 -8.4 a2.4 2.4 0 0 1 0 4.8" fill="none" stroke="#fff" stroke-width="1.5"/>'; }
+function ginger(x, y) { return '<g fill="#b9772f" stroke="#8a5420" stroke-width=".7"><circle cx="' + x + '" cy="' + (y - 11) + '" r="4.2"/><rect x="' + (x - 5) + '" y="' + (y - 7) + '" width="10" height="10" rx="3"/><path d="M' + (x - 5) + ' ' + (y - 5) + ' l-5 4 M' + (x + 5) + ' ' + (y - 5) + ' l5 4 M' + (x - 2) + ' ' + (y + 3) + ' l-1 6 M' + (x + 2) + ' ' + (y + 3) + ' l1 6" stroke-width="3.4" stroke-linecap="round" fill="none"/></g><circle cx="' + (x - 1.6) + '" cy="' + (y - 11.6) + '" r=".7" fill="#fff"/><circle cx="' + (x + 1.6) + '" cy="' + (y - 11.6) + '" r=".7" fill="#fff"/><path d="M' + (x - 1.6) + ' ' + (y - 9.4) + ' q1.6 1.4 3.2 0" stroke="#fff" stroke-width=".8" fill="none"/><circle cx="' + x + '" cy="' + (y - 3) + '" r=".9" fill="#e63946"/><circle cx="' + x + '" cy="' + (y + .2) + '" r=".9" fill="#e63946"/>'; }
+
 function train() {
-  var red = U('tr'), blk = U('tb'), gold = U('tg'), w1 = U('t1'), w2 = U('t2'), w3 = U('t3'), st = U('ts'), rg = U('tp');
-  var defs = LG(red, [[0, '#f0414a'], [1, '#9c0f1c']]) + LG(blk, [[0, '#4a4a56'], [1, '#14141a']]) + LG(gold, [[0, '#fff0a0'], [1, '#d8a000']], 0, 0, 1, 1) + LG(w1, [[0, '#35c46a'], [1, '#157a3c']]) + LG(w2, [[0, '#4aa8ff'], [1, '#1b5fb8']]) + LG(w3, [[0, '#ffe27a'], [1, '#e0a400']]) +
-    '<pattern id="' + st + '" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#fff"/><rect width="7" height="14" fill="#e0262f"/></pattern>';
-  var o = '';
-  /* wagons (de gauche à droite) : cadeaux, sapins, bonbons */
-  function wagon(x, g, load) { return '<path d="M' + x + ' 96 H' + (x + 6) + '" stroke="#777" stroke-width="3"/><rect x="' + (x + 6) + '" y="58" width="112" height="40" rx="5" fill="url(#' + g + ')"/><rect x="' + (x + 6) + '" y="68" width="112" height="5" fill="#fff" opacity=".35"/><rect x="' + (x + 2) + '" y="96" width="120" height="7" rx="2" fill="url(#' + blk + ')"/><g transform="translate(' + x + ' 0)">' + load + '</g>' + wheel(x + 30, 112, 11) + wheel(x + 94, 112, 11); }
-  var lg1 = '<g transform="translate(' + (0) + ' 0)">';
-  o += wagon(6, w1, '<rect x="22" y="40" width="26" height="20" rx="2" fill="#d62828"/><rect x="33" y="40" width="4" height="20" fill="#ffd93b"/><rect x="54" y="34" width="24" height="26" rx="2" fill="#2e86de"/><rect x="64" y="34" width="4" height="26" fill="#fff"/><rect x="82" y="44" width="22" height="16" rx="2" fill="#8e44ad"/><rect x="91" y="44" width="4" height="16" fill="#ffd93b"/>');
-  o += wagon(134, w2, '<path d="M36 60 L48 26 L60 60Z" fill="#1e8c46"/><path d="M42 60 L54 18 L66 60Z" fill="#27ae60"/><path d="M70 60 L80 30 L90 60Z" fill="#1e8c46"/><path d="M48 22 l2 4 l4 0 l-3 3 l1 4 l-4 -2 l-4 2 l1 -4 l-3 -3 l4 0z" fill="#ffd93b"/>');
-  o += wagon(262, w3, '<path d="M24 60 V38 A9 9 0 0 1 42 38" fill="none" stroke="#e0262f" stroke-width="7"/><path d="M60 60 V40 A9 9 0 0 1 78 40" fill="none" stroke="#e0262f" stroke-width="7"/><path d="M96 60 V36 A9 9 0 0 1 114 36" fill="none" stroke="#e0262f" stroke-width="7"/><path d="M24 60 V38 A9 9 0 0 1 42 38" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="4 5"/>');
-  /* tender + locomotive */
-  o += '<path d="M382 96 H392" stroke="#777" stroke-width="3"/><rect x="392" y="62" width="64" height="36" rx="4" fill="url(#' + blk + ')"/><rect x="396" y="56" width="56" height="10" rx="3" fill="#2a2a32"/><circle cx="412" cy="54" r="7" fill="#5a3a1c"/><circle cx="428" cy="52" r="8" fill="#6a4524"/><circle cx="444" cy="55" r="7" fill="#5a3a1c"/>' + wheel(412, 112, 11) + wheel(440, 112, 11);
-  o += '<rect x="456" y="30" width="46" height="68" rx="5" fill="url(#' + red + ')"/><rect x="450" y="24" width="58" height="9" rx="3" fill="url(#' + blk + ')"/><rect x="464" y="40" width="26" height="24" rx="3" fill="#bfe8ff" stroke="#2a2a32" stroke-width="3"/><path d="M477 40 V64" stroke="#2a2a32" stroke-width="2"/>' +
-    '<rect x="496" y="46" width="88" height="44" rx="14" fill="url(#' + red + ')"/><rect x="552" y="46" width="32" height="44" rx="14" fill="url(#' + blk + ')"/><rect x="522" y="46" width="5" height="44" fill="url(#' + gold + ')"/><rect x="542" y="46" width="5" height="44" fill="url(#' + gold + ')"/>' +
-    '<path d="M556 46 L562 18 L580 18 L586 46Z" fill="url(#' + blk + ')"/><rect x="552" y="12" width="38" height="8" rx="3" fill="url(#' + gold + ')"/><path d="M510 46 Q518 28 528 46Z" fill="url(#' + gold + ')"/><circle cx="584" cy="66" r="7" fill="#fff6b0"/><circle class="dc-tw" cx="584" cy="66" r="14" fill="#fff6b0" opacity=".35"/>' +
-    '<path d="M588 92 L612 108 L588 108Z" fill="url(#' + blk + ')"/><rect x="470" y="92" width="130" height="8" rx="3" fill="url(#' + blk + ')"/>' + wheel(488, 112, 15) + wheel(526, 112, 15) + wheel(572, 114, 10) +
-    '<path d="M488 112 H526" stroke="#c8c8d0" stroke-width="4"/>';
+  var red = U('r'), dk = U('k'), gold = U('g'), br = U('b'), gl = U('l'), steel = U('s'), wg = U('wg'), wb = U('wb'), wy = U('wy'), tend = U('t'), sn = U('sn'), glow = U('gw');
+  var defs = LG(red, [[0, '#f55a62'], [.5, '#d62832'], [1, '#8a0e19']]) + LG(dk, [[0, '#55555f'], [1, '#14141a']]) + LG(gold, [[0, '#fff3b0'], [.5, '#f0c020'], [1, '#a87a00']], 0, 0, 1, 1) + LG(br, [[0, '#ffe9a0'], [1, '#b07a00']]) +
+    LG(gl, [[0, '#d8f2ff'], [1, '#6fb2dc']]) + LG(steel, [[0, '#e6e6ee'], [1, '#7c7c88']]) + LG(wg, [[0, '#3fc46a'], [1, '#146f37']]) + LG(wb, [[0, '#4aa8ff'], [1, '#1a56b0']]) + LG(wy, [[0, '#ffd45a'], [1, '#dc8a00']]) +
+    LG(tend, [[0, '#4a4a56'], [1, '#101016']]) + LG(sn, [[0, '#fff'], [1, '#d3e3f3']]) + RG(glow, [[0, '#fff6b0', .9], [1, '#fff6b0', 0]], .5, .5, .5);
+  var o = '', i, j;
+  /* ---------- wagons ---------- */
+  function wagon(x, g, kind) {
+    var s = '';
+    s += '<rect x="' + (x + 2) + '" y="99" width="128" height="8" rx="2" fill="url(#' + dk + ')"/>' +
+      '<rect x="' + (x - 3) + '" y="97" width="7" height="6" rx="1" fill="#2a2a32"/><rect x="' + (x + 128) + '" y="97" width="7" height="6" rx="1" fill="#2a2a32"/><circle cx="' + (x - 3) + '" cy="100" r="3.4" fill="url(#' + steel + ')"/><circle cx="' + (x + 135) + '" cy="100" r="3.4" fill="url(#' + steel + ')"/>' +
+      '<rect x="' + (x + 6) + '" y="54" width="120" height="46" rx="4" fill="url(#' + g + ')" stroke="rgba(0,0,0,.35)" stroke-width="1"/>';
+    for (i = 0; i < 3; i++) s += '<path d="M' + (x + 7) + ' ' + (66 + i * 11) + ' H' + (x + 125) + '" stroke="rgba(0,0,0,.2)" stroke-width="1"/>';
+    for (i = 0; i < 5; i++) s += '<rect x="' + (x + 6 + i * 29.5) + '" y="54" width="3.4" height="46" fill="rgba(0,0,0,.22)"/>';
+    s += '<rect x="' + (x + 6) + '" y="54" width="120" height="6" rx="3" fill="url(#' + gold + ')"/><rect x="' + (x + 6) + '" y="93" width="120" height="6" fill="url(#' + gold + ')" opacity=".9"/>' +
+      '<g transform="translate(' + (x + 66) + ' 78)"><circle r="11" fill="#fff" opacity=".92"/><path d="M0 -8 V8 M-7 -4 L7 4 M-7 4 L7 -4" stroke="#d62828" stroke-width="1.7" stroke-linecap="round"/><circle r="2" fill="#d62828"/></g>';
+    /* contenu */
+    if (kind === 0) { s += mg(x + 14, 36, 26, 20, '#d62828', '#ffd93b') + mg(x + 44, 28, 28, 28, '#2e86de', '#fff') + mg(x + 76, 40, 22, 16, '#8e44ad', '#ffd93b') + mg(x + 100, 33, 20, 23, '#27ae60', '#fff6c2') + mg(x + 52, 12, 18, 16, '#ff8a1f', '#fff'); }
+    if (kind === 1) { s += mtree(x + 30, 56, 38) + mtree(x + 64, 56, 48) + mtree(x + 98, 56, 36); }
+    if (kind === 2) { s += mcane(x + 18, 56, 36, 0) + mcane(x + 36, 56, 30, 1) + lolli(x + 58, 36, '#ff5fa2') + lolli(x + 76, 40, '#7a5cff') + ginger(x + 98, 56) + ginger(x + 114, 56) + mcane(x + 108, 56, 30, 0); }
+    /* neige sur le haut + guirlande lumineuse */
+    s += '<path d="M' + (x + 4) + ' 55 q4 -7 8 -1 q4 -6 9 0 q4 -7 9 0 q4 -6 9 0 q4 -7 9 0 q4 -6 9 0 q4 -7 9 0 q4 -6 9 0 q4 -7 9 0 q4 -6 9 0 q4 -7 8 0 L' + (x + 128) + ' 58 L' + (x + 4) + ' 58Z" fill="url(#' + sn + ')"/>';
+    s += '<path d="M' + (x + 8) + ' 62 Q' + (x + 36) + ' 74 ' + (x + 64) + ' 62 Q' + (x + 92) + ' 74 ' + (x + 122) + ' 62" fill="none" stroke="#1a1a20" stroke-width="1"/>';
+    [[16, 66, '#ff4d4d'], [30, 69, '#ffd23b'], [46, 70, '#46d36f'], [64, 66, '#4aa8ff'], [82, 70, '#ff9f2e'], [98, 70, '#ff4d4d'], [114, 66, '#ffd23b']].forEach(function (b, k) { s += '<circle class="dc-tw t' + (k % 3) + '" cx="' + (x + b[0]) + '" cy="' + (b[1] + 2) + '" r="4.2" fill="' + b[2] + '"/>'; });
+    /* bogies */
+    s += '<rect x="' + (x + 18) + '" y="104" width="30" height="4" fill="#2a2a32"/><rect x="' + (x + 88) + '" y="104" width="30" height="4" fill="#2a2a32"/>' + wheel2(x + 30, 113, 11) + wheel2(x + 106, 113, 11);
+    return s;
+  }
+  o += wagon(4, wg, 0) + wagon(146, wb, 1) + wagon(288, wy, 2);
+  o += '<path d="M134 101 H146 M276 101 H288 M418 101 H430" stroke="#555" stroke-width="3.2"/><circle cx="140" cy="101" r="2" fill="#999"/><circle cx="282" cy="101" r="2" fill="#999"/><circle cx="424" cy="101" r="2" fill="#999"/>';
+  /* ---------- tender ---------- */
+  o += '<rect x="430" y="99" width="76" height="8" rx="2" fill="url(#' + dk + ')"/><rect x="432" y="62" width="72" height="38" rx="4" fill="url(#' + tend + ')" stroke="#000" stroke-opacity=".4"/>' +
+    '<rect x="432" y="62" width="72" height="5" rx="2.5" fill="url(#' + gold + ')"/><rect x="432" y="94" width="72" height="5" fill="url(#' + gold + ')"/>' +
+    '<text x="468" y="84" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="15" fill="url(#' + gold + ')" stroke="#6b4a00" stroke-width=".4">LK10</text>' +
+    '<path d="M436 62 L442 44 L452 36 L466 32 L482 34 L494 42 L500 62Z" fill="#1c1c22"/>';
+  for (i = 0; i < 9; i++) o += '<circle cx="' + (444 + i * 6.2) + '" cy="' + (52 - Math.sin(i / 8 * Math.PI) * 12 + (i % 2) * 3) + '" r="3.3" fill="#2b2b33"/>';
+  o += mg(458, 34, 16, 14, '#ffd24a', '#d62828') + '<path d="M436 62 q6 -8 12 0 q6 -8 12 0 q6 -8 12 0 q6 -8 12 0 q6 -8 12 0 q6 -8 12 0 L504 66 L436 66Z" fill="url(#' + sn + ')"/>' + wheel2(452, 113, 11) + wheel2(488, 113, 11);
+  o += '<path d="M506 101 H516" stroke="#555" stroke-width="3.2"/>';
+  /* ---------- locomotive ---------- */
+  /* châssis + plaque de roulement */
+  o += '<rect x="514" y="99" width="152" height="9" rx="2" fill="url(#' + dk + ')"/><rect x="560" y="94" width="96" height="6" rx="2" fill="url(#' + steel + ')"/>';
+  /* cabine */
+  o += '<rect x="518" y="30" width="54" height="70" rx="4" fill="url(#' + red + ')" stroke="rgba(0,0,0,.4)"/><rect x="512" y="20" width="66" height="12" rx="4" fill="url(#' + dk + ')"/>' +
+    '<path d="M514 21 q5 -8 10 -1 q5 -7 10 0 q5 -8 10 0 q5 -7 10 0 q5 -8 10 0 q4 -6 8 0 L578 24 L512 24Z" fill="url(#' + sn + ')"/>' +
+    '<rect x="528" y="38" width="32" height="30" rx="3" fill="#2a2a32"/><rect x="531" y="41" width="26" height="24" rx="2" fill="url(#' + gl + ')"/><path d="M544 41 V65" stroke="#2a2a32" stroke-width="2"/>' +
+    /* lutin conducteur à la fenêtre */
+    '<circle cx="551" cy="56" r="6" fill="#ffdcb8"/><path d="M545 52 L551 41 L557 52Z" fill="#2da44e"/><rect x="544.4" y="50.4" width="13" height="3.2" rx="1.6" fill="#fff"/><circle cx="551" cy="40.6" r="1.8" fill="#ffd24a"/><circle cx="549" cy="56" r=".9" fill="#222"/><circle cx="553" cy="56" r=".9" fill="#222"/><path d="M549 59 q2 1.8 4 0" stroke="#b03a3a" stroke-width=".8" fill="none"/>' +
+    '<rect x="518" y="72" width="54" height="6" fill="url(#' + gold + ')"/><circle cx="545" cy="88" r="6" fill="url(#' + br + ')" stroke="#6b4a00" stroke-width=".8"/><text x="545" y="91" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="8" fill="#5a3a00">10</text>' +
+    '<rect x="518" y="30" width="4" height="70" fill="rgba(0,0,0,.18)"/>';
+  /* chaudière */
+  o += '<rect x="570" y="46" width="94" height="50" rx="18" fill="url(#' + red + ')" stroke="rgba(0,0,0,.4)"/><path d="M578 56 H656" stroke="#fff" stroke-opacity=".28" stroke-width="3" stroke-linecap="round"/>';
+  [592, 616, 640].forEach(function (bx) { o += '<rect x="' + bx + '" y="46" width="6" height="50" fill="url(#' + gold + ')"/><circle cx="' + (bx + 3) + '" cy="52" r="1.2" fill="#6b4a00"/><circle cx="' + (bx + 3) + '" cy="90" r="1.2" fill="#6b4a00"/>'; });
+  for (i = 0; i < 7; i++) o += '<circle cx="' + (580 + i * 3 * 4) + '" cy="68" r="1.1" fill="rgba(0,0,0,.35)"/>';
+  /* boîte à fumée + couronne de Noël sur la porte */
+  o += '<rect x="640" y="46" width="30" height="50" rx="16" fill="url(#' + dk + ')"/><circle cx="660" cy="70" r="15" fill="#1d1d24" stroke="url(#' + br + ')" stroke-width="2.4"/>' +
+    '<circle cx="660" cy="70" r="11" fill="none" stroke="#1e8c46" stroke-width="5.4"/><circle cx="660" cy="70" r="11" fill="none" stroke="#35c46a" stroke-width="2" stroke-dasharray="2 3"/><path d="M654 80 l6 -4 l6 4 l-3 6 l-6 0z" fill="#e63946"/><circle cx="660" cy="80" r="2.2" fill="#ffd24a"/><circle cx="654" cy="64" r="1.8" fill="#e63946"/><circle cx="666" cy="64" r="1.8" fill="#e63946"/>';
+  /* cheminée, dômes, sifflet, main courante */
+  o += '<path d="M598 48 L602 22 H622 L626 48Z" fill="url(#' + dk + ')"/><path d="M594 22 H630 L624 14 H600Z" fill="url(#' + gold + ')" stroke="#6b4a00" stroke-width=".7"/><path d="M599 14 q5 -6 10 0 q5 -7 10 0 q4 -5 6 0 L624 17 L600 17Z" fill="url(#' + sn + ')"/>' +
+    '<path d="M574 46 Q574 30 584 30 Q594 30 594 46Z" fill="url(#' + gold + ')" stroke="#6b4a00" stroke-width=".8"/><path d="M577 40 Q579 34 584 33" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.6" stroke-linecap="round"/><rect x="571" y="44" width="26" height="4" rx="1.5" fill="url(#' + br + ')"/>' +
+    '<path d="M636 46 Q638 36 646 36 Q654 36 656 46Z" fill="url(#' + br + ')" stroke="#6b4a00" stroke-width=".7"/><rect x="618" y="36" width="3.4" height="12" fill="url(#' + br + ')"/><ellipse cx="619.7" cy="36" rx="3.6" ry="2" fill="url(#' + br + ')"/>' +
+    '<path d="M574 50 H664" stroke="url(#' + br + ')" stroke-width="2.2"/><path d="M590 50 V44 M626 50 V44 M656 50 V44" stroke="url(#' + br + ')" stroke-width="2"/>';
+  /* phare avant */
+  o += '<circle class="dc-tw" cx="672" cy="56" r="20" fill="url(#' + glow + ')"/><rect x="664" y="38" width="12" height="14" rx="3" fill="url(#' + br + ')" stroke="#6b4a00" stroke-width=".8"/><circle cx="670" cy="45" r="4.4" fill="#fff8c0"/>';
+  /* cylindre, bielle, chasse-neige à rayures */
+  o += '<rect x="626" y="82" width="34" height="14" rx="4" fill="url(#' + dk + ')" stroke="#000" stroke-opacity=".4"/><rect x="654" y="87" width="14" height="4" rx="2" fill="url(#' + steel + ')"/>' +
+    '<g class="dc-rod"><rect x="534" y="104" width="86" height="4" rx="2" fill="url(#' + steel + ')"/></g>' +
+    '<path d="M664 98 L690 118 L664 118Z" fill="#fff" stroke="#8d1717" stroke-width="1.2"/><path d="M670 101 L682 112 M676 101 L686 110 M664 106 L676 117" stroke="#d62828" stroke-width="3"/>';
+  /* roues motrices + roue avant */
+  o += wheel2(548, 108, 17, true) + wheel2(590, 108, 17, true) + wheel2(632, 108, 17, true) + wheel2(666, 113, 9);
   /* fumée */
-  o += '<g><circle class="dc-puff" cx="571" cy="8" r="9" fill="#eef3fa"/><circle class="dc-puff" style="animation-delay:-.55s" cx="571" cy="8" r="9" fill="#eef3fa"/><circle class="dc-puff" style="animation-delay:-1.1s" cx="571" cy="8" r="9" fill="#eef3fa"/></g>';
-  return SV('0 -14 620 134', defs, o);
+  o += '<g><circle class="dc-puff" cx="612" cy="8" r="9" fill="#eef3fa"/><circle class="dc-puff" style="animation-delay:-.6s" cx="612" cy="8" r="9" fill="#eef3fa"/><circle class="dc-puff" style="animation-delay:-1.2s" cx="612" cy="8" r="9" fill="#eef3fa"/></g>';
+  return SV('0 -30 700 160', defs, o);
 }
 
 /* ---------- Chalet enneigé ---------- */
@@ -306,7 +381,6 @@ function cottage() {
     '<g><circle class="dc-puff" cx="161" cy="22" r="8" fill="#eef3fa"/><circle class="dc-puff" style="animation-delay:-.8s" cx="161" cy="22" r="8" fill="#eef3fa"/><circle class="dc-puff" style="animation-delay:-1.6s" cx="161" cy="22" r="8" fill="#eef3fa"/></g>';
   return SV('0 0 210 180', defs, o);
 }
-
 
 /* ---------- Bonnet du logo (dessin) ---------- */
 function hat() {
@@ -457,9 +531,9 @@ function build(root, env) {
     flySleigh = function () {
       if (!sl.animate) return;
       var W = window.innerWidth, sw = sl.offsetWidth || 400;
-      sl.style.opacity = '1';
+      sl.style.opacity = '1'; sl.classList.add('fly');
       var a = sl.animate([{ transform: 'translate(' + (-sw - 40) + 'px,10px) rotate(2deg)' }, { transform: 'translate(' + (W * .45) + 'px,-26px) rotate(-1deg)' }, { transform: 'translate(' + (W + 60) + 'px,14px) rotate(2deg)' }], { duration: 20000, easing: 'linear' });
-      a.onfinish = function () { sl.style.opacity = '0'; };
+      a.onfinish = function () { sl.style.opacity = '0'; sl.classList.remove('fly'); };
     };
     (function loopS(first) { later(function () { if (!document.hidden && !env.busy()) flySleigh(); loopS(false); }, first ? 3000 : rnd(30000, 55000)); })(true);
     /* Petit train : traverse le bas de l'écran (1er passage au bout de 9 s, puis toutes les 50 à 80 s) */
@@ -467,9 +541,9 @@ function build(root, env) {
     rollTrain = function () {
       if (!bt.animate) return;
       var W = window.innerWidth, tw = bt.offsetWidth || 400;
-      bt.style.opacity = '1';
+      bt.style.opacity = '1'; bt.classList.add('fly');
       var a = bt.animate([{ transform: 'translateX(' + (-tw - 40) + 'px)' }, { transform: 'translateX(' + (W + 60) + 'px)' }], { duration: 26000, easing: 'linear' });
-      a.onfinish = function () { bt.style.opacity = '0'; };
+      a.onfinish = function () { bt.style.opacity = '0'; bt.classList.remove('fly'); };
     };
     (function loopT(first) { later(function () { if (!document.hidden && !env.busy()) rollTrain(); loopT(false); }, first ? 9000 : rnd(50000, 80000)); })(true);
     var ss = div('dcn-shoot'); root.appendChild(ss);
