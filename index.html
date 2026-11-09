@@ -1451,13 +1451,63 @@ function finishCover() {
 }
 </script>
 
-    <div id="cover-page" onclick="closeCover()">
+    <style id="lk10-auth-css">
+/* ===== Écran d'accès / connexion / inscription (style CineFuse, couleurs LK10) ===== */
+#discord-overlay { background: radial-gradient(60% 50% at 50% 12%, rgba(255,222,0,.11), transparent 62%), radial-gradient(40% 40% at 88% 85%, rgba(255,222,0,.06), transparent 60%), #070707; overflow-y: auto; padding: 24px 12px; box-sizing: border-box; }
+#discord-overlay::before { content: ""; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,222,0,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,222,0,.035) 1px, transparent 1px); background-size: 44px 44px; pointer-events: none; }
+#discord-overlay .discord-modal { --lk10-pad: 34px; position: relative; margin: auto; width: 520px; max-width: 100%; background: rgba(12,12,12,.85); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: var(--lk10-pad); box-shadow: 0 25px 60px rgba(0,0,0,.75), 0 0 40px rgba(255,222,0,.06); text-align: center; overflow: hidden; }
+#discord-overlay .discord-modal.auth-mode { padding-bottom: 0; }
+#discord-overlay .discord-modal h2 { color: #fff; font-size: 28px; font-weight: 900; text-transform: none; letter-spacing: -.3px; margin: 4px 0 8px; text-align: center; }
+#discord-overlay .discord-modal #auth-desc { color: #9a9a9a; font-size: 13px; margin-bottom: 22px; text-align: center; }
+.lk10-auth-logo { display: none; margin: 0 auto 14px; height: 64px; width: auto; max-width: 80%; object-fit: contain; }
+.auth-mode .lk10-auth-logo { display: block; }
+.auth-mode .discord-icon-box { display: none; }
+/* étape 1 : code d'accès */
+#discord-overlay .btn-join-discord { border-radius: 8px; }
+#discord-overlay #access-code-input { height: 48px; border-radius: 8px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+#discord-overlay #access-code-input:focus { border-color: rgba(255,222,0,.6); }
+#discord-overlay .btn-validate-code { background: var(--primary); color: #000; border-radius: 8px; height: 48px; font-size: 14px; font-weight: 900; letter-spacing: .5px; transition: .2s; }
+#discord-overlay .btn-validate-code:hover { background: var(--primary); color: #000; transform: scale(1.02); box-shadow: 0 8px 24px rgba(255,222,0,.25); }
+/* étape 2 : formulaire */
+#discord-overlay .auth-mode .access-form, #discord-overlay .discord-modal.auth-mode #auth-form { flex-direction: column; gap: 14px; margin-top: 6px; text-align: left; }
+.lk10-f { display: flex; flex-direction: column; gap: 6px; text-align: left; min-width: 0; }
+.lk10-f label { font-size: 11px; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase; color: #8d8d8d; margin-left: 2px; }
+.lk10-in { position: relative; }
+.lk10-in > i:first-child { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #555; font-size: 14px; pointer-events: none; }
+.lk10-in input { width: 100%; height: 48px; padding: 0 44px 0 42px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: .2s; box-sizing: border-box; text-align: left; }
+.lk10-in input::placeholder { color: #666; }
+.lk10-in input:focus { border-color: rgba(255,222,0,.6); background: rgba(255,255,255,.08); box-shadow: 0 0 0 3px rgba(255,222,0,.08); }
+.lk10-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: #666; width: 36px; height: 36px; cursor: pointer; font-size: 14px; }
+.lk10-eye:hover { color: var(--primary); }
+.lk10-row2 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.lk10-signup .lk10-row2 { grid-template-columns: 1fr 1fr; }
+.lk10-f-email, .lk10-f-confirm, .lk10-perks { display: none; }
+.lk10-signup .lk10-f-email, .lk10-signup .lk10-f-confirm { display: flex; }
+.lk10-signup .lk10-perks { display: flex; }
+.lk10-perks { align-items: center; justify-content: center; gap: 8px; text-align: center; border: 1px solid rgba(255,222,0,.3); background: rgba(255,222,0,.07); color: var(--primary); font-size: 12px; padding: 10px 14px; border-radius: 8px; margin-bottom: 4px; }
+.lk10-forgot { align-self: flex-end; font-size: 12px; color: var(--primary); cursor: pointer; margin: -4px 2px 0 0; }
+.lk10-forgot:hover { text-decoration: underline; }
+.lk10-signup .lk10-forgot { display: none; }
+#discord-overlay .auth-mode .btn-validate-code, #discord-overlay .discord-modal.auth-mode #auth-btn { width: 100%; height: 50px; font-size: 15px; margin-top: 6px; }
+/* pied de carte : bascule connexion / inscription */
+#discord-overlay .discord-modal.auth-mode #auth-switch { margin: 26px calc(var(--lk10-pad) * -1) 0 !important; padding: 18px !important; font-size: 14px !important; color: #9a9a9a !important; background: rgba(255,255,255,.04); border-top: 1px solid rgba(255,255,255,.07); }
+#discord-overlay .discord-modal.auth-mode #auth-switch b { color: var(--primary); }
+#discord-overlay .discord-modal.auth-mode #auth-switch:hover b { text-decoration: underline; }
+#discord-overlay #access-error { margin-bottom: 4px; }
+@media (max-width: 520px) { #discord-overlay .discord-modal { --lk10-pad: 18px; } .lk10-signup .lk10-row2 { grid-template-columns: 1fr; } #discord-overlay .discord-modal h2 { font-size: 24px; } }
+
+/* ===== Plateformes : nombre de films & séries ===== */
+.plat-count { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 3; background: rgba(0,0,0,.72); color: var(--primary); border: 1px solid rgba(255,222,0,.35); border-radius: 999px; padding: 3px 10px; font-size: 10px; font-weight: bold; letter-spacing: .4px; white-space: nowrap; pointer-events: none; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+@media (max-width: 768px) { .plat-count { font-size: 7.5px; padding: 2px 6px; bottom: 5px; } }
+</style>
+<div id="cover-page" onclick="closeCover()">
         <video id="cover-video" src="asset/press-start.mp4" autoplay muted loop playsinline></video>
     </div>
 <script src="lk10-cover-tv.js"></script>
     <div id="discord-overlay">
         <div class="discord-modal">
             <div class="discord-icon-box"><i class="fab fa-discord"></i></div>
+            <img class="lk10-auth-logo" src="asset/logolk10.png" alt="Ciné LK10">
             <h2 id="auth-title">Rejoins la communauté !</h2>
             <p id="auth-desc">Récupère le code d'accès sur notre Discord pour entrer sur le site.</p>
             
@@ -3160,45 +3210,68 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
     }
 
     function switchToAuthUI() {
-        document.getElementById('auth-title').innerText = "Connexion Membre";
-        document.getElementById('auth-desc').innerText = "Connectez-vous pour voir vos favoris et votre historique.";
+        const modal = document.querySelector('#discord-overlay .discord-modal');
+        if (modal) modal.classList.add('auth-mode');
         document.getElementById('auth-discord-btn').style.display = 'none';
-        document.getElementById('auth-switch').style.display = 'block'; 
-        
+        document.getElementById('auth-switch').style.display = 'block';
+
         const form = document.getElementById('auth-form');
         form.style.flexDirection = 'column';
         form.innerHTML = `
-            <input type="text" id="username-input" placeholder="Pseudo ou Email..." class="form-input" style="width:100%; text-align:left;" required>
-            <input type="email" id="email-input" placeholder="Adresse Email..." class="form-input" style="width:100%; text-align:left; display:none;">
-            <input type="password" id="password-input" placeholder="Mot de passe..." class="form-input" style="width:100%; text-align:left;" required>
-            <button type="submit" class="btn-validate-code" id="auth-btn" style="width:100%;">SE CONNECTER</button>
-            <p id="forgot-password-link" style="font-size: 12px; color: #aaa; cursor: pointer; text-align:center; margin-top:10px; transition:0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#aaa'" onclick="promptForgotPassword()">Mot de passe oublié ?</p>
+            <div class="lk10-perks"><i class="fas fa-star"></i> Favoris · Historique · Reprise de lecture · Profil perso</div>
+            <div class="lk10-f lk10-f-email">
+                <label for="email-input">E-mail</label>
+                <div class="lk10-in"><i class="far fa-envelope"></i><input type="email" id="email-input" placeholder="exemple@email.com" autocomplete="email"></div>
+            </div>
+            <div class="lk10-f">
+                <label for="username-input" id="lk10-user-label">Pseudo ou e-mail</label>
+                <div class="lk10-in"><i class="far fa-user"></i><input type="text" id="username-input" placeholder="Pseudo ou e-mail..." autocomplete="username" required></div>
+            </div>
+            <div class="lk10-row2">
+                <div class="lk10-f">
+                    <label for="password-input">Mot de passe</label>
+                    <div class="lk10-in"><i class="fas fa-lock"></i><input type="password" id="password-input" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="lk10-eye" onclick="lk10TogglePwd()" aria-label="Afficher le mot de passe"><i class="far fa-eye"></i></button></div>
+                </div>
+                <div class="lk10-f lk10-f-confirm">
+                    <label for="confirm-input">Confirmation</label>
+                    <div class="lk10-in"><i class="fas fa-lock"></i><input type="password" id="confirm-input" placeholder="••••••••" autocomplete="new-password"></div>
+                </div>
+            </div>
+            <div class="lk10-forgot" id="forgot-password-link" onclick="promptForgotPassword()">Mot de passe oublié ?</div>
+            <button type="submit" class="btn-validate-code" id="auth-btn">SE CONNECTER</button>
         `;
+        lk10ApplyAuthMode();
+    }
+
+    function lk10TogglePwd() {
+        const p = document.getElementById('password-input');
+        if (!p) return;
+        const show = p.type === 'password';
+        p.type = show ? 'text' : 'password';
+        const c = document.getElementById('confirm-input'); if (c) c.type = show ? 'text' : 'password';
+        const ic = document.querySelector('.lk10-eye i'); if (ic) ic.className = show ? 'far fa-eye-slash' : 'far fa-eye';
+    }
+
+    // Applique l'affichage « Connexion » ou « Inscription » (le style est dans #lk10-auth-css)
+    function lk10ApplyAuthMode() {
+        const modal = document.querySelector('#discord-overlay .discord-modal');
+        if (modal) modal.classList.toggle('lk10-signup', !isLoginMode);
+
+        const set = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+        set('auth-title', el => el.innerText = isLoginMode ? "Bienvenue" : "Créer un compte");
+        set('auth-desc', el => el.innerText = isLoginMode ? "Entrez vos identifiants pour accéder à votre espace." : "Rejoignez Ciné LK10 gratuitement et profitez de l'expérience ultime.");
+        set('auth-btn', el => el.innerText = isLoginMode ? "SE CONNECTER" : "CRÉER MON COMPTE");
+        set('auth-switch', el => el.innerHTML = isLoginMode ? "Pas encore de compte ? <b>S'inscrire gratuitement</b>" : "Vous avez déjà un compte ? <b>Se connecter</b>");
+        set('lk10-user-label', el => el.innerText = isLoginMode ? "Pseudo ou e-mail" : "Pseudo");
+        set('username-input', el => { el.placeholder = isLoginMode ? "Pseudo ou e-mail..." : "Choisis un pseudo..."; });
+        set('email-input', el => { if (isLoginMode) el.removeAttribute('required'); else el.setAttribute('required', 'true'); });
+        set('confirm-input', el => { if (isLoginMode) el.removeAttribute('required'); else el.setAttribute('required', 'true'); });
+        set('password-input', el => el.autocomplete = isLoginMode ? 'current-password' : 'new-password');
     }
 
     function toggleAuthMode() {
         isLoginMode = !isLoginMode;
-        document.getElementById('auth-title').innerText = isLoginMode ? "Connexion Membre" : "Inscription";
-        document.getElementById('auth-btn').innerText = isLoginMode ? "SE CONNECTER" : "S'INSCRIRE";
-        document.getElementById('auth-switch').innerText = isLoginMode ? "Pas de compte ? Créer un compte" : "Déjà membre ? Se connecter";
-
-        const emailInput = document.getElementById('email-input');
-        const forgotLink = document.getElementById('forgot-password-link');
-        const userLabel = document.getElementById('username-input');
-
-        if (emailInput && forgotLink && userLabel) {
-            if (isLoginMode) {
-                emailInput.style.display = 'none';
-                emailInput.removeAttribute('required');
-                forgotLink.style.display = 'block';
-                userLabel.placeholder = "Pseudo ou Email...";
-            } else {
-                emailInput.style.display = 'block';
-                emailInput.setAttribute('required', 'true');
-                forgotLink.style.display = 'none';
-                userLabel.placeholder = "Choisis un Pseudo...";
-            }
-        }
+        lk10ApplyAuthMode();
     }
 
     async function handleAuth() {
@@ -3212,6 +3285,10 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
         if (!username) return alert(isLoginMode ? "❌ Veuillez entrer votre Pseudo ou Email." : "❌ Veuillez choisir un Pseudo pour votre compte.");
         if (!isLoginMode && !email) return alert("❌ Veuillez renseigner une adresse email valide.");
         if (!password) return alert("❌ Veuillez entrer un mot de passe.");
+        if (!isLoginMode) {
+            const confirmEl = document.getElementById('confirm-input');
+            if (confirmEl && confirmEl.value.trim() !== password) return alert("❌ Les mots de passe ne correspondent pas.");
+        }
 
         const bodyData = { username, password, isVip: isVipUser };
         if (!isLoginMode) { bodyData.email = email; if (window.__signupAvatar) bodyData.profilePic = window.__signupAvatar; }
@@ -3657,7 +3734,7 @@ async function loadSecureMovies() {
         } catch (error) { 
             console.error("Erreur serveur", error); 
        } finally {
-            computeNewBadges(); // Calcule les 15 titres les plus récents par catégorie pour le badge "Nouveau"
+            computeNewBadges(); computePlatformCounts(); // Calcule les 15 titres les plus récents par catégorie pour le badge "Nouveau"
             showHome(); // <-- Lance le mode Netflix par défaut !
             openMovieFromUrlIfNeeded(); // Si le lien contient ?watch=ID, ouvre directement le film/la série partagé(e)
         }
@@ -3851,6 +3928,49 @@ function initMegaMenu() {
     function setYearFilter(cat, year) { document.getElementById('wishboard-page').style.display = 'none'; document.querySelector('.main-container').style.display = 'flex'; currentCategory = cat; currentGenreFilter = 'all'; currentYearFilter = year; currentPage = 1; const globalYearInput = document.getElementById('year-filter-input'); if(globalYearInput) globalYearInput.value = year; updateNavActive(cat); updateGrid(); }
     function applyMenuYear(cat) { const input = document.getElementById('menu-' + cat + '-year'); const y = input.value.trim(); if (y && y.length === 4) { setYearFilter(cat, y); closeMobileMenu(); } }
 
+// Mots-clés de chaque plateforme (utilisés par la recherche ET par le compteur des cartes)
+function getPlatformKeywords() {
+    return {
+            'dc': ['dc', 'dc comics', 'batman', 'superman', 'wonder woman', 'the flash', 'aquaman', 'justice league', 'joker', 'harley quinn', 'arrow', 'peacemaker', 'suicide squad', 'man of steel'],
+            'marvel': ['marvel', 'avengers', 'iron man', 'spider-man', 'thor', 'captain america', 'x-men', 'deadpool', 'wolverine', 'hulk', 'guardians', 'loki', 'venom', 'les 4 fantastiques', 'nouveaux mutants', 'logan', 'shang-chi'],
+            'pixar': ['pixar', 'toy story', 'nemo', 'cars', 'indestructibles', 'monstres', 'ratatouille', 'coco', 'vice-versa', 'buzz l\'éclair'],
+            'disney': ['disney', 'star wars', 'jedi', 'mandalorian', 'darth', 'luke skywalker', 'clone wars', 'andor', 'obi-wan', 'boba fett', 'roi lion', 'mulan', 'aladdin', 'reine des neiges', 'pirates des caraibes', 'mickey', 'encanto', 'vaiana', 'tron', 'la belle au bois dormant', 'zootopie', 'bluey'],
+            'warner': ['warner', 'harry potter', 'matrix', 'lord of the rings', 'seigneur des anneaux', 'hobbit', 'dune', 'godzilla', 'kong', 'mad max', 'furiosa', 'ça', 'pacific rim', 'the bride'],
+            'hbo': ['hbo', 'game of thrones', 'house of the dragon', 'last of us', 'sopranos', 'euphoria', 'true detective', 'succession'],
+            'prime': ['prime', 'amazon', 'the boys', 'rings of power', 'spider-noir', 'fallout', 'reacher', 'terminal list', 'omni-man', 'jack ryan', 'road house', 'crime 101', 'projet dernière chance', 'reconnu coupable', 'the beekeeper'],
+            'netflix': ['netflix','jojo','stranger things','one piece','war machine','peaky blinders','nature prédatrice', 'witcher', 'lupin', 'casa de papel', 'squid game', 'wednesday', 'black mirror', 'arcane', 'troll'],
+            'apple tv': ['apple', 'apple tv', 'the gorge', 'ted lasso', 'severance', 'silo', 'morning show', 'foundation', 'monarch', 'f1', 'napoléon'],
+            '20th': ['20th', '20th century', 'fox', 'alien', 'predator', 'planète des singes', 'die hard', 'kingsman', 'avatar', 'x-men', 'wolverine', 'logan', 'fight club', 'free guy', 'nouveaux mutants', 'toys'],
+            'paramount': ['paramount', 'top gun', 'mission impossible', 'halo', 'yellowstone', 'transformers', 'sonic', 'south park', 'star trek', 'gladiator', 'scream', 'forrest gump'],
+            'dreamworks': ['dreamworks', 'dragons', 'shrek', 'kung fu panda', 'madagascar'],
+            'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from'],
+           'starz': ['starz', 'power', 'outlander', 'spartacus', 'p-valley', 'the girlfriend experience', 'heels', 'hightown'],
+           'mtv': ['mtv', 'teen wolf', 'scream', 'awkward', 'jackass', 'daria', 'eye candy', 'the shannara chronicles', 'finding carter']
+        
+    };
+}
+
+// Écrit « N FILMS & SÉRIES » sur chaque carte de la section PLATEFORMES DE STREAMING
+// (même règle que le clic sur la carte : titre + genre, sagas exclues)
+function computePlatformCounts() {
+    try {
+        if (!Array.isArray(moviesDB) || !moviesDB.length) return;
+        const kw = getPlatformKeywords();
+        const texts = moviesDB.filter(m => m.type !== 'saga').map(m => [m.title || "", m.genre || ""].join(' ').toLowerCase());
+        document.querySelectorAll('#platforms-slider .platform-card').forEach(card => {
+            const mt = /performSearch\('([^']+)'\)/.exec(card.getAttribute('onclick') || '');
+            if (!mt) return;
+            const key = mt[1].toLowerCase().trim();
+            const terms = kw[key] || [key];
+            const regs = terms.map(t => { try { return new RegExp('\\b' + t + '\\b', 'i'); } catch (e) { return null; } }).filter(Boolean);
+            const n = texts.filter(tx => regs.some(r => r.test(tx))).length;
+            let badge = card.querySelector('.plat-count');
+            if (!badge) { badge = document.createElement('div'); badge.className = 'plat-count'; card.appendChild(badge); }
+            badge.textContent = n.toLocaleString('fr-FR') + (n > 1 ? ' FILMS & SÉRIES' : ' FILM & SÉRIE');
+        });
+    } catch (e) { console.warn('Compteur plateformes :', e); }
+}
+
 function performSearch(forcedQuery = null) {
         if (typeof closeProfilePage === 'function') closeProfilePage();
         if(document.getElementById('home-page')) document.getElementById('home-page').style.display = 'none';
@@ -3872,24 +3992,7 @@ function performSearch(forcedQuery = null) {
         document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
         document.getElementById('cat-title').innerText = `Résultats pour : "${forcedQuery || rawQuery}"`;
         
-        const smartKeywords = {
-            'dc': ['dc', 'dc comics', 'batman', 'superman', 'wonder woman', 'the flash', 'aquaman', 'justice league', 'joker', 'harley quinn', 'arrow', 'peacemaker', 'suicide squad', 'man of steel'],
-            'marvel': ['marvel', 'avengers', 'iron man', 'spider-man', 'thor', 'captain america', 'x-men', 'deadpool', 'wolverine', 'hulk', 'guardians', 'loki', 'venom', 'les 4 fantastiques', 'nouveaux mutants', 'logan', 'shang-chi'],
-            'pixar': ['pixar', 'toy story', 'nemo', 'cars', 'indestructibles', 'monstres', 'ratatouille', 'coco', 'vice-versa', 'buzz l\'éclair'],
-            'disney': ['disney', 'star wars', 'jedi', 'mandalorian', 'darth', 'luke skywalker', 'clone wars', 'andor', 'obi-wan', 'boba fett', 'roi lion', 'mulan', 'aladdin', 'reine des neiges', 'pirates des caraibes', 'mickey', 'encanto', 'vaiana', 'tron', 'la belle au bois dormant', 'zootopie', 'bluey'],
-            'warner': ['warner', 'harry potter', 'matrix', 'lord of the rings', 'seigneur des anneaux', 'hobbit', 'dune', 'godzilla', 'kong', 'mad max', 'furiosa', 'ça', 'pacific rim', 'the bride'],
-            'hbo': ['hbo', 'game of thrones', 'house of the dragon', 'last of us', 'sopranos', 'euphoria', 'true detective', 'succession'],
-            'prime': ['prime', 'amazon', 'the boys', 'rings of power', 'spider-noir', 'fallout', 'reacher', 'terminal list', 'omni-man', 'jack ryan', 'road house', 'crime 101', 'projet dernière chance', 'reconnu coupable', 'the beekeeper'],
-            'netflix': ['netflix','jojo','stranger things','one piece','war machine','peaky blinders','nature prédatrice', 'witcher', 'lupin', 'casa de papel', 'squid game', 'wednesday', 'black mirror', 'arcane', 'troll'],
-            'apple tv': ['apple', 'apple tv', 'the gorge', 'ted lasso', 'severance', 'silo', 'morning show', 'foundation', 'monarch', 'f1', 'napoléon'],
-            '20th': ['20th', '20th century', 'fox', 'alien', 'predator', 'planète des singes', 'die hard', 'kingsman', 'avatar', 'x-men', 'wolverine', 'logan', 'fight club', 'free guy', 'nouveaux mutants', 'toys'],
-            'paramount': ['paramount', 'top gun', 'mission impossible', 'halo', 'yellowstone', 'transformers', 'sonic', 'south park', 'star trek', 'gladiator', 'scream', 'forrest gump'],
-            'dreamworks': ['dreamworks', 'dragons', 'shrek', 'kung fu panda', 'madagascar'],
-            'mgm': ['mgm', 'mgm+', 'mgm+ original', 'mgm original', 'metro-goldwyn-mayer', 'james bond', 'rocky', 'creed', 'stargate', 'fargo', 'from'],
-           'starz': ['starz', 'power', 'outlander', 'spartacus', 'p-valley', 'the girlfriend experience', 'heels', 'hightown'],
-           'mtv': ['mtv', 'teen wolf', 'scream', 'awkward', 'jackass', 'daria', 'eye candy', 'the shannara chronicles', 'finding carter']
-        
-    };
+        const smartKeywords = getPlatformKeywords();
 
         const safeQuery = rawQuery.toLowerCase().trim();
         const isPlatformSearch = smartKeywords.hasOwnProperty(safeQuery);
