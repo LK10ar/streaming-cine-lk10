@@ -4206,13 +4206,11 @@ function updatePlayerInterface() {
     let linkP = "", linkV = "", linkU = "";
 
     // Détection automatique : Animé (Voiranime) vs Classique (FilmoFlix)
-const VOIRANIME_HOSTS = /vidmoly|voembed/i;
-const fromVoiranime = (o) => !!o && (VOIRANIME_HOSTS.test(o.iframe_uqload || '') || VOIRANIME_HOSTS.test(o.iframe_uqload_vostfr || ''));
-const isAnime = currentMovie.dir === 'Voiranime'
-    || currentMovie.id?.startsWith('voir_anime')
-    || (currentMovie.type === 'serie'
-        ? !!currentMovie.episodes?.some(fromVoiranime)
-        : fromVoiranime(currentMovie));
+// Animé = uniquement d'après le genre « Anime » (comme partout ailleurs sur le site), ou l'ancien marquage Voiranime.
+// On NE se base PLUS sur l'hébergeur du lecteur (vidmoly / voembed) : les séries/dramas (ex. The K2) les utilisent aussi.
+const isAnime = isAnimeMovie(currentMovie)
+    || currentMovie.dir === 'Voiranime'
+    || !!currentMovie.id?.startsWith('voir_anime');
 
     if (isAnime) {
         // Mode Animé : Masque les boutons classiques et active le bouton unique "REGARDER"
@@ -4271,6 +4269,11 @@ const isAnime = currentMovie.dir === 'Voiranime'
         if (btnP) btnP.style.display = (linkP && hasPremiumAccess) ? 'inline-block' : 'none';
         if (btnV) btnV.style.display = linkV ? 'inline-block' : 'none';
         if (btnU) btnU.style.display = linkU ? 'inline-block' : 'none';
+        // Le 3e emplacement peut contenir Uqload, Vidmoly ou Voembed : on affiche le vrai nom du lecteur
+        if (btnU && linkU) {
+            const _h = String(linkU).toLowerCase();
+            btnU.textContent = _h.includes('voembed') ? 'VOEMBED' : (_h.includes('vidmoly') ? 'VIDMOLY' : 'UQLOAD');
+        }
 
         // Logique de repli intelligent (Fallback)
         if (currentServer === 'premium' && (!linkP || !hasPremiumAccess)) {
