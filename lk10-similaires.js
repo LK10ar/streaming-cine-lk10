@@ -1,7 +1,7 @@
 /* ============================================================
    Ciné LK10 — « Titres similaires » : algorithme + carrousel
    - Remplace l'ancien bloc « Titres similaires » de la fiche (il est masqué)
-   - Carrousel : flèches (PC), glisser avec la souris (PC), balayage (mobile),
+   - Carrousel : flèches (PC), glisser avec la souris (PC), balayage (mobile)
      accroche aux cartes, barre de progression, clavier ← →
    - Algorithme : genres pondérés par rareté, synopsis (TF-IDF), même saga,
      même réalisateur, acteurs communs, proximité d'année, note, diversité
