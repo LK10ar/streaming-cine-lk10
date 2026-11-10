@@ -3161,33 +3161,6 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
 
         if(!code) return;
 
-        if (code === '23102002') {
-            try {
-                const res = await fetch(`${API_URL}/api/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: 'Admin', password: '23102002' }) 
-                });
-                const data = await res.json();
-                
-                if (data.success) {
-                    localStorage.setItem('monBadgeCineLK10', data.token);
-                    currentUser = data.user;
-                    isAdminUnlocked = true; 
-                    isVipUser = true; 
-                    document.body.classList.add('admin-active');
-                    finalizeAccess();
-                    return;
-                } else {
-                    alert("Erreur : Tu dois d'abord créer un compte 'Admin' avec le mot de passe '23102002'.");
-                    return;
-                }
-            } catch (e) {
-                alert("Erreur serveur lors de la connexion Admin silencieuse.");
-                return;
-            }
-        }
-
         try {
             const res = await fetch(`${API_URL}/api/verify-gate`, {
                 method: 'POST',
@@ -3290,8 +3263,8 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
             if (confirmEl && confirmEl.value.trim() !== password) return alert("❌ Les mots de passe ne correspondent pas.");
         }
 
-        const bodyData = { username, password, isVip: isVipUser };
-        if (!isLoginMode) { bodyData.email = email; if (window.__signupAvatar) bodyData.profilePic = window.__signupAvatar; }
+        const bodyData = { username, password };
+        if (!isLoginMode) { bodyData.gateCode = localStorage.getItem('lk10_gate_code') || ''; bodyData.email = email; if (window.__signupAvatar) bodyData.profilePic = window.__signupAvatar; }
 
         try {
             const res = await fetch(API_URL + endpoint, {
@@ -3306,7 +3279,7 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
                     localStorage.setItem('monBadgeCineLK10', data.token);
                     currentUser = data.user;
 
-                    if (username.toLowerCase() === 'admin' && password === '23102002') {
+                    if (data.isAdmin) { // droits admin décidés par le serveur (plus aucun mot de passe dans le code)
                         isAdminUnlocked = true;
                         isVipUser = true;
                         document.body.classList.add('admin-active');
@@ -3345,8 +3318,9 @@ document.getElementById('home-logo').onclick = () => { closeProfilePage(); showH
             currentUser = data.user;
             isVipUser = data.user.isVip;
             
-            // Réactivation auto des droits Admin
-            if (currentUser.username.toLowerCase() === 'admin') {
+            // Réactivation auto des droits Admin (information fournie par le serveur)
+            if (data.isAdmin) {
+                isVipUser = true;
                 isAdminUnlocked = true;
                 document.body.classList.add('admin-active');
             }
@@ -4784,7 +4758,7 @@ async function saveMovie() {
                     iframe_uqload: bl.querySelector('.ep-uql-vf').value, 
                     iframe_premium_vostfr: bl.querySelector('.ep-prem-vostfr').value, 
                     iframe_vidzy_vostfr: bl.querySelector('.ep-vidzy-vostfr').value, // <-- AJOUT VIDZY VOSTFR
-                    iframe_uqload_vostfr: bl.querySelector('.ep-uql-vostfr').value 
+                    iframe_uqload_vostfr: bl.querySelector('.ep-uql-vostfr').value,
                 })
             );
         } else if (ty === 'saga') {
