@@ -1,10 +1,14 @@
 /* ============================================================
    Ciné LK10 — « Titres similaires » : algorithme + carrousel
    - Remplace l'ancien bloc « Titres similaires » de la fiche (il est masqué)
-   - Carrousel : flèches (PC), glisser avec la souris (PC), balayage (mobile)
+   - Carrousel : flèches (PC), glisser avec la souris (PC), balayage (mobile),
      accroche aux cartes, barre de progression, clavier ← →
    - Algorithme : genres pondérés par rareté, synopsis (TF-IDF), même saga,
      même réalisateur, acteurs communs, proximité d'année, note, diversité
+   - v5 : 1 série = 1 carte (« Les Simpson · 37 saisons »), 1 saga de films = 1 carte,
+     plus aucune autre saison de la série regardée, « affinités » (Simpson → Futurama,
+     Family Guy, American Dad…), garde-fous animation / famille / documentaire,
+     synonymes de genres, rafraîchissement instantané, plus de fuite d'écouteurs
    Chargement : <script src="lk10-similaires.js"></script> après les autres scripts.
    ============================================================ */
 (function () {
@@ -17,6 +21,29 @@
   ('dans avec pour cette leur leurs mais plus tout tous toute toutes elle elles sont etre avoir fait faire comme apres avant entre sous sans ainsi alors dont quand aussi celui celle ceux chez vers tres bien autre autres meme nous vous ils ses ces une des les qui que quoi lorsque depuis pendant donc encore votre notre cela cest ont est ete etait sera peut leurs son sur par aux the and with from that this will have they their into about film serie saison episode jeune nouvelle nouveau vie monde'
   ).split(' ').forEach(function (w) { STOP[w] = 1; });
   var TITLE_STOP = { le: 1, la: 1, les: 1, l: 1, un: 1, une: 1, des: 1, de: 1, du: 1, d: 1, the: 1, of: 1, a: 1, an: 1, et: 1, and: 1 };
+  /* Les studios / plateformes sont rangés dans « genre » sur le site : ce ne sont pas des genres */
+  var STUDIOS = {};
+  ['marvel', 'dc', 'disney', 'pixar', 'dreamworks', 'apple tv', 'apple tv+', 'paramount', 'mgm+', 'mgm', 'mtv', '20th century fox', 'netflix', 'warner bros', 'universal', 'sony', 'lucasfilm', 'hbo']
+    .forEach(function (s) { STUDIOS[s] = 1; });
+  var SAME_FRANCHISE_MAX = 3;      /* films : au plus 3 titres de la saga regardée (suites, préquelles) */
+  var SAME_UNIVERSE_SHOWS_MAX = 2; /* séries : au plus 2 séries dérivées du même univers (ex. spin-offs) */
+  /* genres écrits différemment selon la source -> un seul vocabulaire */
+  var GENRE_SYN = {
+    'sci-fi': ['science-fiction'], 'science fiction': ['science-fiction'], 'sci-fi & fantasy': ['science-fiction', 'fantastique'],
+    'action & adventure': ['action', 'aventure'], 'action et aventure': ['action', 'aventure'],
+    'fantasy': ['fantastique'], 'fantaisie': ['fantastique'], 'comedy': ['comedie'], 'horror': ['horreur'],
+    'drama': ['drame'], 'mystery': ['mystere'], 'kids': ['famille'], 'family': ['famille'], 'enfants': ['famille'],
+    'war & politics': ['guerre'], 'documentary': ['documentaire']
+  };
+  /* « Affinités » : des séries/films qui se ressemblent même si les genres du catalogue sont maigres.
+     Complète cette liste à volonté (mots en minuscules, sans accents). */
+  var AFFINITY = [
+    { label: 'Même humour', keys: ['simpson', 'futurama', 'family guy', 'les griffin', 'american dad', 'south park', 'rick et morty', 'rick and morty', 'bob s burgers', 'king of the hill', 'archer', 'big mouth', 'solar opposites', 'bojack horseman', 'disenchantment', 'cleveland show', 'duncanville', 'f is for family', 'paradise pd', 'brickleberry'] },
+    { label: 'Même humour', keys: ['friends', 'how i met your mother', 'the big bang theory', 'modern family', 'brooklyn nine nine', 'the office', 'parks and recreation', 'young sheldon', 'two and a half men', 'new girl', 'scrubs'] },
+    { label: 'Même style', keys: ['naruto', 'bleach', 'one piece', 'dragon ball', 'hunter x hunter', 'my hero academia', 'demon slayer', 'jujutsu kaisen', 'fairy tail', 'black clover', 'fullmetal alchemist', 'attack on titan', 'l attaque des titans'] },
+    { label: 'Même ambiance', keys: ['breaking bad', 'better call saul', 'ozark', 'narcos', 'peaky blinders', 'sons of anarchy', 'the wire', 'money heist', 'la casa de papel'] },
+    { label: 'Même ambiance', keys: ['game of thrones', 'house of the dragon', 'the witcher', 'the rings of power', 'les anneaux de pouvoir', 'le seigneur des anneaux', 'vikings', 'the last kingdom'] }
+  ];
 
   function norm(s) {
     s = String(s == null ? '' : s).toLowerCase();
@@ -38,16 +65,30 @@
   };
   function famFactor(a, b) { return FAM_FACTOR[a + '|' + b] || 0.5; }
 
-  function genreList(m) {
-    return String(m.genre || '').split(',').map(function (g) { return norm(g).trim(); })
-      .filter(function (g) { return g && g !== 'non classe'; });
+  function rawGenres(m) { return String(m.genre || '').split(',').map(function (g) { return g.trim(); }).filter(Boolean); }
+  function genreList(m) {          /* genres normalisés (synonymes fusionnés), sans studios */
+    var out = [], seen = {};
+    rawGenres(m).forEach(function (g) {
+      var k = norm(g).trim(); if (!k || k === 'non classe' || STUDIOS[k]) return;
+      (GENRE_SYN[k] || [k]).forEach(function (x) { if (!seen[x]) { seen[x] = 1; out.push(x); } });
+    });
+    return out;
+  }
+  function studioList(m) {
+    return rawGenres(m).map(norm).map(function (g) { return g.trim(); }).filter(function (g) { return STUDIOS[g]; });
+  }
+  function genreLabels(m) {        /* genres à afficher (casse d'origine), sans studios ni doublons */
+    var seen = {};
+    return rawGenres(m).filter(function (g) {
+      var k = norm(g).trim(); if (!k || k === 'non classe' || STUDIOS[k] || seen[k]) return false; seen[k] = 1; return true;
+    });
   }
   function nameList(s) {
     return String(s || '').split(',').map(function (x) { return norm(x).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); })
       .filter(Boolean);
   }
   function descTokens(m) {
-    var seen = {}, out = [];
+    var out = [];
     norm(m.desc).replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).forEach(function (w) {
       if (w.length < 4 || STOP[w]) return;
       w = w.replace(/(s|x)$/, '');
@@ -56,7 +97,7 @@
     });
     return out;
   }
-  /* clé de « saga » : début du titre sans numéro / sous-titre */
+  /* clé de « saga » : début du titre sans numéro / saison / sous-titre */
   function titleKey(m) {
     var t = norm(m.title).split(/\s*[:\-–—]\s*/)[0];
     t = t.replace(/\b(partie|part|saison|season|chapitre|chapter|episode|vol|volume)\b.*$/, '')
@@ -73,6 +114,29 @@
     return i >= 2;
   }
 
+  /* « Les Simpson - Saison 37 » -> « Les Simpson » ; numéro de saison -> 37 */
+  var SEASON_RE = /(?:^|[\s\-\u2013\u2014:,(])(?:saisons?|seasons?|s)\s*0*(\d{1,3})\b.*$/i;
+  function baseTitle(t) {
+    t = String(t || '').trim();
+    var r = t.replace(SEASON_RE, '').replace(/[\s\-\u2013\u2014:,(]+$/, '').trim();
+    return r || t;
+  }
+  function seasonNum(t) { var mm = SEASON_RE.exec(String(t || '')); return mm ? parseInt(mm[1], 10) : 0; }
+  function plain(s) { return norm(s).replace(/[^a-z0-9]+/g, ' ').trim(); }
+  AFFINITY.forEach(function (a) { a.keys = a.keys.map(plain); });
+  function affinityIds(m) {
+    var pad = ' ' + plain(baseTitle(m.title)) + ' ', out = [];
+    AFFINITY.forEach(function (a, i) {
+      for (var k = 0; k < a.keys.length; k++) {
+        var key = a.keys[k], at = pad.indexOf(' ' + key);
+        if (at < 0) continue;
+        if (key.length >= 6 || pad.charAt(at + 1 + key.length) === ' ') { out.push(i); return; }
+      }
+    });
+    return out;
+  }
+
+  var _cache = { db: null, len: -1, idx: null };
   function buildIndex(db) {
     var items = db.filter(function (m) { return m && m.id && fam(m.type) !== 'other' && m.title; });
     var N = items.length || 1, gdf = {}, tdf = {};
@@ -90,81 +154,151 @@
       descTokens(m).forEach(function (w) { counts[w] = (counts[w] || 0) + 1; });
       Object.keys(counts).forEach(function (w) { var x = (1 + Math.log(counts[w])) * Math.log(1 + N / (1 + (tdf[w] || 0))); tv[w] = x; tn += x * x; });
       info[m.id] = {
-        m: m, fam: fam(m.type), gv: gv, gn: Math.sqrt(gn) || 1, tv: tv, tn: Math.sqrt(tn) || 1,
+        m: m, fam: fam(m.type), gv: gv, gk: Object.keys(gv), gn: Math.sqrt(gn) || 1,
+        gs: Object.keys(gv).reduce(function (t, g) { return t + gv[g]; }, 0) || 1,
+        tv: tv, tk: Object.keys(tv), tn: Math.sqrt(tn) || 1, studios: studioList(m),
         dirs: nameList(m.dir), cast: nameList(m.cast), key: titleKey(m),
+        show: plain(baseTitle(m.title)), season: seasonNum(m.title), aff: affinityIds(m),
         year: parseInt(m.year, 10) || 0, rating: parseFloat(m.rating) || 0
       };
     });
     return { items: items, info: info };
   }
-  function cosine(a, an, b, bn) {
-    var ka = Object.keys(a), kb = Object.keys(b), s = 0, i;
-    if (ka.length > kb.length) { var t = a; a = b; b = t; ka = kb; }
-    for (i = 0; i < ka.length; i++) if (b[ka[i]]) s += a[ka[i]] * b[ka[i]];
+  function getIndex(db) {          /* l'index n'est recalculé que si le catalogue change */
+    if (_cache.db === db && _cache.len === db.length && _cache.idx) return _cache.idx;
+    _cache = { db: db, len: db.length, idx: buildIndex(db) };
+    return _cache.idx;
+  }
+  function cosineK(ak, a, an, bk, b, bn) {
+    var s = 0, i;
+    if (ak.length > bk.length) { var t = a; a = b; b = t; t = ak; ak = bk; bk = t; }
+    for (i = 0; i < ak.length; i++) { var w = b[ak[i]]; if (w) s += a[ak[i]] * w; }
     return s / (an * bn);
   }
 
   function score(c, x) {
-    var gCos = cosine(c.gv, c.gn, x.gv, x.gn);
-    var dCos = cosine(c.tv, c.tn, x.tv, x.tn);
-    var franchise = sameFranchise(c.key, x.key);
+    var gCos = cosineK(c.gk, c.gv, c.gn, x.gk, x.gv, x.gn);
+    var dCos = cosineK(c.tk, c.tv, c.tn, x.tk, x.tv, x.tn);
+    var inter = 0, i;
+    for (i = 0; i < c.gk.length; i++) if (x.gv[c.gk[i]]) inter++;
+    var uni = c.gk.length + x.gk.length - inter, jac = uni ? inter / uni : 0;   // même « combinaison » de genres
+    var cov = 0;                                                                  // part (pondérée) des genres du titre regardé que x possède aussi
+    for (i = 0; i < c.gk.length; i++) if (x.gv[c.gk[i]]) cov += c.gv[c.gk[i]];
+    cov /= c.gs;
+    var sameShow = c.fam !== 'film' && x.fam !== 'film' && !!c.show && c.show === x.show;   // autre saison de la même série
+    var franchise = sameShow || sameFranchise(c.key, x.key);
+    var affIdx = -1;
+    for (i = 0; i < c.aff.length; i++) if (x.aff.indexOf(c.aff[i]) >= 0) { affIdx = c.aff[i]; break; }
     var sameDir = c.dirs.some(function (d) { return x.dirs.indexOf(d) >= 0; });
     var castHits = 0;
-    c.cast.forEach(function (a, i) {
-      if (x.cast.indexOf(a) >= 0) castHits += i < 3 ? 1.5 : 1;   // les têtes d'affiche comptent plus
-    });
-    var s = 50 * gCos + 22 * Math.min(1, dCos * 2.2);
+    c.cast.forEach(function (a, k) { if (x.cast.indexOf(a) >= 0) castHits += k < 3 ? 1.5 : 1; });
+    var studio = c.studios.some(function (st) { return x.studios.indexOf(st) >= 0; });
+
+    var s = 30 * gCos + 12 * jac + 16 * cov + 22 * Math.min(1, dCos * 2.2);
     if (franchise) s += 32;
+    if (affIdx >= 0) s += 26;
     if (sameDir) s += 16;
     s += Math.min(18, castHits * 6);
+    if (studio) s += 7;
     if (c.year && x.year) s += 8 * Math.exp(-Math.abs(c.year - x.year) / 10);
     if (x.rating >= 7) s += 3; else if (x.rating >= 5) s += 1.5; else if (x.rating > 0 && x.rating < 4) s -= 3;
     s *= famFactor(c.fam, x.fam);
-    var reason = franchise ? 'Même univers' : (sameDir ? 'Même réalisateur' : (castHits >= 1.5 ? 'Même casting' : ''));
-    return { s: s, g: gCos, franchise: franchise, reason: reason };
+    /* garde-fous : un dessin animé adulte ne ressemble pas à une série live, ni un doc à une fiction */
+    if (!franchise && affIdx < 0) {
+      var ca = c.gv.animation ? 1 : 0, xa = x.gv.animation ? 1 : 0;
+      if (ca !== xa) s *= 0.55;
+      else if (ca && (c.gv.famille ? 1 : 0) !== (x.gv.famille ? 1 : 0)) s *= 0.8;   // animation famille vs animation adulte
+      if ((c.gv.documentaire ? 1 : 0) !== (x.gv.documentaire ? 1 : 0)) s *= 0.6;
+    }
+
+    var reason = franchise ? 'Même univers' : affIdx >= 0 ? AFFINITY[affIdx].label : sameDir ? 'Même réalisateur' : castHits >= 1.5 ? 'Même casting'
+      : (studio && gCos > 0.6) ? 'Même studio' : (jac > 0.99 && c.gk.length >= 2 && c.fam === x.fam) ? 'Même style' : '';
+    return { s: s, franchise: franchise, sameShow: sameShow, reason: reason };
   }
 
   function similar(db, current, limit) {
     limit = limit || 18;
-    var idx = buildIndex(db), c = idx.info[current.id];
+    var idx = getIndex(db), c = idx.info[current.id];
     if (!c) c = buildIndex(db.concat([current])).info[current.id];
     if (!c) return [];
     var cands = [];
     idx.items.forEach(function (m) {
       if (m.id === current.id || !m.poster) return;
       var x = idx.info[m.id], r = score(c, x);
+      if (r.sameShow) return;                 // les autres saisons de la série regardée ne sont pas des « similaires »
       if (r.s > 6) cands.push({ m: m, x: x, r: r });
     });
     cands.sort(function (a, b) { return b.r.s - a.r.s; });
-    cands = cands.slice(0, Math.max(70, limit + 10));
-    /* diversité (MMR) : on évite 18 titres quasi identiques entre eux */
+    cands = cands.slice(0, 400);
+
+    /* 1 série = 1 carte (toutes ses saisons repliées), 1 saga de films = 1 carte.
+       Exceptions : les suites/préquelles du film regardé restent des cartes séparées (max 3),
+       et on limite les séries dérivées du même univers (max 2). */
+    var groups = [], showMap = {}, ownFilms = 0, ownShows = 0;
+    function newGroup(cd) { var g = { best: cd, members: [cd], solo: false, fkey: cd.x.key }; groups.push(g); return g; }
+    cands.forEach(function (cd) {
+      var x = cd.x, g;
+      if (x.fam === 'film') {
+        if (cd.r.franchise) { if (ownFilms >= SAME_FRANCHISE_MAX) return; ownFilms++; newGroup(cd).solo = true; return; }
+        if (x.key.length) for (var k = 0; k < groups.length; k++) {
+          var gg = groups[k];
+          if (!gg.solo && gg.best.x.fam === 'film' && gg.fkey.length && sameFranchise(gg.fkey, x.key)) { g = gg; break; }
+        }
+        if (g) g.members.push(cd); else newGroup(cd);
+      } else {
+        var sk = x.show || ('id' + cd.m.id);
+        if (showMap[sk]) { showMap[sk].members.push(cd); return; }
+        if (cd.r.franchise) { if (ownShows >= SAME_UNIVERSE_SHOWS_MAX) return; ownShows++; }
+        showMap[sk] = newGroup(cd);
+      }
+    });
+    cands = groups.map(function (g) {
+      var best = g.best, n = g.members.length, target = best.m, isShow = best.x.fam !== 'film', rating = 0;
+      g.members.forEach(function (cd) { rating = Math.max(rating, cd.x.rating || 0); });
+      if (isShow && n > 1) {                  // on ouvre la première saison : c'est la porte d'entrée de la série
+        g.members.forEach(function (cd) {
+          var sn = cd.x.season || 999, tn = seasonNum(target.title) || 999;
+          if (sn < tn) target = cd.m;
+        });
+      }
+      var shown = isShow ? baseTitle(target.title) : target.title;
+      var unit = isShow ? (best.x.fam === 'anime' ? 'saison' : 'saison') : 'film';
+      return {
+        m: target, x: best.x, r: best.r, title: shown, count: n, rating: rating,
+        countLabel: n > 1 ? (n + ' ' + unit + 's') : ''
+      };
+    });
+
+    /* diversité (MMR) : on évite une rangée de titres quasi identiques entre eux */
     var out = [];
     while (out.length < limit && cands.length) {
       var best = -1, bestV = -1e9;
-      for (var i = 0; i < cands.length; i++) {
+      for (var a = 0; a < cands.length; a++) {
         var pen = 0;
         for (var j = 0; j < out.length; j++) {
-          if (cands[i].r.franchise && out[j].r.franchise) continue;
-          pen = Math.max(pen, cosine(cands[i].x.gv, cands[i].x.gn, out[j].x.gv, out[j].x.gn));
+          if (cands[a].r.franchise && out[j].r.franchise) continue;
+          pen = Math.max(pen, cosineK(cands[a].x.gk, cands[a].x.gv, cands[a].x.gn, out[j].x.gk, out[j].x.gv, out[j].x.gn));
         }
-        var v = cands[i].r.s - 14 * pen;
-        if (v > bestV) { bestV = v; best = i; }
+        var v = cands[a].r.s - 14 * pen;
+        if (v > bestV) { bestV = v; best = a; }
       }
       out.push(cands.splice(best, 1)[0]);
     }
-    return out.map(function (o) { return { m: o.m, reason: o.r.reason, score: o.r.s }; });
+    return out.map(function (o) { return { m: o.m, title: o.title, count: o.count, countLabel: o.countLabel, rating: o.rating, reason: o.r.reason, score: o.r.s, fr: o.r.franchise }; });
   }
 
   function group(m) { return fam(m.type) === 'film' ? 'film' : 'serie'; }
-  /* choisit n titres en garantissant ~35 % de l'autre catégorie (séries si on regarde un film, et inversement) */
+  /* choisit n titres : ~30 % de l'autre catégorie (séries si on regarde un film, et inversement),
+     mais seulement des titres vraiment pertinents (>= 60 % du meilleur score) */
   function mix(pool, curGroup, n) {
-    var other = pool.filter(function (it) { return group(it.m) !== curGroup; });
-    var reserve = other.slice(0, Math.min(other.length, Math.round(n * 0.35)));
+    var maxS = 0; pool.forEach(function (it) { if (it.score > maxS) maxS = it.score; });
+    var other = pool.filter(function (it) { return group(it.m) !== curGroup && it.score >= 0.6 * maxS; });
+    var reserve = other.slice(0, Math.min(other.length, Math.round(n * 0.3)));
     var rest = pool.filter(function (it) { return reserve.indexOf(it) < 0; }).slice(0, n - reserve.length);
     return reserve.concat(rest).sort(function (a, b) { return b.score - a.score; });
   }
 
-  if (typeof document === 'undefined') { module.exports = { similar: similar, mix: mix, group: group, titleKey: titleKey, sameFranchise: sameFranchise }; return; }
+  if (typeof document === 'undefined') { module.exports = { similar: similar, mix: mix, group: group, genreLabels: genreLabels, titleKey: titleKey, sameFranchise: sameFranchise, baseTitle: baseTitle, seasonNum: seasonNum }; return; }
 
   /* ---------------------------------------------------------- *
    *  2. STYLES                                                  *
@@ -193,6 +327,7 @@
 #lk10-sim .ls-poster img{width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none;pointer-events:none}\
 #lk10-sim .ls-card:hover .ls-poster,#lk10-sim .ls-card:focus-visible .ls-poster{transform:translateY(-3px);border-color:var(--primary,#ffde00);box-shadow:0 8px 20px rgba(0,0,0,.6)}\
 #lk10-sim .ls-rate{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.78);color:var(--primary,#ffde00);font-size:11px;font-weight:700;padding:2px 6px;border-radius:12px;border:1px solid rgba(255,222,0,.45)}\
+#lk10-sim .ls-count{position:absolute;top:6px;left:6px;background:rgba(0,0,0,.78);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;border:1px solid rgba(255,255,255,.25)}\
 #lk10-sim .ls-why{position:absolute;left:6px;bottom:6px;right:6px;background:rgba(255,222,0,.95);color:#000;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\
 #lk10-sim .ls-name{margin-top:7px;font-size:13px;font-weight:600;color:#eee;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}\
 #lk10-sim .ls-sub{font-size:11px;color:#8a8a8a;margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}\
@@ -235,9 +370,7 @@
     prev.innerHTML = '<i class="fas fa-chevron-left"></i>'; next.innerHTML = '<i class="fas fa-chevron-right"></i>';
     nav.appendChild(prev); nav.appendChild(next);
     var left = el('div', 'ls-left'); left.appendChild(title);
-    var seen = {}, genres = String(cur.genre || '').split(',').map(function (g) { return g.trim(); }).filter(function (g) {
-      var k = norm(g); if (!g || k === 'non classe' || seen[k]) return false; seen[k] = 1; return true;
-    });
+    var genres = genreLabels(cur);
     if (genres.length) {
       var chips = el('div', 'ls-chips');
       genres.slice(0, 4).forEach(function (g) { chips.appendChild(el('span', 'ls-chip', g)); });
@@ -251,14 +384,16 @@
       items.forEach(function (it) {
       var m = it.m, card = el('div', 'ls-card'); card.setAttribute('role', 'listitem'); card.tabIndex = 0; card.dataset.id = m.id;
       var p = el('div', 'ls-poster'), img = document.createElement('img');
-      img.loading = 'lazy'; img.decoding = 'async'; img.alt = m.title; img.draggable = false; img.src = m.poster;
+      img.loading = 'lazy'; img.decoding = 'async'; img.alt = it.title || m.title; img.draggable = false; img.src = m.poster;
       img.onerror = function () { img.style.display = 'none'; };
       p.appendChild(img);
-      if (parseFloat(m.rating)) p.appendChild(el('span', 'ls-rate', '★ ' + parseFloat(m.rating).toFixed(1)));
+      var rt = it.rating || parseFloat(m.rating) || 0;
+      if (rt) p.appendChild(el('span', 'ls-rate', '★ ' + rt.toFixed(1)));
+      if (it.count > 1) p.appendChild(el('span', 'ls-count', it.countLabel));
       if (it.reason) p.appendChild(el('span', 'ls-why', it.reason));
-      var gl = String(m.genre || '').split(',').map(function (g) { return g.trim(); }).filter(function (g) { return g && norm(g) !== 'non classe'; }).slice(0, 3);
-      var sub = [TYPE_LABEL[String(m.type).toLowerCase()] || '', m.year || ''].concat(gl).filter(Boolean).join(' · ');
-      card.appendChild(p); card.appendChild(el('div', 'ls-name', m.title)); card.appendChild(el('div', 'ls-sub', sub));
+      var gl = genreLabels(m).slice(0, 3);
+      var sub = [TYPE_LABEL[String(m.type).toLowerCase()] || '', it.count > 1 && it.countLabel ? it.countLabel : (m.year || '')].concat(gl).filter(Boolean).join(' · ');
+      card.appendChild(p); card.appendChild(el('div', 'ls-name', it.title || m.title)); card.appendChild(el('div', 'ls-sub', sub));
       card._id = m.id; track.appendChild(card);
       });
     }
@@ -287,8 +422,9 @@
     }
     function relayout() { align(); layout(); update(); }
     box._layout = relayout;
+    var ro = null;
     if (window.ResizeObserver) {
-      var ro = new ResizeObserver(function () { relayout(); });
+      ro = new ResizeObserver(function () { relayout(); });
       var da0 = document.querySelector('.details-area'); if (da0) ro.observe(da0);
       ro.observe(track);
     }
@@ -309,16 +445,22 @@
       if (e.pointerType !== 'mouse' || e.button !== 0) return;
       down = true; moved = false; sx = e.clientX; sl = track.scrollLeft;
     });
-    window.addEventListener('pointermove', function (e) {
+    function onMove(e) {
       if (!down) return;
       var dx = e.clientX - sx;
       if (!moved && Math.abs(dx) > 5) { moved = true; track.classList.add('dragging'); }
       if (moved) track.scrollLeft = sl - dx;
-    });
-    window.addEventListener('pointerup', function () {
+    }
+    function onUp() {
       if (!down) return; down = false;
       if (moved) { track.classList.remove('dragging'); setTimeout(function () { moved = false; }, 0); }
-    });
+    }
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    box._destroy = function () {     /* évite d'empiler des écouteurs à chaque changement de fiche */
+      window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('resize', relayout); if (ro) ro.disconnect();
+    };
     track.addEventListener('click', function (e) {
       if (moved) { e.preventDefault(); e.stopPropagation(); return; }
       var c = e.target.closest ? e.target.closest('.ls-card') : null;
@@ -373,7 +515,7 @@
     if (mine && lastKey === key) return;
     var list = [];
     try { list = similar(moviesDB, m, 60); } catch (e) { console.error('[similaires]', e); }
-    if (mine) mine.remove();
+    if (mine) { if (mine._destroy) mine._destroy(); mine.remove(); }
     lastKey = key;
     if (!list.length) return;
     var box = build(list, m);
@@ -389,6 +531,16 @@
       observer.observe(root, { childList: true, subtree: true });
     }
   }
-  timer = setInterval(render, 450);
+  /* on se branche sur openP() : la rangée se met à jour dès qu'une fiche s'ouvre (le minuteur n'est qu'un filet de sécurité) */
+  if (typeof window.openP === 'function' && !window.openP._lk10) {
+    var _openP = window.openP;
+    window.openP = function () {
+      var r = _openP.apply(this, arguments);
+      setTimeout(render, 60); setTimeout(render, 350);
+      return r;
+    };
+    window.openP._lk10 = true;
+  }
+  timer = setInterval(render, 1200);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
 })();
