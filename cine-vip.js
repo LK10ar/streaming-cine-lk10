@@ -37,27 +37,125 @@
   }
   function inVipPage() { var n = $('nav-vip'); return !!(n && n.classList.contains('active')); }
 
-  /* ---------- onglet VIP + page catalogue (même grille que « Catalogue ») ---------- */
+  /* ---------- onglet VIP + page catalogue (même grille que « Catalogue », avec filtres + recherche propres au VIP) ---------- */
+  var VP = { type: 'all', q: '' };
+  var GEM_POSTER = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450"><rect width="300" height="450" fill="#151515"/><text x="150" y="250" font-size="110" text-anchor="middle">💎</text></svg>');
+
+  function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); }
+
   function refreshNav() {
-    var li = $('nav-vip-li'); if (!li) return;
     var show = vipOk() ? '' : 'none';
-    if (li.style.display !== show) li.style.display = show;
+    document.querySelectorAll('.vip-menu-link').forEach(function (x) { if (x.style.display !== show) x.style.display = show; });
   }
   setInterval(refreshNav, 1200);
 
-  window.showVip = function () {
+  /* liens « 💎 VIP » dans les menus Films et Séries (réinjectés si le menu est reconstruit par le site) */
+  function addMenuLinks() {
+    [['nav-film', 'film', 'Films VIP'], ['nav-serie', 'serie', 'Séries VIP']].forEach(function (x) {
+      var nav = $(x[0]); if (!nav) return;
+      var dd = nav.nextElementSibling; if (!dd || dd.querySelector('.vip-menu-link')) return;
+      var col = dd.querySelector('.drop-column') || dd;
+      var a = document.createElement('a'); a.className = 'vip-menu-link'; a.style.display = vipOk() ? '' : 'none';
+      a.innerHTML = '<i class="fas fa-gem" style="color:var(--primary);margin-right:6px"></i> ' + x[2];
+      a.onclick = function (e) { if (e) e.stopPropagation(); try { closeProfilePage(); } catch (er) {} window.showVip(x[1]); try { closeMobileMenu(); } catch (er) {} };
+      col.insertBefore(a, col.firstChild);
+    });
+  }
+  addMenuLinks();
+  [['nav-film'], ['nav-serie']].forEach(function (x) {
+    var nav = $(x[0]), dd = nav && nav.nextElementSibling;
+    if (dd && window.MutationObserver) new MutationObserver(addMenuLinks).observe(dd, { childList: true });
+  });
+  setInterval(addMenuLinks, 2000);
+
+  /* barre d'outils VIP */
+  function bar() {
+    var b = $('vip-toolbar'); if (b) return b;
+    var st2 = document.createElement('style');
+    st2.textContent = '#vip-toolbar{display:none;flex-wrap:wrap;gap:10px;align-items:center;margin:-8px 0 18px}' +
+      '#vip-toolbar .vt-btn{background:#111;color:#ccc;border:1px solid #333;border-radius:999px;padding:8px 16px;font-weight:bold;font-size:13px;cursor:pointer;font-family:inherit;touch-action:manipulation}' +
+      '#vip-toolbar .vt-btn.on,#vip-toolbar .vt-btn:hover{background:var(--primary,#ffde00);color:#000;border-color:var(--primary,#ffde00)}' +
+      '#vip-toolbar .vt-search{flex:1 1 240px;min-width:0;display:flex;background:#111;border:1px solid #333;border-radius:999px;overflow:hidden}' +
+      '#vip-toolbar .vt-search input{flex:1;min-width:0;background:transparent;border:0;color:#fff;padding:9px 14px;font-size:14px;outline:none}' +
+      '#vip-toolbar .vt-search button{background:#222;border:0;color:#fff;padding:0 14px;cursor:pointer}' +
+      '#vip-toolbar .vt-req{background:rgba(255,222,0,.1);border-color:var(--primary,#ffde00);color:var(--primary,#ffde00);display:none}' +
+      '.vip-empty{grid-column:1/-1;text-align:center;padding:40px 16px;color:#bbb}.vip-empty b{color:#fff}.vip-empty button{margin-top:14px;background:var(--primary,#ffde00);color:#000;border:0;border-radius:999px;padding:12px 22px;font-weight:bold;font-size:14px;cursor:pointer;font-family:inherit}';
+    document.head.appendChild(st2);
+    b = document.createElement('div'); b.id = 'vip-toolbar';
+    b.innerHTML = '<button class="vt-btn" data-t="all">Tous</button><button class="vt-btn" data-t="film"><i class="fas fa-film"></i> Films</button><button class="vt-btn" data-t="serie"><i class="fas fa-video"></i> Séries</button>' +
+      '<div class="vt-search"><input type="text" id="vip-q" placeholder="Rechercher dans le catalogue VIP…" autocomplete="off"><button id="vip-q-clear" title="Effacer"><i class="fas fa-times"></i></button></div>' +
+      '<button class="vt-btn vt-req" id="vip-req"><i class="fas fa-paper-plane"></i> Demander ce titre</button>';
+    var anchor = document.querySelector('.section-title'); if (!anchor) return b;
+    anchor.parentNode.insertBefore(b, anchor.nextSibling);
+    b.querySelectorAll('[data-t]').forEach(function (x) { x.onclick = function () { VP.type = x.getAttribute('data-t'); var h = $(VP.type === 'film' ? 'nav-film' : (VP.type === 'serie' ? 'nav-serie' : 'nav-catalogue')); document.querySelectorAll('.nav-link').forEach(function (a) { a.classList.remove('active'); }); var nv = $('nav-vip'); if (nv) nv.classList.add('active'); if (h) h.classList.add('active'); applyVip(); }; });
+    var q = b.querySelector('#vip-q'), t = null;
+    q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { VP.q = q.value; applyVip(); }, 180); });
+    q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { clearTimeout(t); VP.q = q.value; applyVip(); } });
+    b.querySelector('#vip-q-clear').onclick = function () { q.value = ''; VP.q = ''; applyVip(); q.focus(); };
+    b.querySelector('#vip-req').onclick = function () { requestTitle(VP.q); };
+    return b;
+  }
+
+  /* demande d'un titre introuvable : elle part directement sur le Wishboard (avec vote + mail « ajouté ») */
+  function requestTitle(title) {
+    title = String(title || '').trim(); if (!title) return;
+    var token = localStorage.getItem('monBadgeCineLK10'); if (!token) return alert('Connecte-toi pour envoyer une demande.');
+    var type = VP.type === 'serie' ? 'tv' : 'movie';
+    fetch(API_URL + '/api/wishes/add', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', authorization: token },
+      body: JSON.stringify({ tmdbId: 'vip-' + norm(title).replace(/[^a-z0-9]+/g, '-') + '-' + type, title: title, type: type, posterUrl: GEM_POSTER, description: 'Demande depuis le catalogue VIP', notifyEmail: true })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      alert((d.success ? '✅ ' : 'ℹ️ ') + (d.message || 'Demande envoyée.'));
+    }).catch(function () { alert('❌ Erreur de connexion au serveur.'); });
+  }
+
+  function setControls(vip) {
+    var yr = $('year-filter-input'), ids = [$('sort-select'), $('hide-anime-toggle'), yr && yr.parentNode];
+    ids.forEach(function (el) { if (el) el.style.display = vip ? 'none' : ''; });
+    var b = bar(); if (b) b.style.display = vip ? 'flex' : 'none';
+  }
+
+  function applyVip() {
+    var b = bar(), q = norm(VP.q);
+    b.querySelectorAll('[data-t]').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-t') === VP.type); });
+    var qi = b.querySelector('#vip-q'); if (qi.value !== VP.q) qi.value = VP.q;
+    var ct = $('cat-title'); if (ct) ct.innerText = VP.type === 'film' ? 'Films VIP' : (VP.type === 'serie' ? 'Séries VIP' : 'Catalogue VIP');
+    try {
+      filteredList = moviesDB.filter(function (m) {
+        return m.type !== 'saga' && movieHasVip(m) && (VP.type === 'all' || m.type === VP.type) && (!q || norm(m.title).indexOf(q) > -1);
+      });
+      currentPage = 1; updateGrid(true);
+    } catch (e) { return; }
+    var req = b.querySelector('#vip-req'); req.style.display = q.length >= 2 ? 'inline-block' : 'none';
+    if (!filteredList.length) {
+      var g = $('grid');
+      if (g) {
+        var label = VP.type === 'film' ? 'film' : (VP.type === 'serie' ? 'série' : 'titre');
+        g.innerHTML = q
+          ? '<div class="vip-empty"><i class="fas fa-search" style="font-size:26px;color:var(--primary)"></i><p>Aucun ' + label + ' VIP trouvé pour <b>« ' + esc(VP.q.trim()) + ' »</b>.</p><button id="vip-empty-req"><i class="fas fa-paper-plane"></i> Demander ce titre</button></div>'
+          : '<div class="vip-empty"><i class="fas fa-gem" style="font-size:26px;color:var(--primary)"></i><p>Aucun ' + label + ' VIP pour le moment.</p></div>';
+        var eb = $('vip-empty-req'); if (eb) eb.onclick = function () { requestTitle(VP.q); };
+      }
+    }
+  }
+
+  window.showVip = function (type) {
     if (!vipOk()) return;
     try { showCatalogue(); } catch (e) { return; }
-    var t = $('cat-title'); if (t) t.innerText = 'Catalogue VIP';
-    try {
-      filteredList = moviesDB.filter(function (m) { return m.type !== 'saga' && movieHasVip(m); });
-      currentPage = 1;
-    } catch (e) { return; }
+    VP.type = (type === 'film' || type === 'serie') ? type : 'all'; VP.q = '';
+    var t = $('cat-title');
     document.querySelectorAll('.nav-link').forEach(function (a) { a.classList.remove('active'); });
-    var n = $('nav-vip'); if (n) n.classList.add('active');
-    try { updateGrid(true); } catch (e) {}
-    if (t) t.innerText = 'Catalogue VIP';
+    var n = $('nav-vip'); if (n) n.classList.add('active');           /* repère interne (caché) : sert à savoir qu'on est dans le VIP */
+    var hl = $(VP.type === 'film' ? 'nav-film' : (VP.type === 'serie' ? 'nav-serie' : 'nav-catalogue')); if (hl) hl.classList.add('active');
+    setControls(true); applyVip();
+    if (t) t.innerText = VP.type === 'film' ? 'Films VIP' : (VP.type === 'serie' ? 'Séries VIP' : 'Catalogue VIP');
   };
+
+  /* dès qu'on quitte la page VIP (autre onglet, accueil, recherche…) : on remet les contrôles normaux */
+  (function () {
+    var n = $('nav-vip'); if (!n || !window.MutationObserver) return;
+    new MutationObserver(function () { if (!n.classList.contains('active')) setControls(false); }).observe(n, { attributes: true, attributeFilter: ['class'] });
+  })();
 
   /* ---------- lecteur HLS ---------- */
   var hlsLoading = null;
