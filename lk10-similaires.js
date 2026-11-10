@@ -161,7 +161,8 @@
    *  2. STYLES                                                  *
    * ---------------------------------------------------------- */
   var css = '\
-#lk10-sim{margin:26px 0 8px;padding:0 4px;position:relative;box-sizing:border-box}\
+#lk10-sim{display:block;width:100%;max-width:100%;margin:26px auto 8px;padding:0 20px;position:relative;box-sizing:border-box;overflow:hidden;align-self:center;flex:0 0 auto}\
+@media (max-width:600px){#lk10-sim{padding:0 12px}}\
 #lk10-sim *{box-sizing:border-box}\
 #lk10-sim .ls-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}\
 #lk10-sim .ls-title{margin:0;font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:9px}\
@@ -170,15 +171,15 @@
 #lk10-sim .ls-btn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:#161616;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.18s}\
 #lk10-sim .ls-btn:hover:not(:disabled){background:var(--primary,#ffde00);color:#000;border-color:var(--primary,#ffde00)}\
 #lk10-sim .ls-btn:disabled{opacity:.3;cursor:default}\
-#lk10-sim .ls-wrap{position:relative}\
+#lk10-sim .ls-wrap{position:relative;width:100%;min-width:0}\
 #lk10-sim .ls-wrap:before,#lk10-sim .ls-wrap:after{content:"";position:absolute;top:0;bottom:30px;width:26px;z-index:2;pointer-events:none;opacity:0;transition:opacity .2s}\
 #lk10-sim .ls-wrap:before{left:0;background:linear-gradient(90deg,rgba(11,11,11,.9),transparent)}\
 #lk10-sim .ls-wrap:after{right:0;background:linear-gradient(270deg,rgba(11,11,11,.9),transparent)}\
 #lk10-sim .ls-wrap.can-left:before,#lk10-sim .ls-wrap.can-right:after{opacity:1}\
-#lk10-sim .ls-track{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none;padding:2px 2px 6px;outline:none;touch-action:pan-x pan-y}\
+#lk10-sim .ls-track{width:100%;min-width:0;max-width:100%;display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:none;padding:2px 2px 6px;outline:none;touch-action:pan-x pan-y}\
 #lk10-sim .ls-track::-webkit-scrollbar{display:none;height:0}\
 #lk10-sim .ls-track.dragging{scroll-snap-type:none;scroll-behavior:auto;cursor:grabbing}\
-#lk10-sim .ls-card{flex:0 0 calc((100% - 12px*2.4)/3.4);min-width:104px;scroll-snap-align:start;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;color:#ddd}\
+#lk10-sim .ls-card{flex:0 0 var(--ls-w,150px);width:var(--ls-w,150px);min-width:0;scroll-snap-align:start;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none;color:#ddd}\
 #lk10-sim .ls-poster{position:relative;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:#1b1b1b;border:1px solid rgba(255,255,255,.08);transition:transform .2s,border-color .2s,box-shadow .2s}\
 #lk10-sim .ls-poster img{width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none;pointer-events:none}\
 #lk10-sim .ls-card:hover .ls-poster,#lk10-sim .ls-card:focus-visible .ls-poster{transform:translateY(-3px);border-color:var(--primary,#ffde00);box-shadow:0 8px 20px rgba(0,0,0,.6)}\
@@ -188,9 +189,6 @@
 #lk10-sim .ls-sub{font-size:11px;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\
 #lk10-sim .ls-prog{height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}\
 #lk10-sim .ls-prog span{display:block;height:100%;width:30%;background:var(--primary,#ffde00);border-radius:3px;transform-origin:left;transition:margin-left .12s linear,width .2s}\
-@media (min-width:520px){#lk10-sim .ls-card{flex-basis:calc((100% - 12px*3.4)/4.4)}}\
-@media (min-width:768px){#lk10-sim .ls-card{flex-basis:calc((100% - 12px*4.4)/5.4)}}\
-@media (min-width:1100px){#lk10-sim .ls-card{flex-basis:calc((100% - 12px*5.4)/6.4)}}\
 @media (hover:hover) and (pointer:fine){#lk10-sim .ls-nav{display:flex}#lk10-sim .ls-track{cursor:grab}}\
 @media (prefers-reduced-motion:reduce){#lk10-sim .ls-track{scroll-behavior:auto}}';
   var st = document.createElement('style'); st.id = 'lk10-sim-css'; st.textContent = css; document.head.appendChild(st);
@@ -249,9 +247,25 @@
       bar.style.width = w + '%'; bar.style.marginLeft = (max > 0 ? (track.scrollLeft / max) * (100 - w) : 0) + '%';
       prog.style.visibility = max > 2 ? 'visible' : 'hidden';
     }
+    function align() {              /* même largeur que la fiche, centré */
+      var da = document.querySelector('.details-area'), w = da ? da.getBoundingClientRect().width : 0;
+      if (w > 120) { box.style.width = w + 'px'; } else { box.style.width = '100%'; }
+    }
+    function layout() {             /* nombre de cartes visibles selon la largeur disponible */
+      var tw = track.clientWidth; if (tw < 50) return;
+      var n = tw < 420 ? 2.4 : tw < 620 ? 3.4 : tw < 820 ? 4.4 : tw < 1000 ? 5.4 : 6.4, gap = 12;
+      box.style.setProperty('--ls-w', Math.floor((tw - gap * Math.floor(n)) / n) + 'px');
+    }
+    function relayout() { align(); layout(); update(); }
+    box._layout = relayout;
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(function () { relayout(); });
+      var da0 = document.querySelector('.details-area'); if (da0) ro.observe(da0);
+      ro.observe(track);
+    }
     var raf = 0;
     track.addEventListener('scroll', function () { if (!raf) raf = requestAnimationFrame(function () { raf = 0; update(); }); }, { passive: true });
-    window.addEventListener('resize', update);
+    window.addEventListener('resize', relayout);
     function page(dir) { track.scrollBy({ left: dir * track.clientWidth * 0.9, behavior: 'smooth' }); }
     prev.onclick = function () { page(-1); }; next.onclick = function () { page(1); };
     track.addEventListener('keydown', function (e) {
@@ -335,7 +349,7 @@
     if (!list.length) return;
     var box = build(list);
     place(box, root);
-    requestAnimationFrame(function () { box._update(); });
+    requestAnimationFrame(function () { box._layout(); setTimeout(box._layout, 120); });
     if (root && window.MutationObserver) {
       if (observer) observer.disconnect();
       var pending = 0;
