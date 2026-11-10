@@ -189,6 +189,11 @@
     function tryPlay() { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
     function fail(t) { if (my === V.tok) box.innerHTML = msgHtml('<i class="fas fa-exclamation-triangle" style="font-size:22px;margin-bottom:8px"></i>' + esc(t), true); }
 
+    /* fichier direct (.mp4 / .webm…) : lecture par la balise <video>, sans hls.js (aucun CORS nécessaire) */
+    if (/\.(mp4|webm|ogv|mov|m4v)(\?|#|$)/i.test(url)) {
+      v.addEventListener('error', function () { fail('Vidéo indisponible : lien expiré ou refusé par le serveur de la vidéo.'); });
+      v.src = url; tryPlay(); return;
+    }
     if (window.Hls && Hls.isSupported()) {
       var hls = new Hls({ enableWorker: true, maxBufferLength: 40 }); V.hls = hls;
       hls.loadSource(url); hls.attachMedia(v);
