@@ -6675,7 +6675,7 @@ function buildNetflixHome() {
         }).join('');
     }
 
-    // Ferme le menu déroulant si on clique ailleurs
+    // Ferme le menu déroulant si on clique ailleurs.
     document.addEventListener('click', function(e) {
         if(e.target.id !== 'saga-movie-search') {
             const res = document.getElementById('saga-search-results');
@@ -6685,7 +6685,7 @@ function buildNetflixHome() {
             const res2 = document.getElementById('link-existing-results');
             if(res2) res2.style.display = 'none';
         }
-    });
+    }); 
 </script>
     <script src="suggestions-admin.js"></script>
     <script src="cine-fx.js?v=2"></script>
