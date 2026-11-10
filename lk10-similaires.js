@@ -32,9 +32,9 @@
   }
   var FAM_FACTOR = {
     'film|film': 1, 'serie|serie': 1, 'anime|anime': 1,
-    'film|serie': 0.55, 'serie|film': 0.55,
-    'anime|serie': 0.8, 'serie|anime': 0.8,
-    'film|anime': 0.6, 'anime|film': 0.6
+    'film|serie': 0.92, 'serie|film': 0.92,
+    'anime|serie': 0.9, 'serie|anime': 0.9,
+    'film|anime': 0.75, 'anime|film': 0.75
   };
   function famFactor(a, b) { return FAM_FACTOR[a + '|' + b] || 0.5; }
 
@@ -155,7 +155,16 @@
     return out.map(function (o) { return { m: o.m, reason: o.r.reason, score: o.r.s }; });
   }
 
-  if (typeof document === 'undefined') { module.exports = { similar: similar, titleKey: titleKey, sameFranchise: sameFranchise }; return; }
+  function group(m) { return fam(m.type) === 'film' ? 'film' : 'serie'; }
+  /* choisit n titres en garantissant ~35 % de l'autre catégorie (séries si on regarde un film, et inversement) */
+  function mix(pool, curGroup, n) {
+    var other = pool.filter(function (it) { return group(it.m) !== curGroup; });
+    var reserve = other.slice(0, Math.min(other.length, Math.round(n * 0.35)));
+    var rest = pool.filter(function (it) { return reserve.indexOf(it) < 0; }).slice(0, n - reserve.length);
+    return reserve.concat(rest).sort(function (a, b) { return b.score - a.score; });
+  }
+
+  if (typeof document === 'undefined') { module.exports = { similar: similar, mix: mix, group: group, titleKey: titleKey, sameFranchise: sameFranchise }; return; }
 
   /* ---------------------------------------------------------- *
    *  2. STYLES                                                  *
@@ -186,14 +195,12 @@
 #lk10-sim .ls-rate{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.78);color:var(--primary,#ffde00);font-size:11px;font-weight:700;padding:2px 6px;border-radius:12px;border:1px solid rgba(255,222,0,.45)}\
 #lk10-sim .ls-why{position:absolute;left:6px;bottom:6px;right:6px;background:rgba(255,222,0,.95);color:#000;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\
 #lk10-sim .ls-name{margin-top:7px;font-size:13px;font-weight:600;color:#eee;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}\
-#lk10-sim .ls-sub{font-size:11px;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\
+#lk10-sim .ls-sub{font-size:11px;color:#8a8a8a;margin-top:2px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}\
 #lk10-sim .ls-prog{height:3px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}\
 #lk10-sim .ls-prog span{display:block;height:100%;width:30%;background:var(--primary,#ffde00);border-radius:3px;transform-origin:left;transition:margin-left .12s linear,width .2s}\
 #lk10-sim .ls-left{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-width:0}\
 #lk10-sim .ls-chips{display:flex;gap:6px;flex-wrap:wrap}\
-#lk10-sim .ls-chip{border:1px solid rgba(255,255,255,.18);background:#161616;color:#ccc;border-radius:999px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;line-height:1.2;transition:.15s;white-space:nowrap}\
-#lk10-sim .ls-chip:hover{border-color:var(--primary,#ffde00);color:#fff}\
-#lk10-sim .ls-chip.on{background:var(--primary,#ffde00);border-color:var(--primary,#ffde00);color:#000}\
+#lk10-sim .ls-chip{border:1px solid rgba(255,222,0,.55);background:rgba(255,222,0,.08);color:var(--primary,#ffde00);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;line-height:1.2;white-space:nowrap;cursor:default}\
 @media (max-width:600px){#lk10-sim .ls-head{flex-wrap:wrap}#lk10-sim .ls-left{flex:1 1 100%;flex-direction:column;align-items:flex-start;gap:9px}#lk10-sim .ls-chips{flex-wrap:nowrap;overflow-x:auto;width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch}#lk10-sim .ls-chips::-webkit-scrollbar{display:none}}\
 @media (hover:hover) and (pointer:fine){#lk10-sim .ls-nav{display:flex}#lk10-sim .ls-track{cursor:grab}}\
 @media (prefers-reduced-motion:reduce){#lk10-sim .ls-track{scroll-behavior:auto}}';
@@ -231,20 +238,11 @@
     var seen = {}, genres = String(cur.genre || '').split(',').map(function (g) { return g.trim(); }).filter(function (g) {
       var k = norm(g); if (!g || k === 'non classe' || seen[k]) return false; seen[k] = 1; return true;
     });
-    var chips = el('div', 'ls-chips'), chipEls = [];
-    function addChip(label, key) {
-      var b = el('button', 'ls-chip' + (key === null ? ' on' : ''), label); b.type = 'button'; b._key = key;
-      b.onclick = function () {
-        chipEls.forEach(function (c) { c.classList.toggle('on', c === b); });
-        var items = key === null ? pool : pool.filter(function (it) { return genreList(it.m).indexOf(key) >= 0; });
-        fillCards(items.slice(0, SHOW)); track.scrollLeft = 0; relayout();
-      };
-      chips.appendChild(b); chipEls.push(b);
+    if (genres.length) {
+      var chips = el('div', 'ls-chips');
+      genres.slice(0, 4).forEach(function (g) { chips.appendChild(el('span', 'ls-chip', g)); });
+      left.appendChild(chips);
     }
-    var usable = genres.filter(function (g) {
-      var k = norm(g).trim(); return pool.some(function (it) { return genreList(it.m).indexOf(k) >= 0; });
-    });
-    if (usable.length) { addChip('Tous', null); usable.forEach(function (g) { addChip(g, norm(g).trim()); }); left.appendChild(chips); }
     head.appendChild(left); head.appendChild(nav);
 
     var wrap = el('div', 'ls-wrap'), track = el('div', 'ls-track'); track.tabIndex = 0; track.setAttribute('role', 'list');
@@ -258,12 +256,13 @@
       p.appendChild(img);
       if (parseFloat(m.rating)) p.appendChild(el('span', 'ls-rate', '★ ' + parseFloat(m.rating).toFixed(1)));
       if (it.reason) p.appendChild(el('span', 'ls-why', it.reason));
-      var sub = [TYPE_LABEL[String(m.type).toLowerCase()] || '', m.year || ''].filter(Boolean).join(' · ');
+      var gl = String(m.genre || '').split(',').map(function (g) { return g.trim(); }).filter(function (g) { return g && norm(g) !== 'non classe'; }).slice(0, 3);
+      var sub = [TYPE_LABEL[String(m.type).toLowerCase()] || '', m.year || ''].concat(gl).filter(Boolean).join(' · ');
       card.appendChild(p); card.appendChild(el('div', 'ls-name', m.title)); card.appendChild(el('div', 'ls-sub', sub));
       card._id = m.id; track.appendChild(card);
       });
     }
-    fillCards(pool.slice(0, SHOW));
+    fillCards(mix(pool, group(cur), SHOW));
     wrap.appendChild(track);
     var prog = el('div', 'ls-prog'), bar = el('span'); prog.appendChild(bar);
     box.appendChild(head); box.appendChild(wrap); box.appendChild(prog);
@@ -373,7 +372,7 @@
     var root = detailRoot(), key = m.id + '|' + moviesDB.length, mine = document.getElementById('lk10-sim');
     if (mine && lastKey === key) return;
     var list = [];
-    try { list = similar(moviesDB, m, 120); } catch (e) { console.error('[similaires]', e); }
+    try { list = similar(moviesDB, m, 60); } catch (e) { console.error('[similaires]', e); }
     if (mine) mine.remove();
     lastKey = key;
     if (!list.length) return;
