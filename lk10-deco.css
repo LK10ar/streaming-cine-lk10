@@ -119,3 +119,24 @@ html[data-deco="noel"] header { border-bottom: 3px solid #d62828; border-image: 
 .dc-demo button:hover { border-color: var(--primary, #ffde00); color: #fff; }
 .dc-status { margin-top: 12px; min-height: 18px; font-size: 13px; color: #aaa; text-align: center; }
 .dc-status.err { color: #e74c3c; }
+/* ---------- Déco cachée pendant un film (lecteur ouvert ou plein écran) ---------- */
+html.dc-hide #lk10-deco-root, html.dc-hide #dc-yard,
+html.dc-hide #hw-root, html.dc-hide #hw-top, html.dc-hide #hw-yard { display: none !important; }
+
+/* ---------- Bouton invisible posé sur le sapin (clic = couper / remettre les animations) ---------- */
+#lk10-deco-root .dc-treebtn { position: absolute; left: 46px; bottom: 4px; width: 104px; height: 156px; background: transparent; border: 0; padding: 0; cursor: pointer; pointer-events: auto !important; -webkit-tap-highlight-color: transparent; }
+#lk10-deco-root .dc-treebtn:focus-visible { outline: 2px dashed #ffde00; }
+@media (max-width: 700px) { #lk10-deco-root .dc-treebtn { left: 34px; width: 70px; height: 105px; } }
+
+/* ---------- Mode « déco fixe » Noël (animations coupées) ---------- */
+html.dc-calm .dcn-snow, html.dc-calm .dcn-sleigh, html.dc-calm .dcn-btrain,
+html.dc-calm .dcn-shoot, html.dc-calm .dcy-train { display: none !important; }
+html.dc-calm #lk10-deco-root *, html.dc-calm #dc-yard * { animation: none !important; }
+
+/* ---------- Mode « déco fixe » Halloween ---------- */
+html.dc-calm #hw-root .hw-vg, html.dc-calm #hw-top .hw-sp, html.dc-calm #hw-root .hw-gh,
+html.dc-calm #hw-root .hw-bat, html.dc-calm #hw-root .hw-gf, html.dc-calm #hw-root .hw-flash,
+html.dc-calm #hw-root .hw-wi, html.dc-calm #hw-root .hw-hm, html.dc-calm #hw-root .hw-em,
+html.dc-calm #hw-root .hw-cn.h, html.dc-calm #hw-yard .hw-fog, html.dc-calm #hw-yard .hw-zb,
+html.dc-calm #hw-yard .hw-hd { display: none !important; }
+html.dc-calm #hw-root *, html.dc-calm #hw-top *, html.dc-calm #hw-yard * { animation: none !important; filter: none !important; }
