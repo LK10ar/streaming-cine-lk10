@@ -385,6 +385,8 @@
       '.lk10s-it.on{border-color:#e11d2e;color:#ff5a66;background:#17101a}' +
       '.lk10s-langs{display:flex;gap:8px;margin-bottom:12px}.lk10s-langs .lk10s-it{margin:0;justify-content:center}' +
       '.lk10s-note{font-size:12px;color:#8b90a8;line-height:1.5;margin-top:6px}' +
+      /* plein écran : la zone qui fait apparaître le bouton couvre toute la largeur du haut de la vidéo (le lecteur est un iframe : on ne voit pas la souris dessus) */
+      '#video-container:fullscreen .lk10s-hot,#video-container:-webkit-full-screen .lk10s-hot{width:100%;height:130px}' +
       '@media(max-width:600px){.lk10s-btn{top:10px;right:10px;padding:9px 13px}}';
     document.head.appendChild(s);
   }
@@ -495,6 +497,19 @@
     var box = document.getElementById('video-container');
     if (!box || box.__lk10w) return;
     box.__lk10w = true;
+    /* Si le visiteur clique sur le bouton plein écran DU LECTEUR, c'est l'iframe seule qui passe en plein écran : notre bouton « Sources »
+       (posé à côté de l'iframe) disparaît. On bascule donc le plein écran sur #video-container pour que le bouton reste là. */
+    var fsFix = function () {
+      var fe = document.fullscreenElement || document.webkitFullscreenElement;
+      if (!fe || !src.el || src.el.parentNode !== box) return;
+      if (fe === box) { srcShow(); return; }                     // plein écran sur le conteneur : on montre le bouton quelques secondes
+      if (box.contains(fe)) {                                    // plein écran sur l'iframe : on le reprend sur le conteneur
+        var rq = box.requestFullscreen || box.webkitRequestFullscreen;
+        try { var pr = rq && rq.call(box); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {}
+      }
+    };
+    document.addEventListener('fullscreenchange', fsFix);
+    document.addEventListener('webkitfullscreenchange', fsFix);
     var sync = function () {
       var has = !!box.querySelector('iframe');
       if (has) {
