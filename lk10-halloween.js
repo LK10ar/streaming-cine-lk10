@@ -486,8 +486,12 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { yard.classList.toggle('run', es[0].isIntersecting); }, { threshold: 0.05 }).observe(yard);
   else yard.classList.add('run');
 
-  /* Bouton citrouille : coupe / rallume (mémorisé) */
-  document.getElementById('hw-toggle').onclick = function () { on = !on; applyOff(); set(KEY, on ? '1' : '0'); };
+  /* Bouton citrouille : active / coupe le mode calme (mémorisé) */
+  document.getElementById('hw-toggle').onclick = function () {
+    var v = !de.classList.contains('dc-calm');
+    de.classList.toggle('dc-calm', v);
+    set('lk10_calm', v ? '1' : '0');
+  };
 
   /* Chauves-souris : une de temps en temps (3 d'un coup de temps à autre) */
   function bat(delay) {
@@ -502,7 +506,7 @@
     }, delay);
   }
   function wave() {
-    if (reduce || de.classList.contains('lk10-tv') || de.classList.contains('fx-lite')) return;
+    if (calm()) return;
     var k = Math.random() < 0.3 ? 3 : 1;
     for (var j = 0; j < k; j++) bat(j * 800);
   }
@@ -517,7 +521,7 @@
       host().appendChild(el);
     }, delay);
   }
-  function calm() { return reduce || de.classList.contains('lk10-tv') || de.classList.contains('fx-lite'); }
+  function calm() { return reduce || de.classList.contains('lk10-tv') || de.classList.contains('fx-lite') || de.classList.contains('dc-calm'); }
   function witches() {
     if (calm()) return;
     var k = Math.random() < 0.3 ? 2 : 1, m = window.innerWidth < 700;
