@@ -7,13 +7,17 @@
    • Pâques / Saint-Valentin / Nouvel an : déjà dans le menu, leur déco sera ajoutée plus tard (voir THEMES plus bas).
    • Tant que l'admin n'a JAMAIS cliqué sur le bouton, le site garde son comportement d'avant (Halloween automatique du 1er octobre
      au 2 novembre). Dès qu'il choisit (même « Aucune déco »), son choix décide pour tout le monde.
+   • NOUVEAU : la déco se CACHE toute seule quand on regarde un film (lecteur ouvert ou plein écran) et revient à la fermeture.
+   • NOUVEAU : le visiteur peut cliquer sur le SAPIN (ou sur la citrouille d'Halloween) pour couper les animations :
+     il ne reste alors que la déco fixe (comme sur télé). Son choix est mémorisé.
    • Autres scripts : écoute  document.addEventListener('lk10deco', e => e.detail.theme)  (null = rien choisi, '' = aucune déco)
      ou lis  window.LK10Deco.get() ;  <html data-deco="noel|halloween|...|none">.
    À ajouter dans index.html, TOUT EN DERNIER (après lk10-noel.js et lk10-deco-noel.js) :  <script src="lk10-deco.js"></script>
    et dans <head> :  <link rel="stylesheet" href="lk10-deco.css"> */
 (function () {
   'use strict';
-  var KEY = 'lk10_deco', de = document.documentElement;
+  var KEY = 'lk10_deco', CALM_KEY = 'lk10_calm', de = document.documentElement;
+  var HIDE_IN_PLAYER = true;   // true = la déco disparaît dès que le lecteur est ouvert ET en plein écran | false = seulement en plein écran
   var root = null, rafId = 0, timers = [], busy = false, busyTimer = 0, theme = '', ctl = null;   // ctl : null = rien choisi · '' = aucune déco · sinon nom de la fête
   var $ = function (id) { return document.getElementById(id); };
 
@@ -26,13 +30,39 @@
   function later(fn, ms) { var t = setTimeout(fn, ms); timers.push(t); return t; }
   function rnd(a, b) { return a + Math.random() * (b - a); }
 
+  /* ====================== MODE « DÉCO FIXE » (animations coupées par le visiteur) ====================== */
+  function calm() { return de.classList.contains('dc-calm'); }
+  function setCalm(v) {
+    de.classList.toggle('dc-calm', !!v);
+    try { localStorage.setItem(CALM_KEY, v ? '1' : '0'); } catch (e) {}
+  }
+  try { if (localStorage.getItem(CALM_KEY) === '1') de.classList.add('dc-calm'); } catch (e) {}
+
+  /* ====================== DÉCO CACHÉE PENDANT UN FILM ====================== */
+  function watching() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) return true;
+    if (!HIDE_IN_PLAYER) return false;
+    var o = $('player-overlay');
+    return !!(o && getComputedStyle(o).display !== 'none');
+  }
+  function syncHide() { de.classList.toggle('dc-hide', watching()); }
+  document.addEventListener('fullscreenchange', syncHide);
+  document.addEventListener('webkitfullscreenchange', syncHide);
+
   /* ====================== DÉCO DE NOËL ====================== */
   /* Les dessins et animations sont dans lk10-deco-noel.js (à charger AVANT ce fichier). */
   function div(cls, html) { var d = document.createElement('div'); d.className = cls; d.innerHTML = html || ''; return d; }
   var noelCtl = null;
   function buildNoel() {
     var N = window.LK10DecoNoel; if (!N) { console.warn('lk10-deco : lk10-deco-noel.js manquant'); return; }
-    noelCtl = N.build(root, { tv: isTV(), reduced: reduced(), busy: function () { return busy; } });
+    /* busy() : neige / traîneau / train se mettent en pause pendant un film OU quand le visiteur a coupé les animations */
+    noelCtl = N.build(root, { tv: isTV(), reduced: reduced(), busy: function () { return busy || calm(); } });
+    /* Le sapin est cliquable : un clic coupe / remet les animations (il reste juste la déco fixe) */
+    var tb = document.createElement('button');
+    tb.type = 'button'; tb.className = 'dc-treebtn';
+    tb.title = 'Couper / remettre les animations de Noël'; tb.setAttribute('aria-label', 'Couper ou remettre les animations de Noël');
+    tb.onclick = function () { setCalm(!calm()); };
+    root.appendChild(tb);
   }
 
   /* ====================== FÊTES DISPONIBLES ====================== */
@@ -73,17 +103,19 @@
     }
     syncHalloween();
     syncModal();
+    syncHide();
     try { document.dispatchEvent(new CustomEvent('lk10deco', { detail: { theme: t } })); } catch (e) {}
   }
   /* mémorisé pour l'affichage immédiat au prochain chargement : rien = pas choisi, 'none' = aucune déco */
   function remember(t) { try { if (t === null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, t === '' ? 'none' : t); } catch (e) {} }
-  window.LK10Deco = { get: function () { return ctl; }, set: function (t) { remember(t); apply(t); } };
+  window.LK10Deco = { get: function () { return ctl; }, set: function (t) { remember(t); apply(t); }, calm: setCalm, isCalm: calm };
 
-  /* Pause de la neige quand un film / une bande-annonce est ouvert */
+  /* Pause de la neige + déco cachée quand un film / une bande-annonce est ouvert */
   busyTimer = setInterval(function () {
     var o = $('player-overlay'), t = $('trailer-overlay');
     busy = !!((o && getComputedStyle(o).display !== 'none') || (t && getComputedStyle(t).display !== 'none'));
-  }, 1000);
+    syncHide();
+  }, 400);
   window.addEventListener('resize', function () { setHeaderVar(); });
 
   /* ====================== LECTURE DU RÉGLAGE (tout le monde) ====================== */
