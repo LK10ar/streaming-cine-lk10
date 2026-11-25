@@ -1,7 +1,7 @@
 /* ==========================================================================
    Ciné LK10 — Étape pub (2 écrans) avant le lecteur  ·  Adsterra
    Remplace ENTIÈREMENT l'ancien lk10-adgate.js (déjà chargé dans index.html).
-   Aucune modif HTML nécessaire.
+   Aucune modif HTML nécessaire (sauf le numéro de version ?v=3).
    ========================================================================== */
 (function () {
   'use strict';
@@ -19,6 +19,7 @@
   var MIN_WAIT_MS   = 4000;   // temps minimum avant de passer à l'étape suivante après le clic
   var REMEMBER_MIN  = 0;      // 0 = pub à chaque ouverture d'un film ; ex. 30 = pas de pub pendant 30 min
   var LS_KEY        = 'lk10_adgate_passed_at';
+  var AUTO_FULLSCREEN = true; // true = le film se lance directement en plein écran | false = c'est au spectateur de le faire
   var TOTAL         = AD_SCRIPTS.length;
 
   /* ---------------- ÉTAT ---------------- */
@@ -216,20 +217,64 @@
     box.innerHTML = c;
   }
 
+  /* ---------------- PLEIN ÉCRAN AUTOMATIQUE ---------------- */
+  function goFullscreen() {
+    if (!AUTO_FULLSCREEN) return;
+    var box = document.getElementById('video-container');
+    if (!box || document.fullscreenElement) return;
+    var req = box.requestFullscreen || box.webkitRequestFullscreen;
+    if (!req) return;
+    try {
+      var p = req.call(box);
+      if (p && p.catch) p.catch(function () {}); // refusé par le navigateur : le film se lance quand même en normal
+    } catch (e) {}
+  }
+
+  function exitFs() {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+    } catch (e) {}
+  }
+
   function completeGate() {
     gatePassed = true;
     try { if (REMEMBER_MIN) localStorage.setItem(LS_KEY, String(Date.now())); } catch (e) {}
     hideGate();
-    if (pendingContent) playNow(pendingContent);
+    if (pendingContent) {
+      playNow(pendingContent);
+      goFullscreen();          // plein écran automatique si AUTO_FULLSCREEN = true
+    }
     pendingContent = null;
   }
 
   /* ---------------- BRANCHEMENT SUR LE SITE ---------------- */
+  function wrapSetVideo() {
+    var cur = window.setVideoContent;
+    if (typeof cur !== 'function' || cur.__lk10gate) return;
+    origSetVideo = cur;
+    var w = function (c) {
+      // VIP / admin, lien indisponible, écran « VIP » : comportement d'origine
+      if (isPrivileged() || !c || c === 'VIP_LOCK') {
+        hideGate();
+        return origSetVideo.apply(this, arguments);
+      }
+      if (gatePassed) { return playNow(c); }   // pub déjà faite : lecture directe
+
+      // Pub à faire : on garde le lien en attente et on vide le lecteur
+      pendingContent = c;
+      var box = document.getElementById('video-container');
+      if (box) box.innerHTML = '';
+      try { if (typeof adTimer !== 'undefined' && adTimer) clearInterval(adTimer); } catch (e) {}
+      if (!els.dialog || !els.dialog.classList.contains('show')) showGate();
+    };
+    w.__lk10gate = true;
+    window.setVideoContent = w;
+  }
+
   function hook() {
     if (typeof window.setVideoContent !== 'function' || typeof window.openP !== 'function') {
       return setTimeout(hook, 200);
     }
-    origSetVideo = window.setVideoContent;
     var origOpenP = window.openP;
 
     // Nouvelle ouverture de fiche => nouvelle pub (sauf délai mémorisé)
@@ -240,27 +285,14 @@
       return origOpenP.apply(this, arguments);
     };
 
-    window.setVideoContent = function (c) {
-      // VIP / admin, lien indisponible, écran « VIP » : comportement d'origine
-      if (isPrivileged() || !c || c === 'VIP_LOCK') {
-        hideGate();
-        return origSetVideo.apply(this, arguments);
-      }
-      if (gatePassed) { return playNow(c); }   // pub déjà faite : lecture directe (sans l'ancien chrono de 5 s)
-
-      // Pub à faire : on garde le lien en attente et on vide le lecteur
-      pendingContent = c;
-      var box = document.getElementById('video-container');
-      if (box) box.innerHTML = '';
-      try { if (typeof adTimer !== 'undefined' && adTimer) clearInterval(adTimer); } catch (e) {}
-      if (!els.dialog || !els.dialog.classList.contains('show')) showGate();
-    };
-
-    // Fermer le lecteur ferme aussi la fenêtre de pub
+    // Fermer le lecteur ferme aussi la fenêtre de pub et quitte le plein écran
     var origCloseP = window.closeP;
     if (typeof origCloseP === 'function') {
-      window.closeP = function () { hideGate(); pendingContent = null; return origCloseP.apply(this, arguments); };
+      window.closeP = function () { exitFs(); hideGate(); pendingContent = null; return origCloseP.apply(this, arguments); };
     }
+
+    wrapSetVideo();
+    setInterval(wrapSetVideo, 500); // se remet en place si un autre script l'écrase
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
