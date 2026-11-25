@@ -1,6 +1,5 @@
-self.options = {
-    "domain": "3nbf4.com",
-    "zoneId": 12348176
-}
-self.lary = ""
-importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+/* Ciné LK10 — service worker minimal : rend le site installable (« Ajouter à l'écran d'accueil »).
+   Il ne met RIEN en cache : le site reste toujours à jour, comme avant. */
+self.addEventListener('install', function () { self.skipWaiting(); });
+self.addEventListener('activate', function (e) { e.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', function () { /* réseau direct */ });
